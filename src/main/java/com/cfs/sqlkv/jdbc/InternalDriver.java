@@ -8,8 +8,8 @@ import java.util.logging.Logger;
 
 /**
  * @Description jdbc驱动
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-15 16:38
  */
 public class InternalDriver implements Driver{

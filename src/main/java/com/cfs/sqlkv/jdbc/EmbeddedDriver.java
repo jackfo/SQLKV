@@ -6,8 +6,8 @@ import java.util.logging.Logger;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-15 12:35
  */
 public class EmbeddedDriver implements Driver{

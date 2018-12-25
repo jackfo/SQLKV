@@ -2,8 +2,8 @@ package com.cfs.sqlkv.compile.node;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-15 16:23
  */
 

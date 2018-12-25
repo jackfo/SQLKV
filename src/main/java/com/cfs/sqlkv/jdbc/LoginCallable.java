@@ -8,8 +8,8 @@ import java.util.concurrent.Callable;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-15 17:03
  */
 public class LoginCallable implements Callable<EmbedConnection> {

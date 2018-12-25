@@ -11,8 +11,8 @@ import java.sql.Driver;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-15 11:29
  */
 public class NetServer {

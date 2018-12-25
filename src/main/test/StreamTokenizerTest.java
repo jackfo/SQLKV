@@ -4,8 +4,8 @@ import java.io.StringReader;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-12 11:04
  */
 public class StreamTokenizerTest {

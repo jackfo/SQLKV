@@ -2,8 +2,8 @@ import java.sql.*;
 
 /**
  * @Description
- * @auther zhengxiaokang
- * @Email zhengxiaokang@qq.com
+ * @author zhengxiaokang
+ * @Email zheng.xiaokang@qq.com
  * @create 2018-12-11 20:51
  */
 public class MySQLTest {
