@@ -24,6 +24,7 @@ public class LoginCallable implements Callable<EmbedConnection> {
         this.info = info;
     }
 
+
     public EmbedConnection call() throws SQLException {
         return driver.getNewEmbedConnection(url, info);
     }

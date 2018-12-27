@@ -2,6 +2,8 @@ package com.cfs.sqlkv.jdbc;
 
 
 
+import com.cfs.sqlkv.common.SQLState;
+
 import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -31,7 +33,17 @@ public class InternalDriver implements Driver{
         return connect(url, info, DriverManager.getLoginTimeout());
     }
 
-    public Connection connect( String url, Properties info, int loginTimeoutSeconds ){
+    /**
+     * 核心连接过程
+     * */
+    public Connection connect(String url, Properties info, int loginTimeoutSeconds ) throws SQLException {
+
+        if (!acceptsURL(url)) {
+            return null;
+        }
+
+        /**对连接进行控制,防止连接过多,将数据库击穿*/
+        //TODO:待实现
 
 
     }
@@ -48,10 +60,6 @@ public class InternalDriver implements Driver{
     }
 
 
-    @Override
-    public boolean acceptsURL(String url) throws SQLException {
-        return false;
-    }
 
     @Override
     public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
@@ -76,5 +84,20 @@ public class InternalDriver implements Driver{
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return null;
+    }
+
+    protected boolean active;
+    @Override
+    public boolean acceptsURL(String url) throws SQLException {
+        return active && embeddedDriverAcceptsURL( url );
+    }
+
+    /**检测URL是否有效*/
+    public static boolean embeddedDriverAcceptsURL(String url) throws SQLException {
+        //如果URL为空,无法进行连接
+        if(url==null){
+            Util.generateCsSQLException(SQLState.UN_EXCEPTION,url);
+        }
+        return true;
     }
 }
