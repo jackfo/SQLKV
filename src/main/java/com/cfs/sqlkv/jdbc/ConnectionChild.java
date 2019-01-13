@@ -1,5 +1,7 @@
 package com.cfs.sqlkv.jdbc;
 
+import com.cfs.sqlkv.context.LanguageConnectionContext;
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -17,6 +19,8 @@ public abstract class ConnectionChild {
      * 连接对应的驱动
      * */
     final InternalDriver factory;
+
+    public LanguageConnectionContext lcc;
 
     ConnectionChild(EmbedConnection conn) {
         super();

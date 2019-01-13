@@ -1,5 +1,7 @@
 package com.cfs.sqlkv.common.context;
 
+import com.cfs.sqlkv.context.Context;
+
 import java.util.HashSet;
 
 /**
@@ -11,6 +13,10 @@ import java.util.HashSet;
 public class ContextService {
 
     private static ContextService INSTANCE;
+
+    static {
+        INSTANCE = new ContextService();
+    }
 
     /**
      * 维护当前线程创建的所有上下文。
@@ -29,7 +35,6 @@ public class ContextService {
      * 在创建ContextService实例的时候,会将当前对象交给factory,保证工厂始终是单例的
      * */
     public ContextService(){
-        ContextService.INSTANCE = this;
         allContexts = new HashSet<ContextManager>();
     }
 
@@ -45,14 +50,14 @@ public class ContextService {
      * @return 返回相应的上下文
      * */
     public static Context getContext(String contextId){
-
+        return null;
     }
 
     /**
      * @return 返回当前线程ContextManager
      * */
     public ContextManager getCurrentContextManager(){
-
+        return null;
     }
 
     public void resetCurrentContextManager(ContextManager cm){
@@ -60,4 +65,26 @@ public class ContextService {
     }
 
 
+    public void setCurrentContextManager(ContextManager cm) {
+    }
+
+    public ContextManager newContextManager(){
+        ContextManager cm = new ContextManager();
+        synchronized (this) {
+            allContexts.add(cm);
+        }
+        return cm;
+    }
+
+    public static Context getContextOrNull(String contextId) {
+        ContextService csf = INSTANCE;
+        if (csf == null){
+            return null;
+        }
+        ContextManager cm = csf.getCurrentContextManager();
+        if (cm == null){
+            return null;
+        }
+        return cm.getContext(contextId);
+    }
 }

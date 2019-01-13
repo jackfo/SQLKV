@@ -2,10 +2,16 @@ package com.cfs.sqlkv.jdbc;
 
 
 
+import com.cfs.sqlkv.common.Attribute;
 import com.cfs.sqlkv.common.SQLState;
+import com.cfs.sqlkv.common.context.ContextManager;
+import com.cfs.sqlkv.common.context.ContextService;
+import com.cfs.sqlkv.context.ConnectionContext;
+import com.cfs.sqlkv.io.FormatableProperties;
 
 import java.sql.*;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 /**
@@ -16,8 +22,23 @@ import java.util.logging.Logger;
  */
 public class InternalDriver implements Driver{
 
-    static {
+    private static final Object syncMe = new Object();
 
+    private ContextService contextServiceFactory;
+
+    public InternalDriver(){
+        contextServiceFactory = ContextService.getInstance();
+        InternalDriver.activeDriver = this;
+        active = true;
+        try {
+            DriverManager.registerDriver(this);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static {
+        System.out.println("加载InternalDriver");
 
     }
 
@@ -42,17 +63,48 @@ public class InternalDriver implements Driver{
             return null;
         }
 
-        /**对连接进行控制,防止连接过多,将数据库击穿*/
-        //TODO:待实现
+        boolean current = url.equals(Attribute.SQLJ_NESTED);
+
+        if(current){
+            ConnectionContext connContext = getConnectionContext();
+        }
+
+        FormatableProperties finfo = null;
+
+        try {
+            finfo = getAttributes(url, info);
+            //如果获取到数据库的操作 dbname不为空
+            if (InternalDriver.getDatabaseName(url, finfo).length() == 0) {
+
+            }
 
 
+            EmbedConnection conn;
+            if ( loginTimeoutSeconds <= 0 ) {
+                conn = getNewEmbedConnection( url, finfo );
+            } else {
+                conn = timeLogin( url, finfo, loginTimeoutSeconds );
+            }
+
+            // if this is not the correct driver a EmbedConnection
+            // object is returned in the closed state.
+            if (conn.isClosed()) {
+                return null;
+            }
+
+            return conn;
+        }finally {
+            if (finfo != null){
+                finfo.clearDefaults();
+            }
+        }
     }
 
     /**
      * 进行登录连接,设定超时时间
      * */
     private EmbedConnection timeLogin(String url, Properties info, int loginTimeoutSeconds)throws SQLException{
-
+       return null;
     }
 
     EmbedConnection getConnection( final String url, final Properties info) throws SQLException{
@@ -100,4 +152,69 @@ public class InternalDriver implements Driver{
         }
         return true;
     }
+
+    private ConnectionContext getConnectionContext() {
+        ContextManager cm = getCurrentContextManager();
+        ConnectionContext localCC = null;
+        if (cm != null) {
+            localCC = (ConnectionContext) (cm.getContext(ConnectionContext.CONTEXT_ID));
+        }
+        return localCC;
+    }
+
+    /**
+     * 通过上下文服务获取上下文管理器
+     * */
+    private ContextManager getCurrentContextManager() {
+        return contextServiceFactory.getCurrentContextManager();
+    }
+
+    protected FormatableProperties getAttributes(String url, Properties info){
+        FormatableProperties finfo = new FormatableProperties(info);
+        info = null;
+        StringTokenizer st = new StringTokenizer(url, ";");
+        st.nextToken();
+        while (st.hasMoreTokens()) {
+            String v = st.nextToken();
+            int eqPos = v.indexOf('=');
+            if (eqPos == -1) {
+                throw new RuntimeException("没有匹配的URL");
+            }
+            finfo.put((v.substring(0, eqPos)).trim(), (v.substring(eqPos + 1)).trim());
+        }
+        return finfo;
+    }
+
+    /**
+     * 根据URL解析数据库名
+     * */
+    public static String getDatabaseName(String url, Properties info) {
+        if (url.equals(Attribute.SQLJ_NESTED)) {
+            return "";
+        }
+        int attributeStart = url.indexOf(';');
+        String dbname;
+        if (attributeStart == -1){
+            dbname = url.substring(Attribute.PROTOCOL.length());
+        }else{
+            dbname = url.substring(Attribute.PROTOCOL.length(), attributeStart);
+        }
+        if (dbname.length() == 0) {
+            if (info != null){
+                dbname = info.getProperty(Attribute.DBNAME_ATTR, dbname);
+            }
+        }
+        dbname = dbname.trim();
+        return dbname;
+    }
+
+    public EmbedConnection getNewEmbedConnection( final String url, final Properties info){
+        final   InternalDriver  myself = this;
+        return new EmbedConnection(myself, url, info);
+    }
+
+    public final ContextService getContextService() {
+        return contextServiceFactory;
+    }
+
 }

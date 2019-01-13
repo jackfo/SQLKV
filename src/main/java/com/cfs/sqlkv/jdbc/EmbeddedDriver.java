@@ -1,5 +1,7 @@
 package com.cfs.sqlkv.jdbc;
 
+import com.cfs.sqlkv.common.Attribute;
+
 import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -14,16 +16,23 @@ public class EmbeddedDriver implements Driver{
 
     /**在加载驱动的时候开始执行*/
     static {
-
+        EmbeddedDriver.init();
     }
 
     public EmbeddedDriver(){
 
     }
 
+    /**
+     * 根据jdbc做初始化
+     * */
+    public static void init(){
+        new JDBC().init(Attribute.PROTOCOL);
+    }
 
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
+        System.out.println();
         return null;
     }
 

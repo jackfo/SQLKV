@@ -1,8 +1,12 @@
 package com.cfs.sqlkv.jdbc;
 
+import com.cfs.sqlkv.catalog.Database;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.common.context.ContextService;
+import com.cfs.sqlkv.context.LanguageConnectionContext;
+import com.cfs.sqlkv.exception.StandardException;
 
+import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -34,9 +38,30 @@ public final class TransactionResourceImpl {
     protected ContextManager cm;
     protected ContextService csf;
 
+    protected Database database;
+
+    protected LanguageConnectionContext lcc;
+
+    private String dbname;
+
     public TransactionResourceImpl(InternalDriver driver, String url, Properties info){
         this.driver = driver;
         this.url = url;
+        dbname = InternalDriver.getDatabaseName(url, info);
+        csf = driver.getContextService();
+        cm = csf.newContextManager();
+    }
+
+    public LanguageConnectionContext getLcc() {
+        return  lcc;
+    }
+
+    void startTransaction() throws StandardException, SQLException {
+        lcc = database.setupConnection(cm, null, null, dbname);
+    }
+
+    public void setDatabase(Database db) {
+        database = db;
     }
 
     /**
@@ -44,5 +69,23 @@ public final class TransactionResourceImpl {
      * */
     InternalDriver getDriver() {
         return driver;
+    }
+
+    public ContextManager getCm(){
+        return cm;
+    }
+
+    final void setupContextStack() {
+        csf.setCurrentContextManager(cm);
+    }
+
+    public ContextManager getContextManager(){
+        return cm;
+    }
+
+    public void rollback() throws StandardException {
+        if (lcc != null){
+            //lcc.userRollback();
+        }
     }
 }

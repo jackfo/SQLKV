@@ -1,6 +1,5 @@
 package com.cfs.sqlkv.jdbc;
 
-import org.apache.derby.impl.jdbc.EmbedConnection;
 
 import java.sql.SQLException;
 import java.util.Properties;
@@ -26,7 +25,8 @@ public class LoginCallable implements Callable<EmbedConnection> {
 
 
     public EmbedConnection call() throws SQLException {
-        return driver.getNewEmbedConnection(url, info);
+        //return driver.getNewEmbedConnection(url, info);
+        return null;
     }
 
 }

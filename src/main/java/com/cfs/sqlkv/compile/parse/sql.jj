@@ -1,0 +1,1563 @@
+options
+{
+	STATIC = false;
+	LOOKAHEAD = 1;
+	DEBUG_PARSER = false;
+	DEBUG_LOOKAHEAD = false;
+	DEBUG_TOKEN_MANAGER = false;
+	ERROR_REPORTING = true;
+	USER_TOKEN_MANAGER = false;
+	USER_CHAR_STREAM = true;
+	COMMON_TOKEN_ACTION = true;
+	CACHE_TOKENS = true;
+	UNICODE_INPUT = true;
+    JDK_VERSION = "1.5";
+}
+
+PARSER_BEGIN(SQLParser)
+
+package com.cfs.sqlkv.compile.parse;
+import com.cfs.sqlkv.catalog.types.*;
+import com.cfs.sqlkv.catalog.types.DataTypeDescriptor;
+import com.cfs.sqlkv.column.*;
+import com.cfs.sqlkv.common.context.*;
+import com.cfs.sqlkv.compile.CompilerContext;
+import com.cfs.sqlkv.compile.TypeCompiler;
+import com.cfs.sqlkv.compile.table.*;
+import com.cfs.sqlkv.compile.node.*;
+import com.cfs.sqlkv.exception.StandardException;
+import com.cfs.sqlkv.compile.result.*;
+import com.cfs.sqlkv.compile.name.TableName;
+import com.cfs.sqlkv.common.*;
+import com.cfs.sqlkv.sql.dictionary.*;
+import com.cfs.sqlkv.util.*;
+import java.sql.*;
+import java.util.*;
+public class SQLParser{
+
+    private static final int NO_SET_OP = 0;
+    //参数数量
+    private int parameterNumber;
+    //默认的参数
+    private Object[] paramDefaults;
+    //SQL文本
+    private String statementSQLText;
+
+    private boolean isDistinct;
+
+    /**
+      * 如果最后一个标识符或关键字是分隔标识符
+      * 用来记住是否需要做序列化处理
+      */
+    private boolean lastTokenDelimitedIdentifier = false;
+    private boolean nextToLastTokenDelimitedIdentifier = false;
+    /**获取的最后一个标识符Token*/
+    private Token   lastIdentifierToken;
+    /**下一个标识符Token*/
+    private Token   nextToLastIdentifierToken;
+    private Token   thirdToLastIdentifierToken;
+
+    private ContextManager				cm;
+	private CompilerContext				compilerContext;
+
+	private static final int        OPTIONAL_TABLE_CLAUSES_SIZE = 3;
+    private static final int        OPTIONAL_TABLE_CLAUSES_TABLE_PROPERTIES = 0;
+
+    private static final int	OPTIONAL_TABLE_CLAUSES_DERIVED_RCL = 1;
+    private static final int	OPTIONAL_TABLE_CLAUSES_CORRELATION_NAME = 2;
+
+
+	public final void setCompilerContext(CompilerContext cc) {
+		this.compilerContext = cc;
+		this.cm = cc.getContextManager();
+	}
+
+	//初始化Statement
+    private void initStatement(String statementSQLText, Object[] paramDefaults)throws StandardException{
+        parameterNumber = 0;
+        this.statementSQLText = statementSQLText;
+        this.paramDefaults = paramDefaults;
+        //TODO:尚未实现SQL优化器
+   }
+
+   	private final ContextManager getContextManager(){
+   		return cm;
+   	}
+
+    /**
+     * 根据表名获取Java数据类型
+     */
+   	private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName)throws StandardException{
+    	return new DataTypeDescriptor(TypeId.getUserDefinedTypeId( typeName.getSchemaName(), typeName.getTableName(), null ),true);
+    }
+
+	boolean commonDatatypeName(boolean checkFollowingToken){
+	    return commonDatatypeName(1, checkFollowingToken);
+	}
+
+   	boolean commonDatatypeName(int start, boolean checkFollowingToken)
+    	{
+    		boolean retval = false;
+
+    		switch (getToken(start).kind)
+    		{
+    		  case CHARACTER:
+    		  case CHAR:
+    		  case VARCHAR:
+    		  case NVARCHAR:
+    		  case NCHAR:
+    		  case BIT:
+    		  case NUMERIC:
+    		  case DECIMAL:
+    		  case DEC:
+    		  case INTEGER:
+    		  case INT:
+    		  case SMALLINT:
+              case BIGINT:
+    		  case FLOAT:
+    		  case REAL:
+    		  case DATE:
+    		  case TIME:
+    		  case TIMESTAMP:
+    		  case BOOLEAN:
+    		  case DOUBLE:
+    		  case BLOB:
+    		  case CLOB:
+    		  case NCLOB:
+    		  case BINARY: // LARGE OBJECT
+    		  case XML:
+    			retval = true;
+    			break;
+
+    		  case LONG:
+    			if (checkFollowingToken == true)
+    			{
+    				switch (getToken(start+1).kind)
+    				{
+    				  case VARCHAR:
+    				  case NVARCHAR:
+    				  case BINARY:
+    				  case VARBINARY:
+    				  case BIT:
+    					retval = true;
+    					break;
+    				}
+    				break;
+    			}
+    			else
+    			{
+    				retval = true;
+    				break;
+    			}
+
+    		  case NATIONAL:
+    			if (checkFollowingToken == true)
+    			{
+    				switch (getToken(start+1).kind)
+    				{
+    				  case CHAR:
+    				  case CHARACTER:
+    					retval = true;
+    					break;
+    				}
+    				break;
+    			}
+    			else
+    			{
+    				retval = true;
+    				break;
+    			}
+    		}
+
+    		return retval;
+    	}
+
+}
+
+PARSER_END(SQLParser)
+//跳过不执行的符号
+SKIP :
+{
+	  " "
+	| "\t"
+	| "\n"
+	| "\r"
+}
+
+TOKEN_MGR_DECLS :
+{
+	void CommonTokenAction(Token t)
+	{
+		t.beginOffset = input_stream.getBeginOffset();
+		t.endOffset = input_stream.getEndOffset();
+	}
+	int commentNestingDepth = 0;
+}
+
+TOKEN [IGNORE_CASE] :
+{	/* SQL92 reserved Keywords */
+	<ADD: "add">
+|	<ALL: "all">
+|	<ALLOCATE: "allocate">
+|	<ALTER: "alter">
+|	<AND: "and">
+|	<ANY: "any">
+|	<ARE: "are">
+|	<AS: "as">
+|	<ASC: "asc">
+|	<ASSERTION: "assertion">
+|	<AT: "at">
+|	<AUTHORIZATION: "authorization">
+|	<AVG: "avg">
+|	<BEGIN: "begin">
+|	<BETWEEN: "between">
+|	<BINARY: "binary">
+|	<BIT: "bit">
+|	<BOTH: "both">
+|	<BY: "by">
+|	<CASCADE: "cascade">
+|	<CASCADED: "cascaded">
+|	<CASE: "case">
+|	<CAST: "cast">
+|	<CHAR: "char">
+|	<CHARACTER: "character">
+|	<CHARACTER_LENGTH: "character_length">
+|	<CHECK: "check">
+|	<CLOSE: "close">
+|	<COALESCE: "coalesce">
+|	<COLLATE: "collate">
+|	<COLLATION: "collation">
+|	<COLUMN: "column">
+|	<COMMIT: "commit">
+|	<CONNECT: "connect">
+|	<CONNECTION: "connection">
+|	<CONSTRAINT: "constraint">
+|	<CONSTRAINTS: "constraints">
+|	<CONTINUE: "continue">
+|	<CONVERT: "convert">
+|	<CORRESPONDING: "corresponding">
+|	<COUNT: "count">
+|	<CREATE: "create">
+|	<CROSS: "cross">
+|	<CURRENT: "current">
+|	<CURRENT_DATE: "current_date">
+|	<CURRENT_TIME: "current_time">
+|	<CURRENT_TIMESTAMP: "current_timestamp">
+|	<CURRENT_USER: "current_user">
+|	<CURSOR: "cursor">
+|	<D: "d">
+|	<DEALLOCATE: "deallocate">
+|	<DEC: "dec">
+|	<DECIMAL: "decimal">
+|	<DECLARE: "declare">
+|	<_DEFAULT: "default">
+|	<DEFERRABLE: "deferrable">
+|	<DEFERRED: "deferred">
+|	<DELETE: "delete">
+|	<DESC: "desc">
+|	<DESCRIBE: "describe">
+|	<DIAGNOSTICS: "diagnostics">
+|	<DISCONNECT: "disconnect">
+|	<DISTINCT: "distinct">
+|	<DOUBLE: "double">
+|	<DROP: "drop">
+|	<ELSE: "else">
+|	<END: "end">
+|	<ENDEXEC: "end-exec">
+|	<ESCAPE: "escape">
+|	<EXCEPT: "except">
+|	<EXCEPTION: "exception">
+|	<EXEC: "exec">
+|	<EXECUTE: "execute">
+|	<EXISTS: "exists">
+|	<EXTERNAL: "external">
+|	<FALSE: "false">
+|	<FETCH: "fetch">
+|	<FIRST: "first">
+|	<FLOAT: "float">
+|	<FOR: "for">
+|	<FOREIGN: "foreign">
+|	<FOUND: "found">
+|	<FROM: "from">
+|	<FULL: "full">
+|	<FUNCTION: "function">
+|	<GET: "get">
+|	<GLOBAL: "global">
+|	<GO: "go">
+|	<GOTO: "goto">
+|	<GRANT: "grant">
+|	<GROUP: "group">
+|	<HAVING: "having">
+|	<HOUR: "hour">
+|	<IDENTITY: "identity">
+|	<IMMEDIATE: "immediate">
+|	<IN: "in">
+|	<INDICATOR: "indicator">
+|	<INITIALLY: "initially">
+|	<INNER: "inner">
+|	<INPUT: "input">
+|	<INSENSITIVE: "insensitive">
+|	<INSERT: "insert">
+|	<INT: "int">
+|	<INTEGER: "integer">
+|	<INTERSECT: "intersect">
+|	<INTO: "into">
+|	<IS: "is">
+|	<ISOLATION: "isolation">
+|	<JOIN: "join">
+|	<KEY: "key">
+|	<LAST: "last">
+|	<LEADING: "leading">
+|	<LEFT: "left">
+|	<LIKE: "like">
+|	<LOWER: "lower">
+|	<MATCH: "match">
+|	<MAX: "max">
+|	<MIN: "min">
+|	<MINUTE: "minute">
+|	<MODULE: "module">
+|	<NATIONAL: "national">
+|	<NATURAL: "natural">
+|	<NCHAR: "nchar">
+|	<NEXT: "next">
+|	<NO: "no">
+|	<NOT: "not">
+|	<NULL: "null">
+|	<NULLIF: "nullif">
+|	<NUMERIC: "numeric">
+|	<OF: "of">
+|	<ON: "on">
+|	<ONLY: "only">
+|	<OPEN: "open">
+|	<OPTION: "option">
+|	<OR: "or">
+|	<ORDER: "order">
+|	<OUTER: "outer">
+|	<OUTPUT: "output">
+|	<OVERLAPS: "overlaps">
+|	<PAD: "pad">
+|	<PARTIAL: "partial">
+|	<PREPARE: "prepare">
+|	<PRESERVE: "preserve">
+|	<PRIMARY: "primary">
+|	<PRIOR: "prior">
+|	<PRIVILEGES: "privileges">
+|	<PROCEDURE: "procedure">
+|	<PUBLIC: "public">
+|	<READ: "read">
+|	<REAL: "real">
+|	<REFERENCES: "references">
+|	<RELATIVE: "relative">
+|	<RESTRICT: "restrict">
+|	<REVOKE: "revoke">
+|	<RIGHT: "right">
+|	<ROLLBACK: "rollback">
+|	<ROWS: "rows">
+|	<SCHEMA: "schema">
+|	<SCROLL: "scroll">
+|	<SECOND: "second">
+|	<SELECT: "select">
+|	<SESSION_USER: "session_user">
+|	<SET: "set">
+|	<SMALLINT: "smallint">
+|	<SOME: "some">
+|	<SPACE: "space">
+|	<SQL: "sql">
+|	<SQLCODE: "sqlcode">
+|	<SQLERROR: "sqlerror">
+|	<SQLSTATE: "sqlstate">
+|	<SUBSTRING: "substring">
+|	<SUM: "sum">
+|	<SYSTEM_USER: "system_user">
+|	<T: "t">
+|	<TABLE: "table">
+|	<TEMPORARY: "temporary">
+|	<TIMEZONE_HOUR: "timezone_hour">
+|	<TIMEZONE_MINUTE: "timezone_minute">
+|	<TO: "to">
+|	<TRANSACTION: "transaction">
+|	<TRANSLATE: "translate">
+|	<TRANSLATION: "translation">
+|	<TRAILING: "trailing">
+|	<TRIM: "trim">
+|	<TRUE: "true">
+|	<TS: "ts">
+|	<UNION: "union">
+|	<UNIQUE: "unique">
+|	<UNKNOWN: "unknown">
+|	<UPDATE: "update">
+|	<UPPER: "upper">
+|	<USER: "user">
+|	<USING: "using">
+|	<VALUE: "value">
+|	<VALUES: "values">
+|	<VARBINARY: "varbinary">
+|	<VARCHAR: "varchar">
+|	<VARYING: "varying">
+|	<VIEW: "view">
+|	<WHENEVER: "whenever">
+|	<WHERE: "where">
+|   <WINDOW: "window">
+|	<WITH: "with">
+|	<WORK: "work">
+|	<WRITE: "write">
+|	<YEAR: "year">
+}
+
+/*
+	This list should contain only and all SQL92 keywords that are non-reserved.
+	Non-reserved keywords can be used as identifiers in the language.
+	To make that happen, the individual tokens have to be repeated in
+	the nonReservedKeyword() rule -- unless there's some other JavaCC shorthand?
+
+	NOTE: I've commented out most of these because we won't be using them
+	right away and the grammar is taking forever to process.
+ */
+/* NOTE - If you add a keyword, then you must add it to reservedKeyword()
+ *	      or nonReservedKeyword() as well!
+ */
+TOKEN [IGNORE_CASE] :
+{	/* SQL92 non-reserved Keywords */
+    <ABS: "abs">
+|    <ABSVAL: "absval">
+|	<ACTION: "action">
+|	<ALWAYS: "always">
+|	<BLOB: "blob">
+  |	<C: "c">
+  | <CALLED: "called">
+|	<CLOB: "clob">
+  |	<COBOL: "cobol">
+|	<COMMITTED: "committed">
+|   <CONCAT: "concat">
+|	<CONTAINS: "contains">
+|	<CYCLE: "cycle">
+|	<DATA: "data">
+|	<DATE: "date">
+|	<DAY: "day">
+|	<DEFINER: "definer">
+|	<DETERMINISTIC: "deterministic">
+|   <DYNAMIC: "dynamic">
+|   <ENFORCED: "enforced">
+|	<FORTRAN: "fortran">
+|   <GENERATED: "generated">
+|	<IDENTITY_VAL_LOCAL: "identity_val_local">
+|	<INCREMENT: "increment">
+|	<INITIAL: "initial">
+|   <INOUT: "inout">
+|	<INTERVAL: "interval">
+|	<INVOKER: "invoker">
+|	<LANGUAGE: "language">
+|	<LARGE: "large">
+|	<LENGTH: "length">
+|	<LEVEL: "level">
+|	<LIMIT: "limit">
+|	<LOCKS: "locks">
+|	<LOCKSIZE: "locksize">
+|	<LOGGED: "logged">
+|	<MATCHED: "matched">
+|	<MAXVALUE: "maxvalue">
+|	<MERGE: "merge">
+|	<MINVALUE: "minvalue">
+|       <MOD: "mod">
+|	<MODIFIES: "modifies">
+|	<MODIFY: "modify">
+|	<MONTH: "month">
+|	<_MORE: "more">
+|	<MUMPS: "mumps">
+|	<NAME: "name">
+|	<NCLOB: "nclob">
+|	<NULLABLE: "nullable">
+|	<NULLS: "nulls">
+|	<NUMBER: "number">
+|	<OBJECT: "object">
+|	<OFFSET: "offset">
+|	<PASCAL: "pascal">
+|	<PLI: "pli">
+|	<PRECISION: "precision">
+|	<RELEASE: "release">
+|	<REPEATABLE: "repeatable">
+|	<RESTART: "restart">
+|	<RETURNS: "returns">
+|	<ROLLUP: "rollup">
+|	<ROW: "row">
+|	<SAVEPOINT: "savepoint">
+|	<SCALE: "scale">
+|	<SECURITY: "security">
+|	<SERIALIZABLE: "serializable">
+|	<SQL_TSI_FRAC_SECOND: "sql_tsi_frac_second">
+|	<SQL_TSI_SECOND: "sql_tsi_second">
+|	<SQL_TSI_MINUTE: "sql_tsi_minute">
+|	<SQL_TSI_HOUR: "sql_tsi_hour">
+|	<SQL_TSI_DAY: "sql_tsi_day">
+|	<SQL_TSI_WEEK: "sql_tsi_week">
+|	<SQL_TSI_MONTH: "sql_tsi_month">
+|	<SQL_TSI_QUARTER: "sql_tsi_quarter">
+|	<SQL_TSI_YEAR: "sql_tsi_year">
+|	<START: "start">
+|	<STATEMENT: "statement">
+|	<SYNONYM: "synonym">
+|	<THEN: "then">
+|	<TIME: "time">
+|	<TIMESTAMP: "timestamp">
+|	<TIMESTAMPADD: "timestampadd">
+|	<TIMESTAMPDIFF: "timestampdiff">
+|	<TRUNCATE: "truncate">
+|	<TYPE: "type">
+|	<UNCOMMITTED: "uncommitted">
+|	<USAGE: "usage">
+|	<WHEN: "when">
+|	<DERBYPLAN: "--derbyplan">
+}
+
+/*
+	The next lists should contain non-SQL92 keywords, and should
+	specify whether their keywords are reserved or non-reserved.
+	If they are non-reserved, they need to be added to the identifier() rule.
+
+	NOTE: XML, XMLPARSE, XMLSERIALIZE, and XMLEXISTS are considered reserved
+	words to comply with the SQL/XML (2003) standard, section 5.1.  Similarly,
+	XMLQUERY is a reserved word per SQL/XML (2006).
+ */
+
+/* NOTE - If you add a keyword, then you must add it to reservedKeyword()
+ *	      or nonReservedKeyword() as well!
+ */
+TOKEN [IGNORE_CASE] :
+{	/* Additional JSQL reserved keywords -- non-SQL92 reserved Keywords */
+	<BOOLEAN: "boolean">
+|	<CALL: "call">
+|	<CURDATE: "curdate">
+|	<CURRENT_ROLE: "current_role">
+|	<CURTIME: "curtime">
+|   <DATABASE: "database">
+|	<GET_CURRENT_CONNECTION: "getCurrentConnection">
+|	<EXPLAIN: "explain">
+|   <BIGINT: "bigint">
+|	<LONG: "long">
+|	<LTRIM: "ltrim">
+|	<NONE: "none">
+|	<OVER: "over">
+|	<ROLE: "role">
+|	<ROWNUMBER: "row_number">
+|	<RTRIM: "rtrim">
+|	<SUBSTR:	"substr">
+|	<XML:	"xml">
+|	<XMLEXISTS:	"xmlexists">
+|	<XMLPARSE:	"xmlparse">
+|	<XMLQUERY:	"xmlquery">
+|	<XMLSERIALIZE:	"xmlserialize">
+}
+
+/* NOTE - If you add a keyword, then you must add it to reservedKeyword()
+ *	      or nonReservedKeyword() as well!
+ *
+ * NOTE: CONTENT, DOCUMENT, STRIP, WHITESPACE and PASSING are considered NON-
+ * reserved words to comply with the SQL/XML (2003) standard, section 5.1.
+ * Similarly, EMPTY, RETURNING, and SEQUENCE are all considered NON-reserved
+ * words per SQL/XML (2006).  PRESERVE is also listed as non-reserved in the
+ * SQL/XML spec, but since that word is already reserved, we leave it alone.
+ */
+TOKEN [IGNORE_CASE] :
+{	/* Additional JSQL keywords -- non-SQL92 non-reserved Keywords */
+	<AFTER: "after">
+|	<AGGREGATE: "aggregate">
+|	<BEFORE: "before">
+|	<CLASS: "class">
+|	<COMPRESS: "compress">
+|	<CONTENT: "content">
+|   <CS: "cs">
+|	<CURSORS: "cursors">
+|	<DB2SQL: "db2sql">
+|	<DERBY: "derby">
+|	<DERBY_JDBC_RESULT_SET: "derby_jdbc_result_set">
+|	<DEFRAGMENT: "defragment">
+|       <DIRTY: "dirty">
+|	<DOCUMENT: "document">
+|	<EACH: "each">
+|	<EMPTY: "empty">
+|	<EXCLUSIVE: "exclusive">
+|	<FN: "fn">
+|	<INDEX: "index">
+|	<INPLACE: "inplace">
+|	<JAVA: "java">
+|   <LCASE: "lcase">
+|   <LOCATE: "locate">
+|	<LOCK: "lock">
+|	<MESSAGE_LOCALE: "message_locale">
+|	<METHOD: "method">
+|	<MODE: "mode">
+|	<NEW: "new">
+|   <NEW_TABLE: "new_table">
+|	<NVARCHAR: "nvarchar">
+|	<OJ: "oj">
+|	<OFF: "off">
+|	<OLD: "old">
+|   <OLD_TABLE: "old_table">
+|   <OUT: "out">
+|	<PARAMETER: "parameter">
+|	<PASSING: "passing">
+|	<PROPERTIES: "properties">
+|	<PURGE: "purge">
+|	<READS: "reads">
+|	<REF: "ref">
+|	<REFERENCING: "referencing">
+|	<RENAME: "rename">
+|       <RESET: "reset">
+|	<RESULT: "result">
+|	<RETAIN: "retain">
+|	<RETURNING: "returning">
+|   <RR: "rr">
+|   <RS: "rs">
+|	<STATISTICS: "statistics">
+|	<SEQUENCE: "sequence">
+|	<SEQUENTIAL: "sequential">
+|	<SETS: "sets">
+|	<SHARE: "share">
+|	<SQLID: "sqlid">
+|	<SPECIFIC: "specific">
+|   <SQRT: "sqrt">
+|       <STABILITY: "stability">
+|   <STRIP: "strip">
+|   <STYLE: "style">
+|	<TRIGGER: "trigger">
+|	<TRUNCATE_END: "truncate_end">
+|   <UCASE: "ucase">
+|   <UR: "ur">
+|   <WHITESPACE: "whitespace">
+}
+
+TOKEN :
+{	/* Operators and punctuation */
+	<DOUBLE_QUOTE: "\"">
+|	<PERCENT: "%">
+|	<AMPERSAND: "&">
+|	<QUOTE: "'">
+|	<LEFT_BRACE: "{">
+|	<RIGHT_BRACE: "}">
+|	<LEFT_PAREN: "(">
+|	<RIGHT_PAREN: ")">
+|	<ASTERISK: "*">
+|	<HASH: "#">
+|	<PLUS_SIGN: "+">
+|	<COMMA: ",">
+|	<MINUS_SIGN: "-">
+|	<PERIOD: ".">
+|	<SOLIDUS: "/">
+|	<COLON: ":">
+|	<DOUBLE_COLON: "::">
+|	<SEMICOLON: ";">
+|	<LESS_THAN_OPERATOR: "<">
+|	<LESS_THAN_OR_EQUALS_OPERATOR: "<=">
+|	<EQUALS_OPERATOR: "=">
+|	<NOT_EQUALS_OPERATOR: "<>">
+|	<NOT_EQUALS_OPERATOR2: "!=">
+|	<GREATER_THAN_OPERATOR: ">">
+|	<GREATER_THAN_OR_EQUALS_OPERATOR: ">=">
+|	<QUESTION_MARK: "?">
+|	<UNDERSCORE: "_">
+|	<VERTICAL_BAR: "|">
+|	<LEFT_BRACKET: "[">
+|	<RIGHT_BRACKET: "]">
+|	<CONCATENATION_OPERATOR: "||">
+|	<FIELD_REFERENCE: "->">
+|	<ELLIPSIS: "...">
+}
+
+TOKEN :
+{	/* Identifiers */
+	<IDENTIFIER: ( <LETTER> ) (<LETTER> | "_" | <DIGIT>)* >
+}
+
+TOKEN: {	<K: "K" >	 }
+TOKEN: {	<M: "M" >	 }
+TOKEN: {	<G: "G" >	 }
+
+TOKEN:
+{
+	<#LETTER: [
+				"a"-"z",
+				"A"-"Z",
+				"\u00aa",
+				"\u00b5",
+				"\u00ba",
+				"\u00c0" - "\u00d6",
+				"\u00d8" - "\u00f6",
+				"\u00f8" - "\u01f5",
+				"\u01fa" - "\u0217",
+				"\u0250" - "\u02a8",
+				"\u02b0" - "\u02b8",
+				"\u02bb" - "\u02c1",
+				"\u02d0" - "\u02d1",
+				"\u02e0" - "\u02e4",
+				"\u037a",
+				"\u0386",
+				"\u0388" - "\u038a",
+				"\u038c",
+				"\u038e" - "\u03a1",
+				"\u03a3" - "\u03ce",
+				"\u03d0" - "\u03d6",
+				"\u03da",
+				"\u03dc",
+				"\u03de",
+				"\u03e0",
+				"\u03e2" - "\u03f3",
+				"\u0401" - "\u040c",
+				"\u040e" - "\u044f",
+				"\u0451" - "\u045c",
+				"\u045e" - "\u0481",
+				"\u0490" - "\u04c4",
+				"\u04c7" - "\u04c8",
+				"\u04cb" - "\u04cc",
+				"\u04d0" - "\u04eb",
+				"\u04ee" - "\u04f5",
+				"\u04f8" - "\u04f9",
+				"\u0531" - "\u0556",
+				"\u0559",
+				"\u0561" - "\u0587",
+				"\u05d0" - "\u05ea",
+				"\u05f0" - "\u05f2",
+				"\u0621" - "\u063a",
+				"\u0640" - "\u064a",
+				"\u0671" - "\u06b7",
+				"\u06ba" - "\u06be",
+				"\u06c0" - "\u06ce",
+				"\u06d0" - "\u06d3",
+				"\u06d5",
+				"\u06e5" - "\u06e6",
+				"\u0905" - "\u0939",
+				"\u093d",
+				"\u0958" - "\u0961",
+				"\u0985" - "\u098c",
+				"\u098f" - "\u0990",
+				"\u0993" - "\u09a8",
+				"\u09aa" - "\u09b0",
+				"\u09b2",
+				"\u09b6" - "\u09b9",
+				"\u09dc" - "\u09dd",
+				"\u09df" - "\u09e1",
+				"\u09f0" - "\u09f1",
+				"\u0a05" - "\u0a0a",
+				"\u0a0f" - "\u0a10",
+				"\u0a13" - "\u0a28",
+				"\u0a2a" - "\u0a30",
+				"\u0a32" - "\u0a33",
+				"\u0a35" - "\u0a36",
+				"\u0a38" - "\u0a39",
+				"\u0a59" - "\u0a5c",
+				"\u0a5e",
+				"\u0a72" - "\u0a74",
+				"\u0a85" - "\u0a8b",
+				"\u0a8d",
+				"\u0a8f" - "\u0a91",
+				"\u0a93" - "\u0aa8",
+				"\u0aaa" - "\u0ab0",
+				"\u0ab2" - "\u0ab3",
+				"\u0ab5" - "\u0ab9",
+				"\u0abd",
+				"\u0ae0",
+				"\u0b05" - "\u0b0c",
+				"\u0b0f" - "\u0b10",
+				"\u0b13" - "\u0b28",
+				"\u0b2a" - "\u0b30",
+				"\u0b32" - "\u0b33",
+				"\u0b36" - "\u0b39",
+				"\u0b3d",
+				"\u0b5c" - "\u0b5d",
+				"\u0b5f" - "\u0b61",
+				"\u0b85" - "\u0b8a",
+				"\u0b8e" - "\u0b90",
+				"\u0b92" - "\u0b95",
+				"\u0b99" - "\u0b9a",
+				"\u0b9c",
+				"\u0b9e" - "\u0b9f",
+				"\u0ba3" - "\u0ba4",
+				"\u0ba8" - "\u0baa",
+				"\u0bae" - "\u0bb5",
+				"\u0bb7" - "\u0bb9",
+				"\u0c05" - "\u0c0c",
+				"\u0c0e" - "\u0c10",
+				"\u0c12" - "\u0c28",
+				"\u0c2a" - "\u0c33",
+				"\u0c35" - "\u0c39",
+				"\u0c60" - "\u0c61",
+				"\u0c85" - "\u0c8c",
+				"\u0c8e" - "\u0c90",
+				"\u0c92" - "\u0ca8",
+				"\u0caa" - "\u0cb3",
+				"\u0cb5" - "\u0cb9",
+				"\u0cde",
+				"\u0ce0" - "\u0ce1",
+				"\u0d05" - "\u0d0c",
+				"\u0d0e" - "\u0d10",
+				"\u0d12" - "\u0d28",
+				"\u0d2a" - "\u0d39",
+				"\u0d60" - "\u0d61",
+				"\u0e01" - "\u0e2e",
+				"\u0e30",
+				"\u0e32" - "\u0e33",
+				"\u0e40" - "\u0e46",
+				"\u0e81" - "\u0e82",
+				"\u0e84",
+				"\u0e87" - "\u0e88",
+				"\u0e8a",
+				"\u0e8d",
+				"\u0e94" - "\u0e97",
+				"\u0e99" - "\u0e9f",
+				"\u0ea1" - "\u0ea3",
+				"\u0ea5",
+				"\u0ea7",
+				"\u0eaa" - "\u0eab",
+				"\u0ead" - "\u0eae",
+				"\u0eb0",
+				"\u0eb2" - "\u0eb3",
+				"\u0ebd",
+				"\u0ec0" - "\u0ec4",
+				"\u0ec6",
+				"\u0edc" - "\u0edd",
+				"\u0f40" - "\u0f47",
+				"\u0f49" - "\u0f69",
+				"\u10a0" - "\u10c5",
+				"\u10d0" - "\u10f6",
+				"\u1100" - "\u1159",
+				"\u115f" - "\u11a2",
+				"\u11a8" - "\u11f9",
+				"\u1e00" - "\u1e9b",
+				"\u1ea0" - "\u1ef9",
+				"\u1f00" - "\u1f15",
+				"\u1f18" - "\u1f1d",
+				"\u1f20" - "\u1f45",
+				"\u1f48" - "\u1f4d",
+				"\u1f50" - "\u1f57",
+				"\u1f59",
+				"\u1f5b",
+				"\u1f5d",
+				"\u1f5f" - "\u1f7d",
+				"\u1f80" - "\u1fb4",
+				"\u1fb6" - "\u1fbc",
+				"\u1fbe",
+				"\u1fc2" - "\u1fc4",
+				"\u1fc6" - "\u1fcc",
+				"\u1fd0" - "\u1fd3",
+				"\u1fd6" - "\u1fdb",
+				"\u1fe0" - "\u1fec",
+				"\u1ff2" - "\u1ff4",
+				"\u1ff6" - "\u1ffc",
+				"\u207f",
+				"\u2102",
+				"\u2107",
+				"\u210a" - "\u2113",
+				"\u2115",
+				"\u2118" - "\u211d",
+				"\u2124",
+				"\u2126",
+				"\u2128",
+				"\u212a" - "\u2131",
+				"\u2133" - "\u2138",
+				"\u3005",
+				"\u3031" - "\u3035",
+				"\u3041" - "\u3094",
+				"\u309b" - "\u309e",
+				"\u30a1" - "\u30fa",
+				"\u30fc" - "\u30fe",
+				"\u3105" - "\u312c",
+				"\u3131" - "\u318e",
+				"\u4e00" - "\u9fa5",
+				"\uac00" - "\ud7a3",
+				"\uf900" - "\ufa2d",
+				"\ufb00" - "\ufb06",
+				"\ufb13" - "\ufb17",
+				"\ufb1f" - "\ufb28",
+				"\ufb2a" - "\ufb36",
+				"\ufb38" - "\ufb3c",
+				"\ufb3e",
+				"\ufb40" - "\ufb41",
+				"\ufb43" - "\ufb44",
+				"\ufb46" - "\ufbb1",
+				"\ufbd3" - "\ufd3d",
+				"\ufd50" - "\ufd8f",
+				"\ufd92" - "\ufdc7",
+				"\ufdf0" - "\ufdfb",
+				"\ufe70" - "\ufe72",
+				"\ufe74",
+				"\ufe76" - "\ufefc",
+				"\uff21" - "\uff3a",
+				"\uff41" - "\uff5a",
+				"\uff66" - "\uffbe",
+				"\uffc2" - "\uffc7",
+				"\uffca" - "\uffcf",
+				"\uffd2" - "\uffd7",
+				"\uffda" - "\uffdc"
+			]>
+}
+
+TOKEN :
+{
+	<#DIGIT: [
+				"0" - "9",
+				"\u0660" - "\u0669",
+				"\u06f0" - "\u06f9",
+				"\u0966" - "\u096f",
+				"\u09e6" - "\u09ef",
+				"\u0a66" - "\u0a6f",
+				"\u0ae6" - "\u0aef",
+				"\u0b66" - "\u0b6f",
+				"\u0be7" - "\u0bef",
+				"\u0c66" - "\u0c6f",
+				"\u0ce6" - "\u0cef",
+				"\u0d66" - "\u0d6f",
+				"\u0e50" - "\u0e59",
+				"\u0ed0" - "\u0ed9",
+				"\u0f20" - "\u0f29",
+				"\uff10" - "\uff19"
+			]>
+}
+
+TOKEN :
+{	/* Delimited Identifiers - NOTE: this does not allow zero-length identifiers */
+	<DELIMITED_IDENTIFIER: "\""
+		(
+			("\"\"") |
+			(~["\""])
+		) +
+		"\"">
+}
+
+TOKEN :
+{	/* Literals */
+	<EXACT_NUMERIC: ( <UINT> ( "." ( <UINT> )? )? | "." <UINT> )>
+|	<UINT: (["0" - "9"])+ >/* This is for an unsigned exact numeric */
+|	<LENGTH_MODIFIER: ( <UINT> ["K","M","G","k","m","g"] )>
+|	<STRING: "'"
+		(
+			"''" |
+			~["'"]
+		) *
+		"'">
+|	<HEX_STRING: ["X","x"] "'" (["0"-"9","a"-"f","A"-"F"])*"'"> /* RESOLVE: does not allow separators */
+|	<APPROXIMATE_NUMERIC: <EXACT_NUMERIC> ["e","E"] ( ("+" | "-") )? ( ["0" - "9"] )+ >
+/*****
+	The tokenizer can't handle the date/time literals because
+	they are constructed of two tokens with arbitrary whitespace between them.
+	INTERVAL_LITERAL will also have to be upgraded at some point.
+|	<DATE_LITERAL: "DATE" "'" <DATE_VALUE> "'" >
+|	<#DATE_VALUE: <UINT> "-" <UINT> "-" <UINT> >
+|	<TIME_LITERAL: "TIME" "'" <TIME_VALUE> ( <TIMEZONE_INTERVAL> ) ? "'" >
+|	<#TIME_VALUE: <UINT> ":" <UINT> ":" <SECONDS_VALUE> >
+|	<#TIMEZONE_INTERVAL: ("+" | "-") <UINT> ":" <UINT> >
+|	<TIMESTAMP_LITERAL: "TIMESTAMP" "'" <DATE_VALUE> " " <TIME_VALUE> ( <TIMEZONE_INTERVAL> ) ? "'" >
+*****/
+|	<INTERVAL_LITERAL: "INTERVAL" "'" (["+","-"])? <INTERVAL_STRING> <INTERVAL_QUALIFIER> >
+|	<#INTERVAL_STRING: "'" ( <YEAR_MONTH_LITERAL> | <DAY_TIME_LITERAL> ) "'" >
+|	<#INTERVAL_QUALIFIER: <SINGLE_DATETIME_FIELD> | ( <START_FIELD> <TO> <END_FIELD> ) >
+|	<#SINGLE_DATETIME_FIELD: <NON_SECOND_DATETIME_FIELD> ( <LEFT_PAREN> <UINT> <RIGHT_PAREN> ) ? >
+|	<#START_FIELD: <NON_SECOND_DATETIME_FIELD> ( <LEFT_PAREN> <UINT> <RIGHT_PAREN> ) ? >
+|	<#END_FIELD: <NON_SECOND_DATETIME_FIELD> >
+|	<#NON_SECOND_DATETIME_FIELD: <YEAR> | <MONTH> | <DAY> | <HOUR> | <MINUTE> >
+|	<#YEAR_MONTH_LITERAL: (<UINT> | ( <UINT> "-" ) )? <UINT> >
+|	<#DAY_TIME_LITERAL:  ( <DAY_TIME_INTERVAL> | <TIME_INTERVAL> ) >
+|	<#DAY_TIME_INTERVAL: <UINT> ( " " <UINT> ( ":" <UINT> ( ":" <SECONDS_VALUE> ) ? ) ? ) ? >
+|	<#SECONDS_VALUE: <UINT> ( "." ( <UINT> ) ? ) ? >
+|	<#TIME_INTERVAL: <UINT> ( ":" <UINT> ( ":" <SECONDS_VALUE> ) ? ) ?
+		|	 <UINT> ( ":" <SECONDS_VALUE> ) ?
+		|	<SECONDS_VALUE> >
+}
+
+
+
+
+
+StatementNode statement(String statementSQLText, Object[] paramDefaults) throws StandardException :{
+	StatementNode	statementNode;
+    initStatement(statementSQLText, paramDefaults);
+}
+{
+	statementNode = StatementPart(null)<EOF>
+	{
+        //statementNode.setBeginOffset(0);
+        //statementNode.setEndOffset(statementSQLText.length() - 1);
+		return statementNode;
+	}
+}
+
+StatementNode searchCondition(String sql):{}{{return null;}}
+
+/**
+ * 第一个实现查询语句preparableSQLDataStatement
+ */
+StatementNode StatementPart(Token[] tokenHolder) throws StandardException :{
+	StatementNode	statementNode;
+	if (tokenHolder != null){
+		tokenHolder[0] = getToken(1);
+	}
+}{
+	/*
+	 * queryExpression==>nonJoinQueryTerm ==> nonJoinQueryPrimary() ==>simpleTable ==> querySpecification()
+	 * 调用解析器的现有方法是通过JDBC，它只使用可预编译的SQL语句。
+	 * 这与其他类型的SQL（直接SQL，嵌入式SQL，动态SQL）有所区别的唯一地方
+	 * 是在选择和定位的更新/删除语句中 ，以及是否允许事务和连接语句。
+	 * 当需要区分时，我们应该定义一种方法将解析器放入不同的模式（可预装的SQL，动态SQL，直接SQL，嵌入式SQL等），并根据它所处的模式接受/拒绝语句。
+	 */
+     //实现创建表的Statement
+     (statementNode = createStatements()|
+     //实现查询语句preparableSQLDataStatement
+     statementNode = preparableSQLDataStatement())
+    {
+        return statementNode;
+    }
+}
+
+
+
+
+StatementNode preparableSQLDataStatement() throws StandardException:
+{
+  StatementNode	dmlStatement=null;
+  ResultColumnList	selectList;
+ }{
+       preparableSelectStatement(false)
+       {return dmlStatement;}
+ }
+
+ CursorNode preparableSelectStatement(boolean checkParams) throws StandardException :
+ {
+   ResultSetNode queryExpression;
+   ArrayList<String> updateColumns = new ArrayList<String>();
+   CursorNode retval;
+ }{
+    queryExpression = queryExpression(null, NO_SET_OP)
+    {
+       retval = new CursorNode(getContextManager());
+       return retval;
+    }
+ }
+
+
+ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType) throws StandardException :
+{
+  ResultSetNode	term;
+}
+{	term = nonJoinQueryTerm(leftSide, operatorType)
+ 	{
+ 		return term;
+ 	}
+}
+
+ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws StandardException :
+{
+   ResultSetNode term;
+}
+{
+   term = nonJoinQueryPrimary()
+   {return term;}
+}
+
+ResultSetNode nonJoinQueryPrimary() throws StandardException :
+{
+  ResultSetNode	primary;
+}
+{	primary = simpleTable()
+  	{
+  		return primary;
+  	}
+}
+
+ResultSetNode
+simpleTable() throws StandardException :
+{
+	ResultSetNode	resultSetNode;
+}
+{
+	resultSetNode = querySpecification()
+	{
+		return resultSetNode;
+	}
+}
+
+/**
+ *详细查询
+ */
+ResultSetNode querySpecification() throws StandardException :
+{
+	ResultColumnList	selectList;
+	SelectNode			selectNode;
+	boolean	isDistinct = false;
+}
+{
+	<SELECT>
+		selectList = selectList()
+		selectNode = tableExpression(selectList)
+	{
+		return selectNode;
+	}
+}
+
+SelectNode tableExpression(ResultColumnList selectList) throws StandardException :
+{
+  SelectNode selectNode;
+  FromList	fromList;
+}
+{
+   fromList = fromClause()
+   {
+     selectNode = new SelectNode(selectList,fromList,getContextManager());
+      return selectNode;
+   }
+}
+
+boolean setQuantifier():
+{
+}
+{<DISTINCT>{return false;}}
+
+
+ResultColumnList selectList() throws StandardException :
+{
+     ResultColumn	allResultColumn;
+     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
+}
+{
+     <ASTERISK>
+     {
+                allResultColumn = new AllResultColumn(null, getContextManager());
+            	resultColumns.addResultColumn(allResultColumn);
+            	return resultColumns;
+     }
+     |
+     selectColumnList(resultColumns)
+     {
+          return resultColumns;
+     }
+}
+
+/**
+ *首先在selectSublist中消费当前Token
+ *之后如果匹配到,则消费<COMMA>之后继续消费一个列
+ *这样最后将所有的列明都进行了消费
+ */
+void selectColumnList(ResultColumnList resultColumns) throws StandardException :
+{
+}
+{
+    /**获取所有需要选择的列名*/
+	selectSublist(resultColumns) ( <COMMA> selectSublist(resultColumns) ) *
+}
+
+void selectSublist(ResultColumnList resultColumns) throws StandardException :
+{
+    /**定义结果列*/
+	ResultColumn	resultColumn;
+	ResultColumn	allResultColumn;
+	TableName	tableName;
+}
+{
+    //满足括号里面的条件 才朝下执行条件是 tableName.* 或 tableName.t.*
+	LOOKAHEAD({getToken(2).kind == PERIOD &&(getToken(3).kind == ASTERISK ||(getToken(4).kind == PERIOD && getToken(5).kind == ASTERISK))})
+	tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+	<PERIOD> <ASTERISK>
+	{
+        allResultColumn = new AllResultColumn(tableName, getContextManager());
+		resultColumns.addResultColumn(allResultColumn);
+	}
+|
+	resultColumn = derivedColumn(resultColumns)
+	{
+		resultColumns.addResultColumn(resultColumn);
+	}
+}
+
+
+ResultColumn derivedColumn(ResultColumnList resultColumns) throws StandardException :
+{
+	ValueNode	columnExpression;
+	String		columnName = null;
+}
+{
+   {
+       columnExpression = valueExpression();
+       return new ResultColumn(columnName,columnExpression,getContextManager());
+	}
+}
+
+/**
+ * 获取表名
+ */
+TableName qualifiedName(int id_length_limit) throws StandardException :
+{
+	String	schemaName = null;
+	String	qualifiedId;
+	String	firstName = null;
+	String	secondName = null;
+    Token firstNameToken = null;
+}
+{
+   //去获取标识符的第一个名字
+   firstName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false)
+   //如果下面两个Token由.*组成 标识符可以代表列名 组成firstName.secondName
+   [LOOKAHEAD( {getToken(1).kind == PERIOD &&getToken(2).kind != ASTERISK} )<PERIOD>
+    secondName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false)
+   ]
+   {
+       if (secondName == null){
+                //如果不是.则获取相应firstName为列名
+    			qualifiedId = firstName;
+                firstNameToken = lastIdentifierToken;
+    	}else{
+         		schemaName = firstName;
+         		qualifiedId = secondName;
+                firstNameToken = nextToLastIdentifierToken;
+        }
+        return new TableName(schemaName,qualifiedId,firstNameToken.beginOffset,lastIdentifierToken.endOffset,getContextManager());
+   }
+}
+
+
+String identifier(int id_length_limit, boolean checkLength) throws StandardException :
+{
+	String	id;
+}
+{
+    id = internalIdentifier( id_length_limit, checkLength)
+    {
+        return id;
+    }
+}
+
+
+/**
+ * 遇到标识符Token之后，将当前Token记录为最后一个Token
+ * 在这里是记录倒数三个Token
+ */
+String internalIdentifier( int id_length_limit, boolean checkLength) throws StandardException :
+{
+	String	str;
+	Token 	tok;
+}
+{
+	tok = <IDENTIFIER>
+	{
+	    //将标识符转化为大写
+        str = StringUtil.SQLToUpperCase(tok.image);
+		nextToLastTokenDelimitedIdentifier = lastTokenDelimitedIdentifier;
+        lastTokenDelimitedIdentifier = false;
+        thirdToLastIdentifierToken = nextToLastIdentifierToken;
+		nextToLastIdentifierToken = lastIdentifierToken;
+		lastIdentifierToken = tok;
+		return str;
+	}
+}
+
+
+FromList
+fromClause() throws StandardException :
+{
+    FromList fromList = new FromList(getContextManager());
+
+	int	tokKind;
+    Token   beginToken;
+    Token   endToken;
+}
+{
+	<FROM> {beginToken = getToken(1);}
+	dummyTableReferenceRule(fromList) {endToken = getToken(0);}
+
+	{
+        fromList.setBeginOffset( beginToken.beginOffset);
+        fromList.setEndOffset( endToken.endOffset);
+		return fromList;
+	}
+}
+
+void
+dummyTableReferenceRule(FromList fromList) throws StandardException :
+{
+	FromTable tableReference;
+}
+{
+	/* If we have a table constructor and the expression is a SELECT
+	 * query or a VALUES query then we read the <TABLE> keyword;
+	 * otherwise we leave the <TABLE> token in the queue and let
+	 * other types of expressions (namely, vtiTableConstruct())
+	 * deal with it accordingly.  DERBY-2152.
+	 */
+	LOOKAHEAD({ getToken(1).kind == TABLE &&
+				getToken(2).kind == LEFT_PAREN &&
+				(
+					getToken(3).kind == SELECT ||
+					getToken(3).kind == VALUES
+				)
+			}) <TABLE>
+	tableReference = tableReferenceTypes(false)
+	{
+		fromList.addFromTable(tableReference);
+	}
+|
+	tableReference = tableReferenceTypes(false)
+	{
+		fromList.addFromTable(tableReference);
+	}
+}
+
+ValueNode valueExpression():
+{
+   int a;
+}
+{
+   {return null;}
+}
+
+FromTable
+tableReferenceTypes(boolean nestedInParens) throws StandardException :
+{
+	FromTable tableReference;
+}
+{
+	tableReference = tableReference(nestedInParens)
+	{
+		return tableReference ;
+	}
+}
+
+FromTable tableReference(boolean nestedInParens) throws StandardException :
+{
+    FromTable fromTable;
+    TableOperatorNode joinTable = null;
+}
+{
+    fromTable = tableFactor()
+    {
+        return joinTable == null ? fromTable : joinTable;
+    }
+}
+
+FromTable tableFactor() throws StandardException :
+{
+	JavaToSQLValueNode	javaToSQLNode = null;
+	TableName			tableName;
+	String				correlationName = null;
+	ResultColumnList	derivedRCL = null;
+	FromTable			fromTable;
+	FromTable			tableReference;
+	Object[]			optionalTableClauses = new Object[OPTIONAL_TABLE_CLAUSES_SIZE];
+	Properties			tableProperties = null;
+	SubqueryNode		derivedTable;
+}
+{
+    	/* identifier() used to be correlationName() */
+    	tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+    	{
+            fromTable = new FromBaseTable(
+                tableName,
+                (String) optionalTableClauses[
+                    OPTIONAL_TABLE_CLAUSES_CORRELATION_NAME],
+                (ResultColumnList) optionalTableClauses[
+                    OPTIONAL_TABLE_CLAUSES_DERIVED_RCL],
+                (Properties) optionalTableClauses[
+                    OPTIONAL_TABLE_CLAUSES_TABLE_PROPERTIES],
+                getContextManager());
+    		return fromTable;
+    	}
+}
+
+JavaToSQLValueNode vtiTableConstruct() throws StandardException :
+{
+   MethodCallNode invocationNode = null;
+   TableName vtiTableName;
+}
+{
+    <TABLE> <LEFT_PAREN>
+        vtiTableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+        //methodCallParameterList(parameterList)
+    <RIGHT_PAREN>
+  { return new JavaToSQLValueNode(invocationNode, getContextManager());}
+}
+
+StatementNode createStatements() throws StandardException :{
+	StatementNode statementNode;
+	Token beginToken;
+	int tokKind;
+}
+{
+      beginToken = <CREATE>
+      statementNode = tableDefinition()
+      {
+         return statementNode;
+      }
+}
+
+StatementNode tableDefinition() throws StandardException :{
+	char				lockGranularity = TableDescriptor.DEFAULT_LOCK_GRANULARITY;
+	Properties			properties = null;
+	TableName			tableName;
+	TableElementList	tableElementList;
+	ResultColumnList	resultColumns = null;
+	ResultSetNode		queryExpression;
+	boolean				withData = true;
+}
+{
+   <TABLE> tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+   	(LOOKAHEAD(
+   	    {getToken(1).kind == LEFT_PAREN
+   	      && getToken(3).kind != COMMA
+   	      && getToken(3).kind != RIGHT_PAREN})
+
+     	tableElementList = tableElementList()
+   	)
+   			{
+                   return new CreateTableNode(
+   										tableName,
+   										tableElementList,
+   										properties,
+                                           lockGranularity,
+   										getContextManager());
+   			}
+}
+
+
+TableElementList tableElementList() throws StandardException :
+{
+    TableElementList tableElementList = new TableElementList(getContextManager());
+}
+{
+	<LEFT_PAREN> tableElement(tableElementList)(<COMMA> tableElement(tableElementList) ) * <RIGHT_PAREN>
+	{
+		return tableElementList;
+	}
+}
+
+void
+tableElement(TableElementList tableElementList) throws StandardException :
+{
+	TableElementNode	tableElement;
+}
+{
+	tableElement = columnDefinition(tableElementList)
+	{
+		tableElementList.addTableElement(tableElement);
+	}
+}
+
+TableElementNode
+columnDefinition(TableElementList tableElementList) throws StandardException :
+{
+	DataTypeDescriptor[]	typeDescriptor = new DataTypeDescriptor[1];
+	ValueNode			defaultNode = null;
+	String				columnName;
+	long[]				autoIncrementInfo = new long[5];
+}
+{
+	columnName = identifier(Limits.MAX_IDENTIFIER_LENGTH, true)
+		[ ( typeDescriptor[0] = dataTypeDDL() ) ]
+    	//[ defaultNode = defaultAndConstraints(typeDescriptor, tableElementList, columnName, autoIncrementInfo) ]
+	{
+        return new ColumnDefinitionNode(
+								columnName,
+								defaultNode,
+								typeDescriptor[0],
+								autoIncrementInfo,
+								getContextManager());
+	}
+}
+
+
+DataTypeDescriptor
+dataTypeDDL() throws StandardException :
+{
+	DataTypeDescriptor	typeDescriptor;
+}
+{
+	LOOKAHEAD( { commonDatatypeName(false) } )
+	typeDescriptor = dataTypeCommon()
+	{
+		return typeDescriptor;
+	}
+|
+    LOOKAHEAD ( { getToken(1).kind != GENERATED } )
+    typeDescriptor = javaType(new TableName[1])
+	{
+		return typeDescriptor;
+	}
+}
+
+DataTypeDescriptor
+dataTypeCommon() throws StandardException :
+{
+	DataTypeDescriptor	typeDescriptor;
+	boolean checkCS = false;
+}
+{
+
+	typeDescriptor = numericType()
+	{
+		return typeDescriptor;
+	}
+}
+
+DataTypeDescriptor
+javaType(TableName[] udtName) throws StandardException :
+{
+	TableName	typeName;
+}
+{
+	typeName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+	{
+        udtName[0] = typeName;
+		return getJavaClassDataTypeDescriptor(typeName);
+	}
+}
+
+DataTypeDescriptor
+numericType() throws StandardException :
+{
+	DataTypeDescriptor	typeDescriptor;
+}
+{
+	typeDescriptor = exactNumericType()
+	{
+		return typeDescriptor;
+	}
+}
+
+DataTypeDescriptor
+exactNumericType() throws StandardException :
+{
+	int precision = TypeCompiler.DEFAULT_DECIMAL_PRECISION;
+	int scale = TypeCompiler.DEFAULT_DECIMAL_SCALE;
+	int type = Types.DECIMAL;
+	String typeStr = "DECIMAL";
+	int maxWidth;
+	DataTypeDescriptor dtd =  null;
+}
+{
+		dtd = exactIntegerType()
+		{
+			return dtd;
+		}
+}
+
+DataTypeDescriptor
+exactIntegerType() throws StandardException :
+{
+
+}
+{
+	(<INTEGER> | <INT>)
+	{
+		return DataTypeDescriptor.getBuiltInDataTypeDescriptor(Types.INTEGER);
+	}
+}
+
+
+ValueNode
+defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
+					  TableElementList tableElementList,
+					  String columnName,
+					  long[] autoIncrementInfo) throws StandardException :
+{
+	ValueNode		defaultNode = null;
+}
+{	//defaultNode = defaultClause(autoIncrementInfo, columnName)
+	//( columnConstraintDefinition(typeDescriptor, tableElementList, columnName) ) *
+	{
+		return defaultNode;
+	}
+}

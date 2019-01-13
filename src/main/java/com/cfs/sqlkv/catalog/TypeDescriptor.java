@@ -8,4 +8,10 @@ package com.cfs.sqlkv.catalog;
  * @create 2018-12-26 18:04
  */
 public interface TypeDescriptor {
+
+    /**返回字节的最大长度*/
+    public	int getMaximumWidthInBytes();
+    public	boolean isNullable();
+    public	int getScale();
+    public	int getPrecision();
 }
