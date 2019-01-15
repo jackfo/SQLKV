@@ -48,7 +48,7 @@ public class BaseContainerHandle extends SQLKVObservable implements SQLKVObserve
      Container identifier
      <BR> MT - Immutable
      */
-    private /*final*/ ContainerKey		identity;
+    private ContainerKey		identity;
 
     /**
      Is this ContainerHandle active.
@@ -113,7 +113,6 @@ public class BaseContainerHandle extends SQLKVObservable implements SQLKVObserve
 
         }
         transaction.addObserver(this);
-
         //添加指定对象,确定事务在提交/回滚
         if ((mode & (BaseContainerHandle.MODE_READONLY | BaseContainerHandle.MODE_NO_ACTIONS_ON_COMMIT)) == 0){
             if ((mode & MODE_TRUNCATE_ON_COMMIT) == MODE_TRUNCATE_ON_COMMIT) {
@@ -214,5 +213,26 @@ public class BaseContainerHandle extends SQLKVObservable implements SQLKVObserve
 
     public Page getPage(long pageNumber) throws StandardException {
         return container.getPage(this, pageNumber, true);
+    }
+
+    public void setEstimatedRowCount(long count, int flag) throws StandardException {
+        container.setEstimatedRowCount(count, flag);
+    }
+
+    protected boolean			preDirty;
+    public void preDirty(boolean preDirtyOn){
+        synchronized (this){
+            if(preDirtyOn){
+                preDirty = true;
+            }else{
+                preDirty = false;
+                notifyAll();
+            }
+        }
+    }
+
+    public Page addPage() throws StandardException{
+        Page page = container.addPage(this, false);
+        return page;
     }
 }

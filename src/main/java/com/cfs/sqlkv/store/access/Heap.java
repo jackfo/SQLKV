@@ -2,9 +2,11 @@ package com.cfs.sqlkv.store.access;
 
 import com.cfs.sqlkv.column.ColumnOrdering;
 import com.cfs.sqlkv.exception.StandardException;
+import com.cfs.sqlkv.io.FormatableBitSet;
 import com.cfs.sqlkv.io.Storable;
 import com.cfs.sqlkv.store.access.conglomerate.ConglomerateUtil;
 import com.cfs.sqlkv.store.access.conglomerate.GenericConglomerate;
+import com.cfs.sqlkv.store.access.conglomerate.LogicalUndo;
 import com.cfs.sqlkv.store.access.conglomerate.TransactionManager;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
@@ -107,7 +109,7 @@ public class Heap extends GenericConglomerate {
 
         try{
             //打开容器
-            container = rawtran.openContainer(id,(LockingPolicy)null,BaseContainerHandle.MODE_FORUPDATE |(isTemporary() ? BaseContainerHandle.MODE_TEMP_IS_KEPT : 0) )
+            container = rawtran.openContainer(id,(LockingPolicy)null,BaseContainerHandle.MODE_FORUPDATE |(isTemporary() ? BaseContainerHandle.MODE_TEMP_IS_KEPT : 0) );
             DataValueDescriptor[] control_row = new DataValueDescriptor[1];
             control_row[0] = this;
             //获取容器第一页

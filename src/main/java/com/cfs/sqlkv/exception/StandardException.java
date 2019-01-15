@@ -7,4 +7,8 @@ package com.cfs.sqlkv.exception;
  * @create 2019-01-02 20:26
  */
 public class StandardException extends Exception {
+
+    public static StandardException newException(String messageId, Object... args) {
+        return newException(messageId, (Throwable) null, args);
+    }
 }

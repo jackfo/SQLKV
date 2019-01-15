@@ -27,8 +27,12 @@ public abstract class FileContainer  extends BaseContainer implements Cacheable{
         containerCache = factory.getContainerCache();
     }
 
+    /**
+     *根据pageNumber获取使用页
+     * 在这个过程主要存在的问题是当前页是否被使用
+     * 一般情况是被使用的话会做一些等待
+     * */
     private BasePage getUserPage(BaseContainerHandle handle, long pageNumber, boolean overflowOK, boolean wait) throws StandardException {
-
         //如果页号小于首页则直接返回空
         if (pageNumber < BaseContainerHandle.FIRST_PAGE_NUMBER){
             return null;
@@ -48,13 +52,52 @@ public abstract class FileContainer  extends BaseContainer implements Cacheable{
         PageKey pageSearch = new PageKey(identity, pageNumber);
 
         BasePage page = (BasePage)pageCache.find(pageSearch);
+
+        if(page == null){
+            return page;
+        }
+
+        /**
+         * 尝试抓住当前页
+         * */
+        if (latchPage(handle,page,wait) == null) {
+            return null;
+        }
+        boolean isoverflowOk  = page.isOverflowPage() && !overflowOK ;
+
+        if (isoverflowOk|| (page.getPageStatus() != BasePage.VALID_PAGE)) {
+            page.unlatch();
+            page = null;
+        }
+        return page;
     }
 
+    /**
+     *
+     * */
+    protected BasePage latchPage(BaseContainerHandle handle, BasePage foundPage, boolean wait) throws StandardException{
+        if(foundPage!=null){
+            if(wait){
+                //如果需要等待 则设置为排它逻辑
+                foundPage.setExclusive(handle);
+            }else{
+                if (!foundPage.setExclusiveNoWait(handle)) {
+                    return null;
+                }
+            }
+        }
+        return foundPage;
+    }
+
+    /**
+     * TODO:待实现
+     * */
     private boolean pageValid(BaseContainerHandle handle, long pagenum) throws StandardException {
-
+         return true;
     }
 
-    protected BasePage getPage(BaseContainerHandle handle, long pageNumber, boolean wait) throws StandardException {
+    @Override
+    public BasePage getPage(BaseContainerHandle handle, long pageNumber, boolean wait) throws StandardException {
         return getUserPage(handle, pageNumber, true , wait);
     }
 }

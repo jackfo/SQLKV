@@ -17,11 +17,13 @@ public abstract class ContainerHandleActionOnCommit extends ContainerActionOnCom
         super(identity);
     }
 
+    /**
+     * 将容器打开之后做一些处理
+     * */
     public void openContainerAndDoIt(Transaction transaction) {
-
         BaseContainerHandle handle = null;
         try {
-            handle = (BaseContainerHandle) transaction.openContainer(identity, (LockingPolicy) null, BaseContainerHandle.MODE_FORUPDATE | BaseContainerHandle.MODE_NO_ACTIONS_ON_COMMIT);
+            handle = transaction.openContainer(identity,  null, BaseContainerHandle.MODE_FORUPDATE | BaseContainerHandle.MODE_NO_ACTIONS_ON_COMMIT);
             if (handle != null) {
                 try {
                     doIt(handle);

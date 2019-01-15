@@ -10,9 +10,13 @@ import com.cfs.sqlkv.exception.StandardException;
  */
 public class ContainerOperation {
 
-    protected byte operation;
+    public static final byte CREATE = (byte)1;
+    public static final byte DROP = (byte)2;
+    public static final byte REMOVE = (byte)4;
 
-    protected ContainerOperation(BaseContainerHandle hdl, byte operation) throws StandardException {
+    public byte operation;
+
+    public ContainerOperation(BaseContainerHandle hdl, byte operation) throws StandardException {
         //super(hdl);
         this.operation = operation;
     }

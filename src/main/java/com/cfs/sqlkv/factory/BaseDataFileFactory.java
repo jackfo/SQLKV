@@ -10,6 +10,7 @@ import com.cfs.sqlkv.store.TransactionController;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
 import com.cfs.sqlkv.store.access.raw.data.*;
+import com.cfs.sqlkv.store.access.raw.log.LogInstant;
 import com.cfs.sqlkv.transaction.Transaction;
 import java.io.IOException;
 import java.security.AccessController;
@@ -76,14 +77,7 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
     private CacheManager pageCache = new CacheManager(this, "PageCache", pageCacheSize / 2, pageCacheSize);
 
 
-    public long addContainer(
-            Transaction     transaction,
-            long            segmentId,
-            long            input_containerid,
-            int             mode,
-            Properties tableProperties,
-            int             temporaryFlag) throws StandardException {
-
+    public long addContainer(Transaction transaction, long segmentId, long input_containerid, int mode, Properties tableProperties, int temporaryFlag) throws StandardException {
         long containerId = ((input_containerid != BaseContainerHandle.DEFAULT_ASSIGN_ID) ? input_containerid : getNextId());
 
         ContainerKey identity = new ContainerKey(segmentId, containerId);
@@ -91,28 +85,30 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
 
         boolean tmpContainer = (segmentId == BaseContainerHandle.TEMPORARY_SEGMENT);
 
-        BaseContainerHandle ch = null;
+        BaseContainerHandle baseContainerHandle = null;
 
         if(!tmpContainer){
-            ch = transaction.openContainer(identity, cl, (BaseContainerHandle.MODE_FORUPDATE | BaseContainerHandle.MODE_OPEN_FOR_LOCK_ONLY));
+            baseContainerHandle = transaction.openContainer(identity, cl, (BaseContainerHandle.MODE_FORUPDATE | BaseContainerHandle.MODE_OPEN_FOR_LOCK_ONLY));
         }
+
+        //创建容器
         FileContainer container = (FileContainer) containerCache.create(identity, tableProperties);
+
         BaseContainerHandle containerHdl = null;
         Page            firstPage    = null;
         try{
             containerHdl = transaction.openContainer(identity, null, (BaseContainerHandle.MODE_FORUPDATE | mode));
-
             //如果不是临时容器,则进行相关的操作
             if (!tmpContainer){
-                ContainerOperation lop = new ContainerOperation(rch, ContainerOperation.CREATE);
-
+                ContainerOperation lop = new ContainerOperation(baseContainerHandle, ContainerOperation.CREATE);
                 containerHdl.preDirty(true);
 
                 try{
-                    transaction.logAndDo(lop);
-                    flush(t.getLastLogInstant());
+                    //写入日志
+                    //transaction.logAndDo(lop);
+                    //flush(transaction.getLastLogInstant());
                 }finally{
-                    rch.preDirty(false);
+                    baseContainerHandle.preDirty(false);
                 }
 
             }
@@ -129,8 +125,7 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
                 containerHdl = null;
             }
             if (!tmpContainer) {
-
-                cl.unlockContainer(t, ch);
+                cl.unlockContainer(transaction, ch);
             }
         }
         return containerId;
@@ -210,6 +205,10 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
         return c;
     }
 
+    public void flush(LogInstant instant){
+        //获取日志工厂进行刷新
+        //getLogFactory().flush(instant);
+    }
     private UUID identifier;
     public UUID getIdentifier(){
         return identifier;

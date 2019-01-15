@@ -40,6 +40,8 @@ public class Transaction extends SQLKVObservable {
 
     protected final TransactionFactory transactionFactory;
 
+    protected	TransactionContext		xc;
+
     public Transaction(BaseDataFileFactory dataFactory,TransactionFactory transactionFactory) {
         this.dataFactory = dataFactory;
         this.transactionFactory = transactionFactory;
@@ -52,32 +54,6 @@ public class Transaction extends SQLKVObservable {
         return dataFactory.addContainer(this, segmentId, containerid, mode, tableProperties, temporaryFlag);
     }
 
-    private BaseContainerHandle openContainer(
-            Transaction transaction,
-            ContainerKey identity,
-            LockingPolicy locking,
-            int mode,
-            boolean droppedOK) throws StandardException {
-
-        boolean waitForLock = ((mode & BaseContainerHandle.MODE_LOCK_NOWAIT) == 0);
-
-        /**
-         *
-         * Open a container for lock only, we don't care if it exists,
-         * is deleted or anything about it.
-         * The container handle we return is closed and cannot be used for fetch or update etc.
-         * */
-        if ((mode & BaseContainerHandle.MODE_OPEN_FOR_LOCK_ONLY) != 0) {
-            BaseContainerHandle lockOnlyHandle = new BaseContainerHandle(getIdentifier(), transaction, identity, locking, mode);
-
-            if (lockOnlyHandle.useContainer(true, waitForLock)) {
-                return lockOnlyHandle;
-            } else {
-                return null;
-            }
-
-        }
-    }
 
     private UUID identifier;
 
@@ -225,5 +201,22 @@ public class Transaction extends SQLKVObservable {
      * */
     public final LockingPolicy newLockingPolicy(int mode, int isolation, boolean stricterOk) {
         return transactionFactory.getLockingPolicy(mode, isolation, stricterOk);
+    }
+
+    public void dropStreamContainer(long segmentId, long containerId) throws StandardException {
+        setActiveState();
+        //dataFactory.dropStreamContainer(this, segmentId, containerId);
+    }
+
+    public void dropContainer(ContainerKey containerId)throws StandardException {
+
+        setActiveState();
+
+        //dataFactory.dropContainer(this, containerId);
+    }
+
+    public Transaction startNestedTopTransaction() throws StandardException {
+
+        return transactionFactory.startNestedTopTransaction(tr.getFactory(), xc.getContextManager());
     }
 }

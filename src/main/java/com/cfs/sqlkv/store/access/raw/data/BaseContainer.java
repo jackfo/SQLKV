@@ -65,4 +65,22 @@ public abstract class BaseContainer {
     public Object getIdentity() {
         return identity;
     }
+
+    public abstract BasePage getPage(BaseContainerHandle handle, long pageNumber, boolean wait) throws StandardException;
+
+    public abstract void setEstimatedRowCount(long count, int flag) throws StandardException;
+
+    public void truncate(BaseContainerHandle handle) throws StandardException { }
+
+    /**
+     * 添加页
+     * */
+    public Page addPage(BaseContainerHandle handle, boolean isOverflow) throws StandardException {
+
+        //TODO:设置内嵌事务
+        Transaction transaction = handle.getTransaction().
+        int mode = handle.getMode();
+
+        BaseContainerHandle allocHandle = (BaseContainerHandle)ntt.openContainer(identity, (LockingPolicy)null, mode);
+    }
 }
