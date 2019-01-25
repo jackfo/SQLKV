@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.factory;
 
-import com.cfs.sqlkv.io.StorageFile;
+import com.cfs.sqlkv.io.storage.StorageFile;
 
 public interface StorageFactory {
 

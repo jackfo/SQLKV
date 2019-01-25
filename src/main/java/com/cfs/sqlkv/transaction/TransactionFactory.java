@@ -1,9 +1,19 @@
 package com.cfs.sqlkv.transaction;
 
+import com.cfs.sqlkv.common.context.ContextManager;
+import com.cfs.sqlkv.common.context.ContextService;
+import com.cfs.sqlkv.exception.StandardException;
+import com.cfs.sqlkv.factory.BaseDataFileFactory;
+import com.cfs.sqlkv.factory.DataValueFactory;
+import com.cfs.sqlkv.factory.UUIDFactory;
 import com.cfs.sqlkv.io.Formatable;
 import com.cfs.sqlkv.io.TransactionTable;
+import com.cfs.sqlkv.service.locks.LockFactory;
 import com.cfs.sqlkv.store.TransactionController;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
+import com.cfs.sqlkv.store.access.raw.RawStoreFactory;
+import com.cfs.sqlkv.store.access.raw.TransactionContext;
+import com.cfs.sqlkv.store.access.raw.log.LogFactory;
 
 /**
  * @author zhengxiaokang
@@ -14,6 +24,14 @@ import com.cfs.sqlkv.store.access.raw.LockingPolicy;
 public class TransactionFactory {
 
     public static final String module = TransactionFactory.class.getName();
+
+    private UUIDFactory           uuidFactory;
+    private ContextService        contextFactory;
+    private LockFactory           lockFactory;
+    private LogFactory            logFactory;
+    private BaseDataFileFactory   dataFactory;
+    private DataValueFactory      dataValueFactory;
+    private RawStoreFactory       rawStoreFactory;
 
     private LockingPolicy[][] lockingPolicies = new LockingPolicy[3][6];
 
@@ -83,4 +101,32 @@ public class TransactionFactory {
     public Formatable getTransactionTable() {
         return transactionTable;
     }
+
+
+    protected static final String NTT_CONTEXT_ID = "NestedTransaction";
+    public Transaction startNestedTopTransaction(RawStoreFactory rsf, ContextManager cm) throws StandardException {
+        Transaction transaction = new Transaction(this, null, logFactory, dataFactory, dataValueFactory, false, null, false);
+        transaction.setPostComplete();
+        pushTransactionContext(cm, NTT_CONTEXT_ID, transaction, true , rsf, true);
+        return transaction;
+    }
+
+
+
+    /**
+     * 给事务新建事务上下文,在实例化过程会将其指向到事务
+     * 之后将事务添加到事务表
+     *
+     * */
+    protected void pushTransactionContext(ContextManager cm, String contextName, Transaction transaction,
+                                          boolean abortAll, RawStoreFactory rsf, boolean excludeMe){
+        //构造事务上下文
+        new TransactionContext(cm, contextName, transaction, abortAll, rsf);
+        add(transaction, excludeMe);
+    }
+
+    public LockFactory getLockFactory() {
+        return lockFactory;
+    }
+
 }

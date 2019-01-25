@@ -2,7 +2,7 @@ package com.cfs.sqlkv.factory;
 
 import com.cfs.sqlkv.common.UUID;
 import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.io.StorageFile;
+import com.cfs.sqlkv.io.storage.StorageFile;
 import com.cfs.sqlkv.service.cache.CacheManager;
 import com.cfs.sqlkv.service.cache.Cacheable;
 import com.cfs.sqlkv.service.cache.CacheableFactory;
@@ -12,10 +12,7 @@ import com.cfs.sqlkv.store.access.raw.LockingPolicy;
 import com.cfs.sqlkv.store.access.raw.data.*;
 import com.cfs.sqlkv.store.access.raw.log.LogInstant;
 import com.cfs.sqlkv.transaction.Transaction;
-import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
@@ -26,7 +23,7 @@ import java.util.Properties;
  * @Email zheng.xiaokang@qq.com
  * @create 2019-01-10 11:53
  */
-public class BaseDataFileFactory implements CacheableFactory,PrivilegedExceptionAction {
+public class BaseDataFileFactory implements CacheableFactory {
 
     public long getMaxContainerId() throws StandardException {
         return(findMaxContainerId());
@@ -49,12 +46,7 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
 
     private synchronized long findMaxContainerId() {
         actionCode = FIND_MAX_CONTAINER_ID_ACTION;
-        try {
-            return ((Long) AccessController.doPrivileged( this)).longValue();
-        } catch (PrivilegedActionException pae) {
-            // findMaxContainerId does not throw an exception
-            return 0;
-        }
+        return ((Long)run()).longValue();
     }
 
     private boolean	readOnly;
@@ -218,8 +210,8 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
         return nextContainerId++;
     }
 
-    @Override
-    public final Object run() throws IOException, StandardException {
+
+    public final Object run(){
         switch(actionCode) {
             case BOOT_ACTION:
                 readOnly = storageFactory.isReadOnlyDatabase();
@@ -228,8 +220,9 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
 
             case REMOVE_TEMP_DIRECTORY_ACTION:
                 StorageFile tempDir = storageFactory.getTempDir();
-                if( tempDir != null)
+                if( tempDir != null){
                     tempDir.deleteAll();
+                }
                 return null;
 
             case GET_CONTAINER_PATH_ACTION:
@@ -370,6 +363,8 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
                 }
                 return null;
             }
+            default:
+                break;
 
         }
         return null;
@@ -386,5 +381,35 @@ public class BaseDataFileFactory implements CacheableFactory,PrivilegedException
 
     public CacheManager getContainerCache() {
         return containerCache;
+    }
+
+    public StorageFile getContainerPath(ContainerKey containerId, boolean stub) {
+        return getContainerPath(containerId, stub, GET_CONTAINER_PATH_ACTION);
+    }
+
+    private synchronized StorageFile getContainerPath(ContainerKey containerId, boolean stub, int code){
+        actionCode = code;
+        this.containerId = containerId;
+        this.stub = stub;
+        try {
+            return  (StorageFile)run();
+        }finally {
+            this.containerId = null;
+        }
+    }
+
+    /**
+     * 获取交替路径
+     *
+     * */
+    public StorageFile getAlternateContainerPath(ContainerKey containerId, boolean stub) {
+        return getContainerPath(containerId,stub,GET_ALTERNATE_CONTAINER_PATH_ACTION);
+    }
+
+    /**
+     * 是否只读
+     * */
+    public boolean isReadOnly() {
+        return readOnly;
     }
 }

@@ -22,6 +22,9 @@ public class BaseContainerHandle extends SQLKVObservable implements SQLKVObserve
 
     public static final int DEFAULT_ASSIGN_ID = 0;
 
+    /**不合法的页号*/
+    public static final long INVALID_PAGE_NUMBER = -1;
+
     public static final int MODE_DEFAULT               = 0x00000000;
     public static final int MODE_UNLOGGED              = 0x00000001;
     public static final int MODE_CREATE_UNLOGGED       = 0x00000002;
@@ -234,5 +237,16 @@ public class BaseContainerHandle extends SQLKVObservable implements SQLKVObserve
     public Page addPage() throws StandardException{
         Page page = container.addPage(this, false);
         return page;
+    }
+
+    public int getMode() {
+        return mode;
+    }
+
+    /**
+     * 通过容器句柄获取分页行为
+     * */
+    public PageActions getActionSet() {
+        return actionsSet;
     }
 }

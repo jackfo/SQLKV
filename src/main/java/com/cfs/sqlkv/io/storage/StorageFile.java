@@ -1,4 +1,6 @@
-package com.cfs.sqlkv.io;
+package com.cfs.sqlkv.io.storage;
+
+import java.io.FileNotFoundException;
 
 /**
  * @author zhengxiaokang
@@ -22,4 +24,10 @@ public interface StorageFile {
     public boolean delete();
 
     public String getPath();
+
+    public StorageFile getParentDir();
+
+    public boolean canWrite();
+
+    public StorageRandomAccessFile getRandomAccessFile(String mode) throws FileNotFoundException;
 }

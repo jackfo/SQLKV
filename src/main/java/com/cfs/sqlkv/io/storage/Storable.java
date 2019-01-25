@@ -1,4 +1,6 @@
-package com.cfs.sqlkv.io;
+package com.cfs.sqlkv.io.storage;
+
+import com.cfs.sqlkv.io.Formatable;
 
 /**
  * @author zhengxiaokang
@@ -6,7 +8,7 @@ package com.cfs.sqlkv.io;
  * @Email zheng.xiaokang@qq.com
  * @create 2019-01-09 14:12
  */
-public interface Storable extends Formatable{
+public interface Storable extends Formatable {
 
     public boolean isNull();
 

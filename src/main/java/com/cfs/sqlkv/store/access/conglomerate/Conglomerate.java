@@ -1,7 +1,7 @@
 package com.cfs.sqlkv.store.access.conglomerate;
 
 import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.io.Storable;
+import com.cfs.sqlkv.io.storage.Storable;
 import com.cfs.sqlkv.type.DataValueDescriptor;
 
 /**

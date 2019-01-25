@@ -3,11 +3,16 @@ package com.cfs.sqlkv.transaction;
 import com.cfs.sqlkv.common.UUID;
 import com.cfs.sqlkv.exception.StandardException;
 import com.cfs.sqlkv.factory.BaseDataFileFactory;
+import com.cfs.sqlkv.factory.DataValueFactory;
+import com.cfs.sqlkv.service.locks.LockFactory;
+import com.cfs.sqlkv.service.locks.LockSpace;
 import com.cfs.sqlkv.service.monitor.SQLKVObservable;
 import com.cfs.sqlkv.store.TransactionController;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
+import com.cfs.sqlkv.store.access.raw.TransactionContext;
 import com.cfs.sqlkv.store.access.raw.data.BaseContainerHandle;
+import com.cfs.sqlkv.store.access.raw.log.LogFactory;
 import sun.misc.Unsafe;
 
 import java.util.Properties;
@@ -36,15 +41,27 @@ public class Transaction extends SQLKVObservable {
     public static final Integer SAVEPOINT_ROLLBACK = 2;
     public static final Integer LOCK_ESCALATE = 3;
 
-    protected final BaseDataFileFactory dataFactory;
+    private final BaseDataFileFactory dataFactory;
+
+    private final LogFactory logFactory;
 
     protected final TransactionFactory transactionFactory;
 
-    protected	TransactionContext		xc;
+    public TransactionContext transactionContext;
 
-    public Transaction(BaseDataFileFactory dataFactory,TransactionFactory transactionFactory) {
-        this.dataFactory = dataFactory;
+    private final LockSpace lockSpace;
+
+    public Transaction(TransactionFactory transactionFactory, Transaction transaction,
+                       LogFactory logFactory, BaseDataFileFactory dataFactory,
+                       DataValueFactory dataValueFactory, boolean readOnly,
+                       LockSpace lockSpace, boolean flush_log_on_xact_end){
+        super();
         this.transactionFactory = transactionFactory;
+        this.logFactory = logFactory;
+        this.dataFactory = dataFactory;
+        this.lockSpace = lockSpace;
+        //this.dataValueFactory       = dataValueFactory;
+        //this.readOnly               = readOnly;
     }
 
     /**
@@ -215,8 +232,28 @@ public class Transaction extends SQLKVObservable {
         //dataFactory.dropContainer(this, containerId);
     }
 
+    /**
+     * 将事务工厂和上下文管理器传入
+     * 开始一个内嵌事务
+     * */
     public Transaction startNestedTopTransaction() throws StandardException {
+        return transactionFactory.startNestedTopTransaction(transactionContext.getFactory(), transactionContext.getContextManager());
+    }
 
-        return transactionFactory.startNestedTopTransaction(tr.getFactory(), xc.getContextManager());
+
+    private boolean postCompleteMode;
+    public void setPostComplete() {
+        postCompleteMode = true;
+    }
+
+    /**
+     * 获取锁空间
+     * */
+    public final LockSpace getLockSpace(){
+        return this.lockSpace;
+    }
+
+    public final LockFactory getLockFactory() {
+        return transactionFactory.getLockFactory();
     }
 }

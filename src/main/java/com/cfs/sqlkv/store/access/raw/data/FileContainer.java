@@ -2,9 +2,16 @@ package com.cfs.sqlkv.store.access.raw.data;
 
 import com.cfs.sqlkv.exception.StandardException;
 import com.cfs.sqlkv.factory.BaseDataFileFactory;
+import com.cfs.sqlkv.io.ArrayInputStream;
+import com.cfs.sqlkv.io.StoredFormatIds;
+import com.cfs.sqlkv.io.storage.StorageRandomAccessFile;
 import com.cfs.sqlkv.service.cache.CacheManager;
 import com.cfs.sqlkv.service.cache.Cacheable;
 import com.cfs.sqlkv.store.access.raw.PageKey;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 /**
  * @author zhengxiaokang
@@ -100,4 +107,84 @@ public abstract class FileContainer  extends BaseContainer implements Cacheable{
     public BasePage getPage(BaseContainerHandle handle, long pageNumber, boolean wait) throws StandardException {
         return getUserPage(handle, pageNumber, true , wait);
     }
+
+    /**
+     * 日志轨迹操作
+     * 设置当前页没有被填满
+     * */
+    protected void trackUnfilledPage(long pagenumber, boolean unfilled) {
+
+    }
+
+    /**
+     * 容器剩余的插入空间
+     * */
+    protected int spareSpace;
+    protected int getSpareSpace() {
+        return spareSpace;
+    }
+    protected int getMinimumRecordSize() {
+        return minimumRecordSize;
+    }
+
+
+    public FileChannel getChannel(StorageRandomAccessFile file) {
+        if (file instanceof RandomAccessFile) {
+            return ((RandomAccessFile) file).getChannel();
+        }
+        return null;
+    }
+
+    /**
+     *  Read a page into the supplied array.
+     *  @param pageNumber 阅读数据的页号
+     *  @param pageData  the buffer to read data into
+     *  @param offset -1 normally (not used since offset is computed from
+     *                   pageNumber), but used if pageNumber == -1
+     *                   (getEmbryonicPage)
+     *  @exception IOException exception reading page
+     *  @exception StandardException Standard Derby error policy
+     */
+
+    private byte[] containerInfo;
+    public void readHeader(byte[] epage) throws IOException, StandardException {
+        // 读取容器的信息
+        AllocPage.ReadContainerInfo(containerInfo, epage);
+        // initialize header from information stored in containerInfo
+        readHeaderFromArray(containerInfo);
+    }
+
+    protected static final int formatIdInteger = StoredFormatIds.RAW_STORE_SINGLE_CONTAINER_FILE;
+
+    /**
+     * 从字节数组中读取containerInfo容器Header数组必须由writeHeaderFromArray写入或写入相同的格式
+     * */
+    private void readHeaderFromArray(byte[] a) throws StandardException, IOException {
+        ArrayInputStream inStream = new ArrayInputStream(a);
+        inStream.setLimit(CONTAINER_INFO_SIZE);
+        int fid = inStream.readInt();
+        if (fid != formatIdInteger) {
+            throw new RuntimeException(String.format("Unknown container format at container %s : %s",getIdentity(),fid));
+        }
+        int status = inStream.readInt();
+        pageSize = inStream.readInt();
+        spareSpace = inStream.readInt();
+        minimumRecordSize = inStream.readInt();
+        initialPages = inStream.readShort();
+        PreAllocSize = inStream.readShort();
+        firstAllocPageNumber = inStream.readLong();
+        firstAllocPageOffset = inStream.readLong();
+        containerVersion = inStream.readLong();
+        estimatedRowCount = inStream.readLong();
+        reusableRecordIdSequenceNumber = inStream.readLong();
+        lastLogInstant = null;
+        if (PreAllocSize == 0){
+            PreAllocSize = DEFAULT_PRE_ALLOC_SIZE;
+        }
+        long spare3 = inStream.readLong();
+        if (initialPages == 0){
+            initialPages = 1;
+        }
+    }
+
 }

@@ -3,7 +3,7 @@ package com.cfs.sqlkv.store.access;
 import com.cfs.sqlkv.column.ColumnOrdering;
 import com.cfs.sqlkv.exception.StandardException;
 import com.cfs.sqlkv.io.FormatableBitSet;
-import com.cfs.sqlkv.io.Storable;
+import com.cfs.sqlkv.io.storage.Storable;
 import com.cfs.sqlkv.store.access.conglomerate.ConglomerateUtil;
 import com.cfs.sqlkv.store.access.conglomerate.GenericConglomerate;
 import com.cfs.sqlkv.store.access.conglomerate.LogicalUndo;
