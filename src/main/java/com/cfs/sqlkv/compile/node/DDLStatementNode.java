@@ -5,7 +5,7 @@ import com.cfs.sqlkv.common.UUID;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.compile.CompilerContext;
 import com.cfs.sqlkv.compile.name.TableName;
-import com.cfs.sqlkv.exception.StandardException;
+
 
 /**
  * @author zhengxiaokang
@@ -13,7 +13,7 @@ import com.cfs.sqlkv.exception.StandardException;
  * @Email zheng.xiaokang@qq.com
  * @create 2019-01-07 15:24
  */
-public class DDLStatementNode extends StatementNode {
+public abstract class DDLStatementNode extends StatementNode {
 
     private TableName tableName;
     private boolean		initOk;
@@ -29,7 +29,13 @@ public class DDLStatementNode extends StatementNode {
         super(contextManager);
     }
 
-    protected final SchemaDescriptor getSchemaDescriptor(boolean ownerCheck, boolean doSystemSchemaCheck)throws StandardException {
+    @Override
+    public int activationKind() {
+        return StatementNode.NEED_DDL_ACTIVATION;
+    }
+
+
+    protected final SchemaDescriptor getSchemaDescriptor(boolean ownerCheck, boolean doSystemSchemaCheck)  {
         String schemaName = tableName.getSchemaName();
         SchemaDescriptor sd = null;
         //获取编译上下文

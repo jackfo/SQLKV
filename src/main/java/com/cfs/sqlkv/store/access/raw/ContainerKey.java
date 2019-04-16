@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw;
 
-import com.cfs.sqlkv.io.CompressedNumber;
+import com.cfs.sqlkv.service.io.CompressedNumber;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -16,7 +16,6 @@ public final class ContainerKey{
 
     /**段落标识*/
     private final long	segmentId;
-
     private final long	containerId;
 
     public ContainerKey(long segmentId, long containerId) {
@@ -43,4 +42,25 @@ public final class ContainerKey{
         long cid = CompressedNumber.readLong(in);
         return new ContainerKey(sid, cid);
     }
+
+    public int hashCode() {
+        return (int) (segmentId ^ containerId);
+    }
+
+    public String toString() {
+        return "Container(" + segmentId + ", " + containerId + ")";
+    }
+
+    public boolean equals(Object other) {
+        if (other == this){
+            return true;
+        }
+        if (other instanceof ContainerKey) {
+            ContainerKey otherKey = (ContainerKey) other;
+            return (containerId == otherKey.containerId) && (segmentId == otherKey.segmentId);
+        } else {
+            return false;
+        }
+    }
+
 }

@@ -1,8 +1,10 @@
 package com.cfs.sqlkv.store.access.raw.data;
 
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.factory.BaseDataFileFactory;
 import com.cfs.sqlkv.io.storage.StorageFile;
 import com.cfs.sqlkv.io.storage.StorageRandomAccessFile;
+import com.cfs.sqlkv.service.cache.Cacheable;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 
 import java.io.EOFException;
@@ -39,15 +41,20 @@ public class RAFContainer extends FileContainer {
 
     protected StorageRandomAccessFile fileData;
 
+    public RAFContainer(BaseDataFileFactory factory) {
+        super(factory);
+    }
+
 
     synchronized StorageRandomAccessFile getRandomAccessFile(StorageFile file){
 
+        return null;
     }
 
     /**
      * 创建随机存储文件
      * */
-    public StorageRandomAccessFile createStorageRandomAccessFile(int actionCode) throws StandardException, FileNotFoundException {
+    public StorageRandomAccessFile createStorageRandomAccessFile(int actionCode) throws FileNotFoundException {
         switch (actionCode){
             case OPEN_CONTAINER_ACTION:{
                 boolean isStub = false;
@@ -83,12 +90,13 @@ public class RAFContainer extends FileContainer {
             default:
                 break;
         }
+        return null;
     }
 
 
 
 
-    public byte[] getEmbryonicPage(StorageRandomAccessFile file, long offset) throws IOException, StandardException {
+    public byte[] getEmbryonicPage(StorageRandomAccessFile file, long offset) throws IOException   {
         FileChannel ioChannel = getChannel(file);
         if (ioChannel != null) {
             byte[] buffer = new byte[AllocPage.MAX_BORROWED_SPACE];
@@ -99,23 +107,30 @@ public class RAFContainer extends FileContainer {
         }
     }
 
-    protected StorageFile privGetFileName(ContainerKey identity, boolean stub, boolean errorOK, boolean tryAlternatePath) throws StandardException {
+    /**
+     * 获取文件名
+     * */
+    protected StorageFile privGetFileName(ContainerKey identity, boolean stub, boolean errorOK, boolean tryAlternatePath)   {
         //创建文件
-        StorageFile container = dataFactory.getContainerPath( identity, stub);
-
+        StorageFile container = dataFactory.getContainerPath(identity,stub);
         if(!container.exists() && tryAlternatePath){
             container = dataFactory.getAlternateContainerPath(identity, stub);
         }
         if (!container.exists()) {
-            throw new RuntimeException(String.format("annot create segment %s",container));
+            StorageFile directory = container.getParentDir();
+            if(!directory.exists()){
+                if (!directory.mkdirs()){
+                    throw new RuntimeException(String.format("Cannot create segment %s",container));
+                }
+            }
         }
         return container;
     }
 
     /**
-     *
+     *读取页号的数据到pageData
      * */
-    private void readPage(long pageNumber, byte[] pageData, long offset) throws IOException, StandardException{
+    private void readPage(long pageNumber, byte[] pageData, long offset) throws IOException   {
         boolean success = false;
         while (!success) {
             try {
@@ -137,7 +152,7 @@ public class RAFContainer extends FileContainer {
         }
 
     }
-    private void readPage0(long pageNumber, byte[] pageData, long offset) throws IOException, StandardException {
+    private void readPage0(long pageNumber, byte[] pageData, long offset) throws IOException   {
         FileChannel ioChannel;
         synchronized (this) {
             ioChannel = getChannel();
@@ -174,11 +189,225 @@ public class RAFContainer extends FileContainer {
      * @param position file position from where to read
      *
      */
-    private void readFull(ByteBuffer dstBuffer, FileChannel srcChannel, long position) throws IOException, StandardException {
+    private void readFull(ByteBuffer dstBuffer, FileChannel srcChannel, long position) throws IOException   {
         while(dstBuffer.remaining() > 0) {
-            if (srcChannel.read(dstBuffer, position + dstBuffer.position()) == -1) {
+            int readNums = -1;
+            try{
+                readNums = srcChannel.read(dstBuffer, position + dstBuffer.position());
+            }catch (IOException e){
+                throw new RuntimeException(e.getMessage());
+            }catch (IllegalArgumentException e){
+                throw new RuntimeException(e.getMessage());
+            }
+            if (readNums == -1) {
                 throw new EOFException("Reached end of file while attempting to read a whole page.");
             }
         }
+    }
+
+
+    @Override
+    public void createContainer(ContainerKey newIdentity)  {
+
+        StorageFile file = privGetFileName(newIdentity, false, false, false);
+        try {
+            if (file.exists()) {
+                throw new RuntimeException(String.format("Could not create file %s as it already exists.",file));
+            }
+        } catch (SecurityException se) {
+            throw new RuntimeException(String.format("Exception during creation of file %s for container",file));
+        }
+
+        try{
+            fileData = file.getRandomAccessFile( "rw");
+            writeRAFHeader(newIdentity, fileData,true);
+        }catch (IOException ioe){
+            boolean fileDeleted;
+            try {
+                fileDeleted = privRemoveFile(file);
+            } catch (SecurityException se) {
+                throw new RuntimeException(String.format("Exception during creation of file %s for container, file could not be removed.  The exception was: %s.",ioe,file));
+            }
+            if(!fileDeleted){
+                throw new RuntimeException(String.format("Exception during creation of file %s for container, file could not be removed.  The exception was: %s.",ioe,file));
+            }
+        }
+
+
+    }
+
+    private boolean privRemoveFile(StorageFile file)  {
+        if (file.exists()){
+            return file.delete();
+        }
+        return true;
+    }
+
+    /**
+     * 写入文件头部信息
+     * */
+    private void writeRAFHeader(Object  identity, StorageRandomAccessFile file, boolean create) throws IOException   {
+        byte[] epage;
+        if(create){
+            epage = new byte[pageSize];
+        }else{
+            epage = getEmbryonicPage(file,FIRST_ALLOC_PAGE_OFFSET);
+        }
+        writeHeader(identity,file,create,epage);
+    }
+
+    /**
+     * 根据标识打开容器
+     * */
+    @Override
+    public boolean openContainer(ContainerKey newIdentity)   {
+        actionIdentity = newIdentity;
+        StorageFile file =privGetFileName(actionIdentity, false, true, true);
+        if (file == null){
+            return false;
+        }
+        canUpdate = false;
+        try {
+            if (!dataFactory.isReadOnly() && file.canWrite()){
+                canUpdate = true;
+            }
+        } catch (SecurityException se) {
+
+        }
+        fileName = file.toString();
+        try {
+            fileData = file.getRandomAccessFile(canUpdate ? "rw" : "r");
+            //将数据读取到字节数据,之后获取头文件信息
+            readHeader(getEmbryonicPage(fileData, FIRST_ALLOC_PAGE_OFFSET));
+        }catch (IOException ioe) {
+            throw new RuntimeException(ioe.getMessage());
+        }
+        return true;
+    }
+
+
+    @Override
+    protected void flushAll()   {
+
+    }
+
+    @Override
+    protected boolean canUpdate() {
+        return false;
+    }
+
+    @Override
+    public void setEstimatedRowCount(long count, int flag)   {
+
+    }
+
+
+
+    /**
+     * 在文件中的给定偏移处写入一个字节序列
+     * */
+    public void writeAtOffset(StorageRandomAccessFile file, byte[] bytes, long offset) throws IOException   {
+        //获取文件通道
+        FileChannel ioChannel = getChannel(file);
+        //如果通道为空则证明是非NIO模式
+        if (ioChannel == null) {
+            super.writeAtOffset(file, bytes, offset);
+            return;
+        }
+        ourChannel = ioChannel;
+        boolean success = false;
+        while (!success) {
+            synchronized (this) {
+                ioChannel = getChannel();
+            }
+            try {
+                writeFull(ByteBuffer.wrap(bytes), ioChannel, offset);
+                success = true;
+            } catch (ClosedChannelException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 根据指定位置,将数据写入到通道
+     * */
+    private void writeFull(ByteBuffer srcBuffer, FileChannel dstChannel, long position)throws IOException{
+        while(srcBuffer.remaining() > 0) {
+            dstChannel.write(srcBuffer, position + srcBuffer.position());
+        }
+    }
+
+    /**
+     * 将数据写入到pageData 以及刷新到文件
+     * */
+    protected void writePage(long pageNumber, byte[] pageData, boolean syncPage) throws IOException   {
+        boolean success = false;
+        while (!success) {
+            if (pageNumber == FIRST_ALLOC_PAGE_NUMBER) {
+                synchronized (this) {
+                    writePage0(pageNumber, pageData, syncPage);
+                }
+            }else{
+                writePage0(pageNumber, pageData, syncPage);
+            }
+            success = true;
+        }
+
+    }
+
+    private void writePage0(long pageNumber, byte[] pageData, boolean syncPage) throws IOException   {
+        FileChannel ioChannel;
+        synchronized (this) {
+            ioChannel = getChannel();
+        }
+        if(ioChannel != null) {
+            long pageOffset = pageNumber * pageSize;
+            byte[] dataToWrite = updatePageArray(pageNumber, pageData);
+            ByteBuffer writeBuffer = ByteBuffer.wrap(dataToWrite);
+            writeFull(writeBuffer, ioChannel, pageOffset);
+        }
+    }
+
+    /**
+     * 更新页面数据
+     * */
+    protected byte[] updatePageArray(long pageNumber, byte[] pageData) throws IOException   {
+        if (pageNumber == FIRST_ALLOC_PAGE_NUMBER){
+            writeHeader(getIdentity(), pageData);
+            return pageData;
+        }else{
+            return pageData;
+        }
+    }
+
+    /**
+     * 从页面偏移量位置开始,读取对应大小的页面数据
+     * */
+    protected void readPage(long pageNumber, byte[] pageData) throws IOException   {
+        readPage0(pageNumber,pageData,-1);
+    }
+
+    /**
+     * 将容器页信息写入到磁盘
+     * */
+    public void clean(boolean forRemove)  {
+        if(getCommittedDropState()){
+            return ;
+        }
+        try {
+            writeRAFHeader(getIdentity(), fileData, false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getFirstPageAllocPageNumber(){
+        return firstAllocPageNumber;
+    }
+
+    @Override
+    protected void deallocatePage(BaseContainerHandle userhandle, BasePage page)   {
+
     }
 }

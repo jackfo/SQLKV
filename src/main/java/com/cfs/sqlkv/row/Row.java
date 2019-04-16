@@ -1,5 +1,6 @@
 package com.cfs.sqlkv.row;
 
+
 import com.cfs.sqlkv.type.DataValueDescriptor;
 
 /**
@@ -12,4 +13,8 @@ public interface Row {
 
     /**设置列当前位置的值*/
     void setColumn (int position, DataValueDescriptor value);
+
+    public int nColumns();
+
+    DataValueDescriptor	getColumn (int position)  ;
 }

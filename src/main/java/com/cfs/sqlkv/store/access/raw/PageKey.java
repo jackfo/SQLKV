@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw;
 
-import com.cfs.sqlkv.io.CompressedNumber;
+import com.cfs.sqlkv.service.io.CompressedNumber;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -18,7 +18,7 @@ public class PageKey {
     private final long	pageNumber;
 
     public PageKey(ContainerKey key, long pageNumber) {
-        container = key;
+        this.container = key;
         this.pageNumber = pageNumber;
     }
 
@@ -40,11 +40,31 @@ public class PageKey {
     }
 
     /**
-     *
+     * 从输入流中读取到对应的PageKey
      * */
     public static PageKey read(ObjectInput in) throws IOException {
         ContainerKey c = ContainerKey.read(in);
-        long pn = CompressedNumber.readLong(in);
-        return new PageKey(c, pn);
+        long pageNumber = CompressedNumber.readLong(in);
+        return new PageKey(c, pageNumber);
     }
+
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + container.hashCode();
+        hash = 79 * hash + (int) (pageNumber ^ (pageNumber >>> 32));
+        return hash;
+    }
+
+    public String toString() {
+        return "Page(" + pageNumber + "," + container.toString() + ")";
+    }
+
+    public boolean equals(Object other) {
+        if (other instanceof PageKey) {
+            PageKey otherKey = (PageKey) other;
+            return (pageNumber == otherKey.pageNumber) && container.equals(otherKey.container);
+        }
+        return false;
+    }
+
 }

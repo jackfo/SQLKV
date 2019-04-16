@@ -4,12 +4,12 @@ import com.cfs.sqlkv.catalog.Database;
 import com.cfs.sqlkv.catalog.SchemaDescriptor;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.compile.CompilerContext;
-import com.cfs.sqlkv.compile.factory.ClassFactory;
 import com.cfs.sqlkv.compile.parse.ParserImpl;
 import com.cfs.sqlkv.compile.sql.Statement;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
-import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.store.TransactionController;
+
+import com.cfs.sqlkv.service.loader.ClassFactory;
+import com.cfs.sqlkv.store.TransactionManager;
 
 
 /**
@@ -31,7 +31,7 @@ public interface LanguageConnectionFactory {
     public ParserImpl newParser(CompilerContext compilerContext);
 
     /**创建语言连接上下文*/
-    LanguageConnectionContext newLanguageConnectionContext(ContextManager cm, TransactionController tc, GenericLanguageFactory lf, Database db, String userName, String drdaID, String dbname) throws StandardException;
+    LanguageConnectionContext newLanguageConnectionContext(ContextManager cm, TransactionManager tc, GenericLanguageFactory lf, Database db, String userName, String drdaID, String dbname)  ;
 
     ClassFactory getClassFactory();
 

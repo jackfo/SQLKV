@@ -1,5 +1,6 @@
 package com.cfs.sqlkv.sql.dictionary;
 
+import com.cfs.sqlkv.catalog.DataDictionary;
 import com.cfs.sqlkv.catalog.UniqueTupleDescriptor;
 
 /**
@@ -9,4 +10,8 @@ import com.cfs.sqlkv.catalog.UniqueTupleDescriptor;
  * @create 2019-01-08 18:27
  */
 public abstract class UniqueSQLObjectDescriptor extends UniqueTupleDescriptor {
+
+    public  UniqueSQLObjectDescriptor() { super(); }
+    public  UniqueSQLObjectDescriptor( DataDictionary dd ) { super( dd ); }
+
 }

@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw.data;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.service.monitor.SQLKVObservable;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.transaction.Transaction;
@@ -11,7 +11,7 @@ import com.cfs.sqlkv.transaction.Transaction;
  * @Email zheng.xiaokang@qq.com
  * @create 2019-01-12 12:26
  */
-public class DropOnCommit extends ContainerActionOnCommit{
+public class DropOnCommit extends ContainerActionOnCommit {
     protected boolean isStreamContainer = false;
 
 
@@ -27,21 +27,19 @@ public class DropOnCommit extends ContainerActionOnCommit{
 
     /**
      * 如果事务是提交或者中止状态
-     * */
+     */
     @Override
     public void update(SQLKVObservable observable, Object extraInfo) {
         if (extraInfo.equals(Transaction.COMMIT) || extraInfo.equals(Transaction.ABORT)) {
             Transaction transaction = (Transaction) observable;
-            try {
-                if (this.isStreamContainer){
-                    transaction.dropStreamContainer(identity.getSegmentId(), identity.getContainerId());
-                } else{
-                    transaction.dropContainer(identity);
-                }
 
-            } catch (StandardException se) {
-                transaction.setObserverException(se);
+            if (this.isStreamContainer) {
+                transaction.dropStreamContainer(identity.getSegmentId(), identity.getContainerId());
+            } else {
+                transaction.dropContainer(identity);
             }
+
+
             observable.deleteObserver(this);
         }
     }

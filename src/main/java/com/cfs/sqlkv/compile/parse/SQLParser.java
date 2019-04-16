@@ -4,11 +4,9 @@ import com.cfs.sqlkv.catalog.types.*;
 import com.cfs.sqlkv.catalog.types.DataTypeDescriptor;
 import com.cfs.sqlkv.column.*;
 import com.cfs.sqlkv.common.context.*;
-import com.cfs.sqlkv.compile.CompilerContext;
-import com.cfs.sqlkv.compile.TypeCompiler;
+import com.cfs.sqlkv.compile.*;
 import com.cfs.sqlkv.compile.table.*;
 import com.cfs.sqlkv.compile.node.*;
-import com.cfs.sqlkv.exception.StandardException;
 import com.cfs.sqlkv.compile.result.*;
 import com.cfs.sqlkv.compile.name.TableName;
 import com.cfs.sqlkv.common.*;
@@ -27,6 +25,12 @@ public class SQLParser implements SQLParserConstants {
     private String statementSQLText;
 
     private boolean isDistinct;
+
+    private static final int DEFAULT_STRING_COLUMN_LENGTH = 1;
+
+    private static final int OFFSET_CLAUSE = 0;
+    private static final int FETCH_FIRST_CLAUSE = OFFSET_CLAUSE + 1;
+    private static final int OFFSET_CLAUSE_COUNT = FETCH_FIRST_CLAUSE + 1;
 
     /**
       * 如果最后一个标识符或关键字是分隔标识符
@@ -55,13 +59,48 @@ public class SQLParser implements SQLParserConstants {
                 this.cm = cc.getContextManager();
         }
 
+        private final CompilerContext getCompilerContext(){
+        return compilerContext;
+    }
+
         //初始化Statement
-    private void initStatement(String statementSQLText, Object[] paramDefaults)throws StandardException{
+    private void initStatement(String statementSQLText, Object[] paramDefaults) {
         parameterNumber = 0;
         this.statementSQLText = statementSQLText;
         this.paramDefaults = paramDefaults;
         //TODO:尚未实现SQL优化器
    }
+
+        private boolean remainingPredicateFollows()     {
+                boolean retval = false;
+
+                switch (getToken(1).kind){
+                  case EQUALS_OPERATOR:
+                  case NOT_EQUALS_OPERATOR:
+                  case NOT_EQUALS_OPERATOR2: // !=
+                  case LESS_THAN_OPERATOR:
+                  case GREATER_THAN_OPERATOR:
+                  case LESS_THAN_OR_EQUALS_OPERATOR:
+                  case GREATER_THAN_OR_EQUALS_OPERATOR:
+                  case IN:
+             case IS:
+                  case LIKE:
+                  case BETWEEN:
+                        retval = true;
+                        break;
+
+                  case NOT:
+                        switch (getToken(2).kind){
+                          case IN:
+                          case LIKE:
+                          case BETWEEN:
+                                retval = true;
+                        }
+                        break;
+                }
+
+                return retval;
+        }
 
         private final ContextManager getContextManager(){
                 return cm;
@@ -70,13 +109,91 @@ public class SQLParser implements SQLParserConstants {
     /**
      * 根据表名获取Java数据类型
      */
-        private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName)throws StandardException{
+        private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName) {
         return new DataTypeDescriptor(TypeId.getUserDefinedTypeId( typeName.getSchemaName(), typeName.getTableName(), null ),true);
     }
 
         boolean commonDatatypeName(boolean checkFollowingToken){
             return commonDatatypeName(1, checkFollowingToken);
         }
+
+        private void setUpAndLinkParameters() {
+
+    }
+    public NumericConstantNode getNumericNode(String num, boolean intsOnly) {
+        ContextManager cm = getContextManager();
+        return new NumericConstantNode(TypeId.getBuiltInTypeId(Types.INTEGER),Integer.valueOf(num),cm);
+    }
+
+         private StatementNode getDeleteNode(FromTable fromTable,
+                                                                                 TableName tableName,
+                                                                                 ValueNode whereClause){
+        FromList   fromList = new FromList(getContextManager());
+                fromList.addFromTable(fromTable);
+
+        SelectNode resultSet = new SelectNode(null,
+                                              fromList, /* FROM list */
+                                              whereClause, /* WHERE clause */
+                                              getContextManager());
+
+        StatementNode retval = new DeleteNode(tableName, resultSet, getContextManager());
+
+                setUpAndLinkParameters();
+
+                return retval;
+        }
+
+         private StatementNode getUpdateNode(FromTable fromTable,TableName tableName,ResultColumnList setClause,ValueNode whereClause){
+        FromList   fromList = new FromList(getContextManager());
+                fromList.addFromTable(fromTable);
+        SelectNode resultSet = new SelectNode(setClause,
+                                              fromList, /* FROM list */
+                                              whereClause, /* WHERE clause */
+
+                                              getContextManager());
+
+        StatementNode retval =new UpdateNode(tableName, resultSet,getContextManager());
+
+                setUpAndLinkParameters();
+
+                return retval;
+        }
+
+    /**
+     *检测是否跟随着行值构造集合
+     *要求:第一个Token是(
+     */
+        private boolean rowValueConstructorListFollows(){
+            int nesting;
+            boolean returnValue = false;
+            if(getToken(1).kind == LEFT_PAREN){
+                 nesting = 1;
+                 for (int i = 2; true; i++){
+                     int tokKind = getToken(i).kind;
+                     if (i == 2 && (tokKind == NULL || tokKind == _DEFAULT)){
+                         returnValue = true;
+                         break;
+                     }
+                     if (nesting == 1 && tokKind == COMMA) {
+                         returnValue = true;
+                         break;
+                 }
+                 if (tokKind == EOF){
+                     break;
+                 }
+                 if (tokKind == LEFT_PAREN){
+                     nesting++;
+                 }else if (tokKind == RIGHT_PAREN){
+                         nesting--;
+                 }
+                 if (nesting == 0){
+                         break;
+                 }
+                 }
+            }
+            return returnValue;
+        }
+
 
         boolean commonDatatypeName(int start, boolean checkFollowingToken)
         {
@@ -155,7 +272,7 @@ public class SQLParser implements SQLParserConstants {
                 return retval;
         }
 
-  final public StatementNode statement(String statementSQLText, Object[] paramDefaults) throws ParseException, StandardException {
+  final public StatementNode statement(String statementSQLText, Object[] paramDefaults) throws ParseException {
         StatementNode   statementNode;
     initStatement(statementSQLText, paramDefaults);
     statementNode = StatementPart(null);
@@ -174,7 +291,7 @@ public class SQLParser implements SQLParserConstants {
 /**
  * 第一个实现查询语句preparableSQLDataStatement
  */
-  final public StatementNode StatementPart(Token[] tokenHolder) throws ParseException, StandardException {
+  final public StatementNode StatementPart(Token[] tokenHolder) throws ParseException {
         StatementNode   statementNode;
         if (tokenHolder != null){
                 tokenHolder[0] = getToken(1);
@@ -183,7 +300,11 @@ public class SQLParser implements SQLParserConstants {
     case CREATE:
       statementNode = createStatements();
       break;
+    case DELETE:
+    case INSERT:
     case SELECT:
+    case UPDATE:
+    case VALUES:
       //实现查询语句preparableSQLDataStatement
            statementNode = preparableSQLDataStatement();
       break;
@@ -196,106 +317,115 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public StatementNode preparableSQLDataStatement() throws ParseException, StandardException {
+  final public StatementNode preparableSQLDataStatement() throws ParseException {
   StatementNode dmlStatement=null;
-  ResultColumnList      selectList;
-    preparableSelectStatement(false);
-        {if (true) return dmlStatement;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public CursorNode preparableSelectStatement(boolean checkParams) throws ParseException, StandardException {
-   ResultSetNode queryExpression;
-   ArrayList<String> updateColumns = new ArrayList<String>();
-   CursorNode retval;
-    queryExpression = queryExpression(null, NO_SET_OP);
-       retval = new CursorNode(getContextManager());
-       {if (true) return retval;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType) throws ParseException, StandardException {
-  ResultSetNode term;
-    term = nonJoinQueryTerm(leftSide, operatorType);
-                {if (true) return term;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws ParseException, StandardException {
-   ResultSetNode term;
-    term = nonJoinQueryPrimary();
-    {if (true) return term;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public ResultSetNode nonJoinQueryPrimary() throws ParseException, StandardException {
-  ResultSetNode primary;
-    primary = simpleTable();
-                {if (true) return primary;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public ResultSetNode simpleTable() throws ParseException, StandardException {
-        ResultSetNode   resultSetNode;
-    resultSetNode = querySpecification();
-                {if (true) return resultSetNode;}
-    throw new Error("Missing return statement in function");
-  }
-
-/**
- *详细查询
- */
-  final public ResultSetNode querySpecification() throws ParseException, StandardException {
-        ResultColumnList        selectList;
-        SelectNode                      selectNode;
-        boolean isDistinct = false;
-    jj_consume_token(SELECT);
-    selectList = selectList();
-    selectNode = tableExpression(selectList);
-                {if (true) return selectNode;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public SelectNode tableExpression(ResultColumnList selectList) throws ParseException, StandardException {
-  SelectNode selectNode;
-  FromList      fromList;
-    fromList = fromClause();
-     selectNode = new SelectNode(selectList,fromList,getContextManager());
-      {if (true) return selectNode;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public boolean setQuantifier() throws ParseException {
-    jj_consume_token(DISTINCT);
-            {if (true) return false;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public ResultColumnList selectList() throws ParseException, StandardException {
-     ResultColumn       allResultColumn;
-     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
     switch (jj_nt.kind) {
-    case ASTERISK:
-      jj_consume_token(ASTERISK);
-                allResultColumn = new AllResultColumn(null, getContextManager());
-                resultColumns.addResultColumn(allResultColumn);
-                {if (true) return resultColumns;}
+    case SELECT:
+    case VALUES:
+      dmlStatement = preparableSelectStatement(true);
+           {if (true) return dmlStatement;}
+      break;
+    case INSERT:
+      dmlStatement = insertStatement();
+                {if (true) return dmlStatement;}
+      break;
+    case UPDATE:
+      dmlStatement = preparableUpdateStatement();
+                    {if (true) return dmlStatement;}
+      break;
+    case DELETE:
+      dmlStatement = preparableDeleteStatement();
+                {if (true) return dmlStatement;}
       break;
     default:
       jj_la1[1] = jj_gen;
-      selectColumnList(resultColumns);
-          {if (true) return resultColumns;}
+      jj_consume_token(-1);
+      throw new ParseException();
     }
     throw new Error("Missing return statement in function");
   }
 
-/**
- *首先在selectSublist中消费当前Token
- *之后如果匹配到,则消费<COMMA>之后继续消费一个列
- *这样最后将所有的列明都进行了消费
- */
-  final public void selectColumnList(ResultColumnList resultColumns) throws ParseException, StandardException {
-    selectSublist(resultColumns);
+  final public StatementNode preparableDeleteStatement() throws ParseException {
+        StatementNode qtn;
+    jj_consume_token(DELETE);
+    qtn = deleteBody();
+                {if (true) return qtn;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public StatementNode deleteBody() throws ParseException {
+        JavaToSQLValueNode      javaToSQLNode = null;
+        String                          correlationName = null;
+        TableName  tableName = null;
+        ValueNode  whereClause = null;
+        FromTable  fromTable = null;
+        QueryTreeNode retval;
+        Properties targetProperties = null;
+        Token      whereToken = null;
+    jj_consume_token(FROM);
+    tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH);
+    whereToken = jj_consume_token(WHERE);
+    whereClause = whereClause(whereToken);
+                if (fromTable == null)
+                fromTable = new FromBaseTable(tableName,
+                                              correlationName,
+                                              FromBaseTable.DELETE,
+                                              null,
+                                              getContextManager());
+        {if (true) return getDeleteNode(fromTable, tableName, whereClause);}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public StatementNode insertStatement() throws ParseException {
+        StatementNode   insertNode;
+        QueryTreeNode   targetTable;
+    jj_consume_token(INSERT);
+    jj_consume_token(INTO);
+    targetTable = targetTable();
+    insertNode = insertColumnsAndSource(targetTable);
+                setUpAndLinkParameters();
+
+                {if (true) return insertNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public StatementNode insertColumnsAndSource(QueryTreeNode targetTable) throws ParseException {
+        Properties                      targetProperties = null;
+        ResultSetNode   queryExpression = null;
+        ResultColumnList        columnList = null;
+     ValueNode[] offsetClauses = new ValueNode[ OFFSET_CLAUSE_COUNT ];
+     boolean     hasJDBClimitClause = false;
+    if (getToken(1).kind == LEFT_PAREN) {
+      jj_consume_token(LEFT_PAREN);
+      columnList = insertColumnList();
+      jj_consume_token(RIGHT_PAREN);
+    } else {
+      ;
+    }
+    queryExpression = queryExpression(null, NO_SET_OP);
+          {if (true) return new InsertNode(
+                                                                targetTable,
+                                                                columnList,
+                                                                queryExpression,
+                                                                null,
+                                                                targetProperties,
+                                                                null,
+                                    offsetClauses[ OFFSET_CLAUSE ],
+                                    offsetClauses[ FETCH_FIRST_CLAUSE ],
+                                    hasJDBClimitClause,
+                                                                getContextManager());}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultColumnList insertColumnList() throws ParseException {
+     ResultColumnList columnList = new ResultColumnList(getContextManager());
+    columnQualifiedNameList(columnList);
+                {if (true) return columnList;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public void columnQualifiedNameList(ResultColumnList columnList) throws ParseException {
+    columnQualifiedNameItem(columnList);
     label_1:
     while (true) {
       switch (jj_nt.kind) {
@@ -307,11 +437,248 @@ public class SQLParser implements SQLParserConstants {
         break label_1;
       }
       jj_consume_token(COMMA);
+      columnQualifiedNameItem(columnList);
+    }
+  }
+
+  final public void columnQualifiedNameItem(ResultColumnList columnList) throws ParseException {
+        ColumnReference         columnRef;
+        ResultColumn    resultColumn;
+    /*
+     		SQL92 only wants identifiers here (column names)
+     		but JBuilder expects table.column, so we allow the
+     		general form.
+     	 */
+            columnRef = columnReference();
+                /*
+ 		** Store the column names for the result columns in the
+ 		** result column list.  We don't know yet what valueNodes
+ 		** should be hooked up to each result column, so set that
+ 		** to null for now.
+ 		*/
+        resultColumn = new ResultColumn(columnRef,
+                                                                                null,
+                                                                                getContextManager());
+                columnList.addResultColumn(resultColumn);
+  }
+
+  final public ColumnReference columnReference() throws ParseException {
+        String          firstName;
+        String          secondName = null;
+        String          thirdName = null;
+        String          columnName = null;
+        String          tableName = null;
+        String          schemaName = null;
+        TableName       tabName = null;
+    firstName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false);
+    if (getToken(1).kind == PERIOD &&
+                                            getToken(3).kind != LEFT_PAREN) {
+      jj_consume_token(PERIOD);
+      secondName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false);
+      if (getToken(1).kind == PERIOD &&
+                                                      getToken(3).kind != LEFT_PAREN) {
+        jj_consume_token(PERIOD);
+        thirdName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false);
+      } else {
+        ;
+      }
+    } else {
+      ;
+    }
+                // Figure out what each name stands for
+                if (thirdName == null)
+                {
+                        if (secondName == null)
+                        {
+                                // Only one name, must be column name
+                                columnName = firstName;
+                        }
+                        else
+                        {
+                                // Two names: table.column
+                                tableName = firstName;
+                                columnName = secondName;
+                        }
+                }
+                else
+                {
+                        // Three names: schema.table.column
+                        schemaName = firstName;
+                        tableName = secondName;
+                        columnName = thirdName;
+                }
+
+                IdUtil.checkIdentifierLengthLimit(columnName, Limits.MAX_IDENTIFIER_LENGTH);
+                if (schemaName != null)
+                        IdUtil.checkIdentifierLengthLimit(schemaName, Limits.MAX_IDENTIFIER_LENGTH);
+                if (tableName != null)
+                        IdUtil.checkIdentifierLengthLimit(tableName, Limits.MAX_IDENTIFIER_LENGTH);
+
+                if (tableName != null)
+                {
+            tabName = new TableName(
+                schemaName,
+                tableName,
+                (thirdName == null
+                     ? nextToLastIdentifierToken
+                     : thirdToLastIdentifierToken).beginOffset,
+                nextToLastIdentifierToken.endOffset,
+                getContextManager());
+                }
+
+        {if (true) return new ColumnReference(
+            columnName,
+            tabName,
+            Integer.valueOf(lastIdentifierToken.beginOffset),
+            Integer.valueOf(lastIdentifierToken.endOffset),
+            getContextManager());}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public CursorNode preparableSelectStatement(boolean checkParams) throws ParseException {
+   ResultSetNode queryExpression;
+   ArrayList<String> updateColumns = new ArrayList<String>();
+   CursorNode retval;
+    queryExpression = queryExpression(null, NO_SET_OP);
+       retval = new CursorNode("SELECT",queryExpression,getContextManager());
+       {if (true) return retval;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType) throws ParseException {
+  ResultSetNode term;
+    term = nonJoinQueryTerm(leftSide, operatorType);
+                {if (true) return term;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws ParseException {
+   ResultSetNode term;
+    term = nonJoinQueryPrimary();
+    {if (true) return term;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode nonJoinQueryPrimary() throws ParseException {
+  ResultSetNode primary;
+    primary = simpleTable();
+                {if (true) return primary;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode simpleTable() throws ParseException {
+        ResultSetNode   resultSetNode;
+    switch (jj_nt.kind) {
+    case SELECT:
+      resultSetNode = querySpecification();
+                {if (true) return resultSetNode;}
+      break;
+    case VALUES:
+      resultSetNode = tableValueConstructor();
+        {if (true) return resultSetNode;}
+      break;
+    default:
+      jj_la1[3] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+/**
+ *详细查询
+ */
+  final public ResultSetNode querySpecification() throws ParseException {
+        ResultColumnList        selectList;
+        SelectNode                      selectNode;
+        boolean isDistinct = false;
+    jj_consume_token(SELECT);
+    selectList = selectList();
+    selectNode = tableExpression(selectList);
+                {if (true) return selectNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public SelectNode tableExpression(ResultColumnList selectList) throws ParseException {
+  SelectNode selectNode;
+  FromList      fromList;
+  ValueNode     whereClause = null;
+  Token         whereToken;
+    fromList = fromClause();
+    switch (jj_nt.kind) {
+    case WHERE:
+      whereToken = jj_consume_token(WHERE);
+      whereClause = whereClause(whereToken);
+      break;
+    default:
+      jj_la1[4] = jj_gen;
+      ;
+    }
+     selectNode = new SelectNode(selectList,fromList,whereClause,getContextManager());
+      {if (true) return selectNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode whereClause(Token beginToken) throws ParseException {
+        ValueNode       value;
+        Token           endToken;
+    value = valueExpression();
+                endToken = getToken(0);
+
+                value.setBeginOffset( beginToken.endOffset + 1 );
+                value.setEndOffset( endToken.endOffset );
+
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public boolean setQuantifier() throws ParseException {
+    jj_consume_token(DISTINCT);
+            {if (true) return false;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultColumnList selectList() throws ParseException {
+     ResultColumn       allResultColumn;
+     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
+    switch (jj_nt.kind) {
+    case ASTERISK:
+      jj_consume_token(ASTERISK);
+                allResultColumn = new AllResultColumn(null, getContextManager());
+                resultColumns.addResultColumn(allResultColumn);
+                {if (true) return resultColumns;}
+      break;
+    default:
+      jj_la1[5] = jj_gen;
+      selectColumnList(resultColumns);
+          {if (true) return resultColumns;}
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+/**
+ *首先在selectSublist中消费当前Token
+ *之后如果匹配到,则消费<COMMA>之后继续消费一个列
+ *这样最后将所有的列明都进行了消费
+ */
+  final public void selectColumnList(ResultColumnList resultColumns) throws ParseException {
+    selectSublist(resultColumns);
+    label_2:
+    while (true) {
+      switch (jj_nt.kind) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[6] = jj_gen;
+        break label_2;
+      }
+      jj_consume_token(COMMA);
       selectSublist(resultColumns);
     }
   }
 
-  final public void selectSublist(ResultColumnList resultColumns) throws ParseException, StandardException {
+  final public void selectSublist(ResultColumnList resultColumns) throws ParseException {
     /**定义结果列*/
         ResultColumn    resultColumn;
         ResultColumn    allResultColumn;
@@ -328,7 +695,7 @@ public class SQLParser implements SQLParserConstants {
     }
   }
 
-  final public ResultColumn derivedColumn(ResultColumnList resultColumns) throws ParseException, StandardException {
+  final public ResultColumn derivedColumn(ResultColumnList resultColumns) throws ParseException {
         ValueNode       columnExpression;
         String          columnName = null;
        columnExpression = valueExpression();
@@ -339,7 +706,7 @@ public class SQLParser implements SQLParserConstants {
 /**
  * 获取表名
  */
-  final public TableName qualifiedName(int id_length_limit) throws ParseException, StandardException {
+  final public TableName qualifiedName(int id_length_limit) throws ParseException {
         String  schemaName = null;
         String  qualifiedId;
         String  firstName = null;
@@ -366,7 +733,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public String identifier(int id_length_limit, boolean checkLength) throws ParseException, StandardException {
+  final public String identifier(int id_length_limit, boolean checkLength) throws ParseException {
         String  id;
     id = internalIdentifier(id_length_limit, checkLength);
         {if (true) return id;}
@@ -377,7 +744,7 @@ public class SQLParser implements SQLParserConstants {
  * 遇到标识符Token之后，将当前Token记录为最后一个Token
  * 在这里是记录倒数三个Token
  */
-  final public String internalIdentifier(int id_length_limit, boolean checkLength) throws ParseException, StandardException {
+  final public String internalIdentifier(int id_length_limit, boolean checkLength) throws ParseException {
         String  str;
         Token   tok;
     tok = jj_consume_token(IDENTIFIER);
@@ -392,7 +759,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public FromList fromClause() throws ParseException, StandardException {
+  final public FromList fromClause() throws ParseException {
     FromList fromList = new FromList(getContextManager());
 
         int     tokKind;
@@ -408,7 +775,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public void dummyTableReferenceRule(FromList fromList) throws ParseException, StandardException {
+  final public void dummyTableReferenceRule(FromList fromList) throws ParseException {
         FromTable tableReference;
     if (getToken(1).kind == TABLE &&
                                     getToken(2).kind == LEFT_PAREN &&
@@ -426,27 +793,251 @@ public class SQLParser implements SQLParserConstants {
                 fromList.addFromTable(tableReference);
         break;
       default:
-        jj_la1[3] = jj_gen;
+        jj_la1[7] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
     }
   }
 
+/**
+ *值表达式 目前实现不存在任何表达式
+ */
   final public ValueNode valueExpression() throws ParseException {
-   int a;
-    {if (true) return null;}
+   ValueNode    leftOperand;
+    leftOperand = orExpression(null);
+    label_3:
+    while (true) {
+      switch (jj_nt.kind) {
+      case OR:
+        ;
+        break;
+      default:
+        jj_la1[8] = jj_gen;
+        break label_3;
+      }
+      jj_consume_token(OR);
+      leftOperand = orExpression(leftOperand);
+    }
+                {if (true) return leftOperand;}
     throw new Error("Missing return statement in function");
   }
 
-  final public FromTable tableReferenceTypes(boolean nestedInParens) throws ParseException, StandardException {
+  final public ValueNode orExpression(ValueNode farLeftOperand) throws ParseException {
+        ValueNode       leftOperand;
+    leftOperand = andExpression(null);
+    label_4:
+    while (true) {
+      switch (jj_nt.kind) {
+      case AND:
+        ;
+        break;
+      default:
+        jj_la1[9] = jj_gen;
+        break label_4;
+      }
+      jj_consume_token(AND);
+      leftOperand = andExpression(leftOperand);
+    }
+                if (farLeftOperand == null)
+                {
+                        {if (true) return leftOperand;}
+                }
+                else
+                {
+            {if (true) return null;}
+                }
+    throw new Error("Missing return statement in function");
+  }
+
+//TODO:待实现
+  final public ValueNode andExpression(ValueNode farLeftOperand) throws ParseException {
+    ValueNode   test = null;
+    test = isSearchCondition();
+                {if (true) return test;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode isSearchCondition() throws ParseException {
+        ValueNode       booleanPrimary;
+    booleanPrimary = booleanPrimary();
+        {if (true) return booleanPrimary;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode booleanPrimary() throws ParseException {
+        ValueNode       primary;
+        ValueNode       searchCondition;
+    primary = predicate();
+                {if (true) return  primary;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode predicate() throws ParseException {
+        ValueNode       value;
+    value = additiveExpression(null, 0);
+    label_5:
+    while (true) {
+      if (remainingPredicateFollows()) {
+        ;
+      } else {
+        break label_5;
+      }
+      value = remainingPredicate(value);
+    }
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode remainingPredicate(ValueNode value) throws ParseException {
+        Token tok = null;
+    value = remainingNonNegatablePredicate(value);
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode remainingNonNegatablePredicate(ValueNode leftOperand) throws ParseException {
+        int                     operator;
+        String          javaClassName;
+        Token           tok = null;
+        ValueNode       tree = null;
+        ValueNode       likePattern;
+        ValueNode       betweenLeft;
+        ValueNode       betweenRight;
+    operator = compOp();
+    leftOperand = additiveExpression(leftOperand, operator);
+                {if (true) return leftOperand;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public int compOp() throws ParseException {
+    switch (jj_nt.kind) {
+    case EQUALS_OPERATOR:
+      jj_consume_token(EQUALS_OPERATOR);
+                {if (true) return BinaryOperatorNode.EQ;}
+      break;
+    case NOT_EQUALS_OPERATOR:
+      jj_consume_token(NOT_EQUALS_OPERATOR);
+                {if (true) return BinaryOperatorNode.NE;}
+      break;
+    case NOT_EQUALS_OPERATOR2:
+      jj_consume_token(NOT_EQUALS_OPERATOR2);
+                {if (true) return BinaryOperatorNode.NE;}
+      break;
+    case LESS_THAN_OPERATOR:
+      jj_consume_token(LESS_THAN_OPERATOR);
+                {if (true) return BinaryOperatorNode.LT;}
+      break;
+    case GREATER_THAN_OPERATOR:
+      jj_consume_token(GREATER_THAN_OPERATOR);
+                {if (true) return BinaryOperatorNode.GT;}
+      break;
+    case LESS_THAN_OR_EQUALS_OPERATOR:
+      jj_consume_token(LESS_THAN_OR_EQUALS_OPERATOR);
+                {if (true) return BinaryOperatorNode.LE;}
+      break;
+    case GREATER_THAN_OR_EQUALS_OPERATOR:
+      jj_consume_token(GREATER_THAN_OR_EQUALS_OPERATOR);
+                {if (true) return BinaryOperatorNode.GE;}
+      break;
+    default:
+      jj_la1[10] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode additiveExpression(ValueNode farLeftOperand, int compOp) throws ParseException {
+        ValueNode       leftOperand;
+        int                     operator;
+    int         kind;
+    leftOperand = primaryExpression();
+                        if (farLeftOperand == null)
+                                {if (true) return leftOperand;}
+            switch (compOp)
+                {
+                  case BinaryOperatorNode.EQ:
+                kind = BinaryRelationalOperatorNode.K_EQUALS;
+                        break;
+
+                  case BinaryOperatorNode.NE:
+                kind = BinaryRelationalOperatorNode.K_NOT_EQUALS;
+                        break;
+
+                  case BinaryOperatorNode.LT:
+                kind = BinaryRelationalOperatorNode.K_LESS_THAN;
+                        break;
+
+                  case BinaryOperatorNode.GT:
+                kind = BinaryRelationalOperatorNode.K_GREATER_THAN;
+                        break;
+
+                  case BinaryOperatorNode.LE:
+                kind = BinaryRelationalOperatorNode.K_LESS_EQUALS;
+                        break;
+
+                  case BinaryOperatorNode.GE:
+                kind = BinaryRelationalOperatorNode.K_GREATER_EQUALS;
+                        break;
+
+                  default:
+                kind = -1;
+                        break;
+                }
+                 {if (true) return new BinaryRelationalOperatorNode(
+                                        kind,
+                                                                farLeftOperand,
+                                                                leftOperand,
+                                                                getContextManager());}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode primaryExpression() throws ParseException {
+        ValueNode                       value = null;
+    value = primary();
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode primary() throws ParseException {
+        ValueNode       value;
+    value = valueExpressionPrimary();
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode valueExpressionPrimary() throws ParseException {
+        ValueNode       value;
+        int                     tokKind;
+    switch (jj_nt.kind) {
+    case PLUS_SIGN:
+    case MINUS_SIGN:
+    case EXACT_NUMERIC:
+    case APPROXIMATE_NUMERIC:
+      value = valueSpecification();
+                {if (true) return value;}
+      break;
+    case IDENTIFIER:
+      value = columnReference();
+        {if (true) return value;}
+      break;
+    default:
+      jj_la1[11] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+  final public FromTable tableReferenceTypes(boolean nestedInParens) throws ParseException {
         FromTable tableReference;
     tableReference = tableReference(nestedInParens);
                 {if (true) return tableReference ;}
     throw new Error("Missing return statement in function");
   }
 
-  final public FromTable tableReference(boolean nestedInParens) throws ParseException, StandardException {
+  final public FromTable tableReference(boolean nestedInParens) throws ParseException {
     FromTable fromTable;
     TableOperatorNode joinTable = null;
     fromTable = tableFactor();
@@ -454,7 +1045,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public FromTable tableFactor() throws ParseException, StandardException {
+  final public FromTable tableFactor() throws ParseException {
         JavaToSQLValueNode      javaToSQLNode = null;
         TableName                       tableName;
         String                          correlationName = null;
@@ -479,7 +1070,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public JavaToSQLValueNode vtiTableConstruct() throws ParseException, StandardException {
+  final public JavaToSQLValueNode vtiTableConstruct() throws ParseException {
    MethodCallNode invocationNode = null;
    TableName vtiTableName;
     jj_consume_token(TABLE);
@@ -490,7 +1081,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public StatementNode createStatements() throws ParseException, StandardException {
+  final public StatementNode createStatements() throws ParseException {
         StatementNode statementNode;
         Token beginToken;
         int tokKind;
@@ -500,7 +1091,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public StatementNode tableDefinition() throws ParseException, StandardException {
+  final public StatementNode tableDefinition() throws ParseException {
         char                            lockGranularity = TableDescriptor.DEFAULT_LOCK_GRANULARITY;
         Properties                      properties = null;
         TableName                       tableName;
@@ -528,19 +1119,19 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public TableElementList tableElementList() throws ParseException, StandardException {
+  final public TableElementList tableElementList() throws ParseException {
     TableElementList tableElementList = new TableElementList(getContextManager());
     jj_consume_token(LEFT_PAREN);
     tableElement(tableElementList);
-    label_2:
+    label_6:
     while (true) {
       switch (jj_nt.kind) {
       case COMMA:
         ;
         break;
       default:
-        jj_la1[4] = jj_gen;
-        break label_2;
+        jj_la1[12] = jj_gen;
+        break label_6;
       }
       jj_consume_token(COMMA);
       tableElement(tableElementList);
@@ -550,13 +1141,13 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public void tableElement(TableElementList tableElementList) throws ParseException, StandardException {
+  final public void tableElement(TableElementList tableElementList) throws ParseException {
         TableElementNode        tableElement;
     tableElement = columnDefinition(tableElementList);
                 tableElementList.addTableElement(tableElement);
   }
 
-  final public TableElementNode columnDefinition(TableElementList tableElementList) throws ParseException, StandardException {
+  final public TableElementNode columnDefinition(TableElementList tableElementList) throws ParseException {
         DataTypeDescriptor[]    typeDescriptor = new DataTypeDescriptor[1];
         ValueNode                       defaultNode = null;
         String                          columnName;
@@ -567,16 +1158,11 @@ public class SQLParser implements SQLParserConstants {
     } else {
       ;
     }
-        {if (true) return new ColumnDefinitionNode(
-                                                                columnName,
-                                                                defaultNode,
-                                                                typeDescriptor[0],
-                                                                autoIncrementInfo,
-                                                                getContextManager());}
+        {if (true) return new ColumnDefinitionNode(columnName,defaultNode,typeDescriptor[0],autoIncrementInfo,getContextManager());}
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor dataTypeDDL() throws ParseException, StandardException {
+  final public DataTypeDescriptor dataTypeDDL() throws ParseException {
         DataTypeDescriptor      typeDescriptor;
     if (commonDatatypeName(false)) {
       typeDescriptor = dataTypeCommon();
@@ -591,15 +1177,66 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor dataTypeCommon() throws ParseException, StandardException {
+  final public DataTypeDescriptor dataTypeCommon() throws ParseException {
         DataTypeDescriptor      typeDescriptor;
         boolean checkCS = false;
-    typeDescriptor = numericType();
+    switch (jj_nt.kind) {
+    case VARCHAR:
+      typeDescriptor = characterStringType();
+      break;
+    case INT:
+    case INTEGER:
+      typeDescriptor = numericType();
+      break;
+    default:
+      jj_la1[13] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
                 {if (true) return typeDescriptor;}
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor javaType(TableName[] udtName) throws ParseException, StandardException {
+  final public DataTypeDescriptor characterStringType() throws ParseException {
+        int                                     length = DEFAULT_STRING_COLUMN_LENGTH;
+        Token                           varyingToken = null;
+        int type;
+    jj_consume_token(VARCHAR);
+    length = charLength();
+                type = Types.VARCHAR;
+                DataTypeDescriptor charDTD = DataTypeDescriptor.getBuiltInDataTypeDescriptor(type, length);
+                {if (true) return charDTD;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public int charLength() throws ParseException {
+        int length;
+    jj_consume_token(LEFT_PAREN);
+    length = length();
+    jj_consume_token(RIGHT_PAREN);
+                {if (true) return length;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public int length() throws ParseException {
+        Token   tok;
+        int     retval;
+    tok = jj_consume_token(EXACT_NUMERIC);
+                try
+                {
+                        retval = Integer.parseInt(tok.image);
+
+                        if (retval > 0)
+                                {if (true) return retval;}
+                }
+                catch (NumberFormatException nfe)
+                {
+                }
+                {if (true) throw new RuntimeException(String.format("invalid cloumn length:: %s",tok.image));}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public DataTypeDescriptor javaType(TableName[] udtName) throws ParseException {
         TableName       typeName;
     typeName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH);
         udtName[0] = typeName;
@@ -607,14 +1244,14 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor numericType() throws ParseException, StandardException {
+  final public DataTypeDescriptor numericType() throws ParseException {
         DataTypeDescriptor      typeDescriptor;
     typeDescriptor = exactNumericType();
                 {if (true) return typeDescriptor;}
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor exactNumericType() throws ParseException, StandardException {
+  final public DataTypeDescriptor exactNumericType() throws ParseException {
         int precision = TypeCompiler.DEFAULT_DECIMAL_PRECISION;
         int scale = TypeCompiler.DEFAULT_DECIMAL_SCALE;
         int type = Types.DECIMAL;
@@ -626,7 +1263,7 @@ public class SQLParser implements SQLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public DataTypeDescriptor exactIntegerType() throws ParseException, StandardException {
+  final public DataTypeDescriptor exactIntegerType() throws ParseException {
     switch (jj_nt.kind) {
     case INTEGER:
       jj_consume_token(INTEGER);
@@ -635,7 +1272,7 @@ public class SQLParser implements SQLParserConstants {
       jj_consume_token(INT);
       break;
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[14] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -646,9 +1283,240 @@ public class SQLParser implements SQLParserConstants {
   final public ValueNode defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
                                           TableElementList tableElementList,
                                           String columnName,
-                                          long[] autoIncrementInfo) throws ParseException, StandardException {
+                                          long[] autoIncrementInfo) throws ParseException {
         ValueNode               defaultNode = null;
                 {if (true) return defaultNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public QueryTreeNode targetTable() throws ParseException {
+        JavaToSQLValueNode      javaToSQLNode = null;
+        String                          correlationName = null;
+        TableName                       tableName;
+    tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH);
+                {if (true) return tableName;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode tableValueConstructor() throws ParseException {
+        ResultSetNode   resultSetNode;
+    jj_consume_token(VALUES);
+    resultSetNode = tableValueConstructorList();
+                {if (true) return resultSetNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode tableValueConstructorList() throws ParseException {
+        ResultSetNode   resultSetNode;
+    resultSetNode = rowValueConstructor(null);
+    label_7:
+    while (true) {
+      switch (jj_nt.kind) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[15] = jj_gen;
+        break label_7;
+      }
+      jj_consume_token(COMMA);
+      resultSetNode = rowValueConstructor(resultSetNode);
+    }
+            {if (true) return resultSetNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultSetNode rowValueConstructor(ResultSetNode leftRSN) throws ParseException {
+    ResultColumnList resultColumns = new ResultColumnList(getContextManager());
+        ResultSetNode           newRSN;
+    jj_consume_token(LEFT_PAREN);
+    rowValueConstructorList(resultColumns);
+    jj_consume_token(RIGHT_PAREN);
+           newRSN = new RowResultSetNode(resultColumns, null, getContextManager());
+           {if (true) return newRSN;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public void rowValueConstructorList(ResultColumnList resultColumns) throws ParseException {
+    rowValueConstructorElement(resultColumns);
+    label_8:
+    while (true) {
+      switch (jj_nt.kind) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[16] = jj_gen;
+        break label_8;
+      }
+      jj_consume_token(COMMA);
+      rowValueConstructorElement(resultColumns);
+    }
+  }
+
+  final public void rowValueConstructorElement(ResultColumnList resultColumns) throws ParseException {
+        ValueNode       value;
+    value = valueExpression();
+       resultColumns.addResultColumn(new ResultColumn((String)null,
+                                                       value,
+                                                       getContextManager()));
+  }
+
+  final public ValueNode literal() throws ParseException {
+   String       sign = "";
+   ValueNode constantNode;
+    switch (jj_nt.kind) {
+    case PLUS_SIGN:
+    case MINUS_SIGN:
+      sign = sign();
+      break;
+    default:
+      jj_la1[17] = jj_gen;
+      ;
+    }
+    constantNode = numericLiteral(sign);
+      {if (true) return constantNode;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public String sign() throws ParseException {
+        Token   s;
+    switch (jj_nt.kind) {
+    case PLUS_SIGN:
+      s = jj_consume_token(PLUS_SIGN);
+                {if (true) return s.image;}
+      break;
+    case MINUS_SIGN:
+      s = jj_consume_token(MINUS_SIGN);
+                {if (true) return s.image;}
+      break;
+    default:
+      jj_la1[18] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode valueSpecification() throws ParseException {
+    ValueNode      value;
+    value = literal();
+                {if (true) return value;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ValueNode numericLiteral(String sign) throws ParseException {
+        Token   tok;
+    switch (jj_nt.kind) {
+    case EXACT_NUMERIC:
+      tok = jj_consume_token(EXACT_NUMERIC);
+        String num = tok.image;
+
+        if (sign.equals("-")){
+                        num = sign.concat(num);
+        }
+
+        {if (true) return getNumericNode(num, false);}
+      break;
+    case APPROXIMATE_NUMERIC:
+      tok = jj_consume_token(APPROXIMATE_NUMERIC);
+        StringBuffer doubleImage;
+        String doubleString;
+        int ePosn, dotPosn; // Position of letter e and '.' in value
+        Double          doubleValue;
+
+        doubleImage = new StringBuffer(sign);
+        doubleImage.append(tok.image);
+        doubleString = doubleImage.toString();
+        doubleValue = Double.valueOf(doubleString);
+        {if (true) return new NumericConstantNode(
+                   TypeId.getBuiltInTypeId(Types.DOUBLE),
+                   doubleValue,
+                   getContextManager());}
+      break;
+    default:
+      jj_la1[19] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+  }
+
+  final public StatementNode preparableUpdateStatement() throws ParseException {
+        StatementNode qtn;
+    jj_consume_token(UPDATE);
+    qtn = updateBody();
+                {if (true) return qtn;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public StatementNode updateBody() throws ParseException {
+        ResultColumnList        columnList;
+        String                          correlationName = null;
+        JavaToSQLValueNode      javaToSQLNode = null;
+        TableName  tableName = null;
+        ValueNode  whereClause = null;
+        FromTable  fromTable = null;
+        Properties targetProperties = null;
+        Token      whereToken = null;
+    tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH);
+    jj_consume_token(SET);
+    columnList = setClauseList();
+    switch (jj_nt.kind) {
+    case WHERE:
+      whereToken = jj_consume_token(WHERE);
+      whereClause = whereClause(whereToken);
+      break;
+    default:
+      jj_la1[20] = jj_gen;
+      ;
+    }
+         fromTable = new FromBaseTable(tableName,
+                                              correlationName,
+                                              FromBaseTable.UPDATE,
+                                              null,
+                                              getContextManager());
+         {if (true) return getUpdateNode(fromTable, tableName, columnList, whereClause);}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public ResultColumnList setClauseList() throws ParseException {
+    ResultColumnList columnList = new ResultColumnList(getContextManager());
+    setClause(columnList);
+    label_9:
+    while (true) {
+      switch (jj_nt.kind) {
+      case COMMA:
+        ;
+        break;
+      default:
+        jj_la1[21] = jj_gen;
+        break label_9;
+      }
+      jj_consume_token(COMMA);
+      setClause(columnList);
+    }
+                {if (true) return columnList;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public void setClause(ResultColumnList columnList) throws ParseException {
+        ResultColumn resultColumn;
+        ColumnReference  columnName;
+        ValueNode        valueNode;
+    columnName = columnReference();
+    jj_consume_token(EQUALS_OPERATOR);
+    valueNode = updateSource(columnName.getColumnName());
+       resultColumn = new ResultColumn(columnName,
+                                                                                valueNode,
+                                                                                getContextManager());
+                columnList.addResultColumn(resultColumn);
+  }
+
+  final public ValueNode updateSource(String columnName) throws ParseException {
+        ValueNode       valueNode;
+    valueNode = valueExpression();
+                {if (true) return valueNode;}
     throw new Error("Missing return statement in function");
   }
 
@@ -659,17 +1527,68 @@ public class SQLParser implements SQLParserConstants {
     finally { jj_save(0, xla); }
   }
 
-  final private boolean jj_3_1() {
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_7() {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   final private boolean jj_3R_12() {
+    if (jj_3R_14()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_22() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_17() {
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_10() {
+    Token xsp;
+    xsp = jj_scanpos;
+    lookingAhead = true;
+    jj_semLA = commonDatatypeName(false);
+    lookingAhead = false;
+    if (!jj_semLA || jj_3R_11()) {
+    jj_scanpos = xsp;
+    lookingAhead = true;
+    jj_semLA = getToken(1).kind != GENERATED;
+    lookingAhead = false;
+    if (!jj_semLA || jj_3R_12()) return true;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_11() {
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_15() {
+    if (jj_3R_18()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_13() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) {
+    jj_scanpos = xsp;
+    if (jj_3R_16()) return true;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_14() {
+    if (jj_3R_17()) return true;
+    return false;
+  }
+
+  final private boolean jj_3_1() {
+    if (jj_3R_10()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_23() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_scan_token(108)) {
@@ -679,59 +1598,28 @@ public class SQLParser implements SQLParserConstants {
     return false;
   }
 
-  final private boolean jj_3R_10() {
-    if (jj_3R_12()) return true;
+  final private boolean jj_3R_16() {
+    if (jj_3R_19()) return true;
     return false;
   }
 
-  final private boolean jj_3R_5() {
-    if (jj_3R_7()) return true;
+  final private boolean jj_3R_18() {
+    if (jj_scan_token(VARCHAR)) return true;
     return false;
   }
 
-  final private boolean jj_3R_11() {
-    if (jj_3R_13()) return true;
+  final private boolean jj_3R_21() {
+    if (jj_3R_23()) return true;
     return false;
   }
 
-  final private boolean jj_3R_3() {
-    Token xsp;
-    xsp = jj_scanpos;
-    lookingAhead = true;
-    jj_semLA = commonDatatypeName(false);
-    lookingAhead = false;
-    if (!jj_semLA || jj_3R_4()) {
-    jj_scanpos = xsp;
-    lookingAhead = true;
-    jj_semLA = getToken(1).kind != GENERATED;
-    lookingAhead = false;
-    if (!jj_semLA || jj_3R_5()) return true;
-    }
+  final private boolean jj_3R_19() {
+    if (jj_3R_21()) return true;
     return false;
   }
 
-  final private boolean jj_3R_4() {
-    if (jj_3R_6()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_8() {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_13() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_6() {
-    if (jj_3R_8()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_9() {
-    if (jj_3R_11()) return true;
+  final private boolean jj_3R_20() {
+    if (jj_3R_22()) return true;
     return false;
   }
 
@@ -742,7 +1630,7 @@ public class SQLParser implements SQLParserConstants {
   public boolean lookingAhead = false;
   private boolean jj_semLA;
   private int jj_gen;
-  final private int[] jj_la1 = new int[6];
+  final private int[] jj_la1 = new int[22];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static private int[] jj_la1_2;
@@ -774,46 +1662,46 @@ public class SQLParser implements SQLParserConstants {
       jj_la1_13();
    }
    private static void jj_la1_0() {
-      jj_la1_0 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_0 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x200,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_1() {
-      jj_la1_1 = new int[] {0x4000,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_1 = new int[] {0x40004000,0x40000000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_2() {
-      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_3() {
-      jj_la1_3 = new int[] {0x0,0x0,0x0,0x0,0x0,0x1800,};
+      jj_la1_3 = new int[] {0x400,0x400,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1800,0x1800,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_4() {
-      jj_la1_4 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_4 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x800,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_5() {
-      jj_la1_5 = new int[] {0x20,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_5 = new int[] {0x20,0x20,0x0,0x20,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_6() {
-      jj_la1_6 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_6 = new int[] {0x84,0x84,0x0,0x80,0x2000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x200,0x0,0x0,0x0,0x0,0x0,0x0,0x2000,0x0,};
    }
    private static void jj_la1_7() {
-      jj_la1_7 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_7 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_8() {
-      jj_la1_8 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_8 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_9() {
-      jj_la1_9 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_9 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_10() {
-      jj_la1_10 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_10 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_11() {
-      jj_la1_11 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_11 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_12() {
-      jj_la1_12 = new int[] {0x0,0x800,0x4000,0x0,0x4000,0x0,};
+      jj_la1_12 = new int[] {0x0,0x0,0x4000,0x0,0x0,0x800,0x4000,0x0,0x0,0x0,0xfe00000,0xa000,0x4000,0x0,0x0,0x4000,0x4000,0xa000,0xa000,0x0,0x0,0x4000,};
    }
    private static void jj_la1_13() {
-      jj_la1_13 = new int[] {0x0,0x0,0x0,0x10,0x0,0x0,};
+      jj_la1_13 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10,0x0,0x0,0x0,0x10810,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10800,0x0,0x0,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;
@@ -824,7 +1712,7 @@ public class SQLParser implements SQLParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -833,7 +1721,7 @@ public class SQLParser implements SQLParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -842,7 +1730,7 @@ public class SQLParser implements SQLParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -851,7 +1739,7 @@ public class SQLParser implements SQLParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -962,7 +1850,7 @@ public class SQLParser implements SQLParserConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 22; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

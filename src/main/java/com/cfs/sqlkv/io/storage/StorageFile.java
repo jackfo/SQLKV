@@ -30,4 +30,6 @@ public interface StorageFile {
     public boolean canWrite();
 
     public StorageRandomAccessFile getRandomAccessFile(String mode) throws FileNotFoundException;
+
+    public boolean mkdirs();
 }

@@ -1,6 +1,7 @@
 package com.cfs.sqlkv.service.cache;
 
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.store.access.raw.PageKey;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -23,15 +24,8 @@ public class CacheManager {
 
     private final int maxSize;
 
-    private final AtomicLong hits = new AtomicLong();
 
-    private final AtomicLong misses = new AtomicLong();
-
-    private final AtomicLong evictions = new AtomicLong();
-
-    private volatile boolean stopped;
-
-    public CacheManager(CacheableFactory holderFactory, String name, int initialSize, int maxSize){
+    public CacheManager(CacheableFactory holderFactory, String name, int initialSize, int maxSize) {
         cache = new ConcurrentHashMap(initialSize);
         this.holderFactory = holderFactory;
         this.name = name;
@@ -40,68 +34,124 @@ public class CacheManager {
     }
 
     /**
-     *创建页
-     * */
-    public Cacheable create(Object key, Object createParameter) throws StandardException{
-        if (stopped) {
-            return null;
-        }
-
+     * 创建页,创建之后将其添加到缓存中去
+     */
+    public Cacheable create(Object key, Object createParameter) {
         CacheEntry entry = new CacheEntry();
-        entry.lock();
-
         if (cache.putIfAbsent(key, entry) != null) {
-           throw new RuntimeException("Cannot create new object with key {1} in {0} cache. The object already exists in the cache.");
+            throw new RuntimeException(String.format("cache object is exists,it's key is %s", key));
         }
-
-        Cacheable item;
-        try {
-            item = insertIntoFreeSlot(key, entry);
-        } finally {
-            entry.unlock();
-        }
-
-        Cacheable itemWithIdentity = null;
-        try {
-            itemWithIdentity = item.createIdentity(key, createParameter);
-        } finally {
-            // Always invoke settingIdentityComplete(), also on error,
-            // otherwise other threads may wait forever. If createIdentity()
-            // fails, itemWithIdentity is going to be null.
-            settingIdentityComplete(key, entry, itemWithIdentity);
-        }
-        return itemWithIdentity;
+        Cacheable item = insertIntoFreeSlot(key, entry);
+        item = item.createIdentity(key, createParameter);
+        //在缓存创建完毕之后,需要将其重新注入到缓存条目
+        settingIdentityComplete(key, entry, item);
+        return item;
     }
 
-    public void release(Cacheable entry){
 
-    }
-
-    public Cacheable find(Object key) throws StandardException{
-        return null;
+    private void settingIdentityComplete(Object key, CacheEntry entry, Cacheable item) {
+        entry.setCacheable(item);
     }
 
     /**
-     * Insert a {@code CacheEntry} into a free slot in the {@code
-     * ReplacementPolicy}'s internal data structure, and return a {@code
-     * Cacheable} that the caller can reuse. The entry must have been locked
-     * before this method is called.
-     *
-     * 插入一个CacheEntry在空闲的slot
-     * @param key the identity of the object being inserted
-     * @param entry the entry that is being inserted
-     * @return a {@code Cacheable} object that the caller can reuse
-     * @throws StandardException if an error occurs while inserting the entry
-     * or while allocating a new {@code Cacheable}
+     * 将缓存插入到对应的条目
      */
-    private Cacheable insertIntoFreeSlot(Object key, CacheEntry entry) throws StandardException {
-        try {
-            clockPolicy.insertEntry(entry);
-        } catch (StandardException se) {
-            // Failed to insert the entry into the replacement policy. Make
-            // sure that it's also removed from the hash table.
-            removeEntry(key);
-            throw se;
+    private Cacheable insertIntoFreeSlot(Object key, CacheEntry entry) {
+        clockPolicy.insertEntry(entry);
+        Cacheable free = entry.getCacheable();
+        if (free == null) {
+            free = holderFactory.newCacheable(this);
+        }
+        return free;
+    }
+
+    public void release(Cacheable entry) {
+
+    }
+
+    /**
+     * 获取缓存的Cacheable
+     */
+    public Cacheable find(Object key) {
+        CacheEntry entry = getEntry(key);
+        Cacheable item = entry.getCacheable();
+        if (item != null) {
+            return item;
+        } else {
+
+            item = insertIntoFreeSlot(key, entry);
+
+        }
+
+        item = item.setIdentity(key);
+
+        settingIdentityComplete(key, entry, item);
+        return item;
+    }
+
+    /**
+     * 获取缓存条目
+     */
+    private CacheEntry getEntry(Object key) {
+        if (key == null) {
+            throw new RuntimeException("key can't be null");
+        }
+        CacheEntry entry = cache.get(key);
+        while (true) {
+            if (entry != null) {
+                return entry;
+            } else {
+                CacheEntry freshEntry = new CacheEntry();
+                CacheEntry oldEntry = cache.putIfAbsent(key, freshEntry);
+                if (oldEntry != null) {
+                    entry = oldEntry;
+                } else {
+                    return freshEntry;
+                }
+            }
+
+
+        }
+    }
+
+    private BackgroundCleaner cleaner;
+
+    public BackgroundCleaner getBackgroundCleaner() {
+        return cleaner;
+    }
+
+    public void evictEntry(Object key) {
+        CacheEntry entry = cache.remove(key);
+        entry.getCacheable().clearIdentity();
+        entry.setCacheable(null);
+    }
+
+    /**
+     * 清空并且保存缓存条目到磁盘
+     */
+    public void cleanAndUnkeepEntry(CacheEntry entry, Cacheable item) {
+        item.clean(false);
+    }
+
+    /**
+     * 清除缓存中所有的脏对象
+     */
+    public void cleanAll() {
+        cleanCache();
+    }
+
+    private void cleanCache() {
+        for (CacheEntry entry : cache.values()) {
+            final Cacheable dirtyObject;
+            if (!entry.isValid()) {
+                continue;
+            }
+            Cacheable c = entry.getCacheable();
+            if (!c.isDirty()) {
+                continue;
+            }
+            dirtyObject = c;
+            cleanAndUnkeepEntry(entry, dirtyObject);
         }
     }
 }

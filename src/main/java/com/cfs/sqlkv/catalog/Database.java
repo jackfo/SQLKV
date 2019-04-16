@@ -2,7 +2,8 @@ package com.cfs.sqlkv.catalog;
 
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.transaction.AccessManager;
 
 /**
  * @author zhengxiaokang
@@ -17,5 +18,10 @@ public interface Database {
      * */
     public DataDictionary getDataDictionary();
 
-    public LanguageConnectionContext setupConnection(ContextManager cm, String user, String drdaID, String dbname) throws StandardException;
+    public LanguageConnectionContext setupConnection(ContextManager cm, String user, String drdaID, String dbname);
+
+    //在连接之后加载数据库信息
+    public void init(ContextManager contextManager,boolean create);
+
+    public AccessManager getAccessManager();
 }

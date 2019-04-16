@@ -15,10 +15,19 @@ public abstract class BaseStorageFactory implements StorageFactory {
     String home;
     protected StorageFile tempDir;
     protected String tempDirPath;
+    //数据存放的目录
     protected String dataDirectory;
     protected String separatedDataDirectory;
     protected String uniqueName;
     protected String canonicalName;
+
+    public BaseStorageFactory(String dataDirectory){
+        this.dataDirectory = dataDirectory;
+    }
+
+    public void setDataDirectory(String dataDirectory){
+        this.dataDirectory = dataDirectory;
+    }
 
     /**
      * 创建持久化文件

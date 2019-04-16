@@ -18,6 +18,15 @@ public class ContextManager {
     private final HashMap<String,CtxStack> ctxTable = new HashMap<String,CtxStack>();
 
 
+    public int activeCount;
+
+    public Thread activeThread;
+
+    private final ContextService contextService;
+    public ContextManager(ContextService contextService){
+        this.contextService = contextService;
+    }
+
     /**
      * 获取当前contextId所对应栈中的线程上下文
      * @param contextId 上下文id类型 如jdbc连接 statement
@@ -40,6 +49,11 @@ public class ContextManager {
         idStack.push(context);
     }
 
+    private final ArrayList<Context> holder = new ArrayList<Context>();
+
+    public final boolean isEmpty() {
+        return holder.isEmpty();
+    }
     /**
      * 上下文栈
      * */

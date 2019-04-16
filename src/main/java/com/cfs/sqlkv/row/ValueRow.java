@@ -1,5 +1,6 @@
 package com.cfs.sqlkv.row;
 
+
 import com.cfs.sqlkv.type.DataValueDescriptor;
 
 /**
@@ -12,7 +13,7 @@ public class ValueRow implements ExecRow {
 
     /**
      * 列的数据描述信息
-     * */
+     */
     private DataValueDescriptor[] column;
 
     private int ncols;
@@ -27,10 +28,24 @@ public class ValueRow implements ExecRow {
         /**
          * 代表者新增加了列
          * */
-        if (position > column.length){
+        if (position > column.length) {
             realloc(position);
         }
-        column[position-1] = columnTemplate;
+        column[position - 1] = columnTemplate;
+    }
+
+    @Override
+    public int nColumns() {
+        return ncols;
+    }
+
+    @Override
+    public DataValueDescriptor getColumn(int position) {
+        if (position <= column.length) {
+            return column[position - 1];
+        } else {
+            return null;
+        }
     }
 
     protected void realloc(int ncols) {
@@ -38,4 +53,27 @@ public class ValueRow implements ExecRow {
         System.arraycopy(column, 0, newcol, 0, column.length);
         column = newcol;
     }
+
+    @Override
+    public DataValueDescriptor[] getRowArray() {
+        return column;
+    }
+
+    @Override
+    public void setRowArray(DataValueDescriptor[] rowArray) {
+        column = rowArray;
+    }
+
+    public DataValueDescriptor[] getRowArrayClone() {
+        int numColumns = column.length;
+        DataValueDescriptor[] columnClones = new DataValueDescriptor[numColumns];
+        for (int colCtr = 0; colCtr < numColumns; colCtr++) {
+            if (column[colCtr] != null) {
+                columnClones[colCtr] = column[colCtr].cloneValue(false);
+            }
+        }
+        return columnClones;
+    }
+
+
 }

@@ -34,11 +34,14 @@ public class ColumnDefinitionNode extends TableElementNode {
     long						autoincrementStart;
     boolean                     autoincrementCycle;
 
+    /**
+     * SQL语句中的每一列解析成ColumnDefinitionNode对象
+     * */
     public ColumnDefinitionNode(String name, ValueNode defaultNode, DataTypeDescriptor dataType,
                                      long[] autoIncrementInfo, ContextManager cm){
         super(cm);
         this.type = dataType;
-
+        this.name = name;
     }
 
     public final DataTypeDescriptor getType() {

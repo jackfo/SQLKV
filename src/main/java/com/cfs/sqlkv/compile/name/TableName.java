@@ -3,6 +3,7 @@ package com.cfs.sqlkv.compile.name;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.compile.node.QueryTreeNode;
 
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -63,10 +64,14 @@ public class TableName extends QueryTreeNode {
 
 
     public String getSchemaName(){
-        return null;
+        return schemaName;
     }
 
     public String getTableName(){
-        return null;
+        return tableName;
+    }
+
+    public void bind(){
+        schemaName = getSchemaDescriptor(schemaName).getSchemaName();
     }
 }

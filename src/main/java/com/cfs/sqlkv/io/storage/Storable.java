@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.io.storage;
 
-import com.cfs.sqlkv.io.Formatable;
+import com.cfs.sqlkv.service.io.Formatable;
 
 /**
  * @author zhengxiaokang

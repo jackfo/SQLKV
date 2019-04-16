@@ -2,11 +2,17 @@ package com.cfs.sqlkv.jdbc;
 
 import com.cfs.sqlkv.catalog.DataDictionary;
 import com.cfs.sqlkv.catalog.Database;
+import com.cfs.sqlkv.common.Attribute;
+import com.cfs.sqlkv.common.PersistentService;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.context.EmbedConnectionContext;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
 import com.cfs.sqlkv.db.BasicDatabase;
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.factory.StorageFactory;
+import com.cfs.sqlkv.io.BaseStorageFactory;
+import com.cfs.sqlkv.io.storage.DirStorageFactory;
+import com.cfs.sqlkv.io.storage.StorageFile;
 
 import java.sql.*;
 import java.util.Map;
@@ -28,6 +34,7 @@ public class EmbedConnection implements Connection {
 
     private InternalDriver internalDriver;
 
+    private final StorageFactory storageFactory;
     private java.sql.Connection applicationConnection;
 
     private boolean	active;
@@ -35,6 +42,11 @@ public class EmbedConnection implements Connection {
     /**基于已有的连接创建连接*/
     public EmbedConnection(EmbedConnection inputConnection){
         this.rootConnection = inputConnection.rootConnection;
+        storageFactory = inputConnection.getStorageFactory();
+    }
+
+    public StorageFactory getStorageFactory(){
+        return this.storageFactory;
     }
 
     /**
@@ -43,37 +55,35 @@ public class EmbedConnection implements Connection {
     public EmbedConnection(InternalDriver driver, String url, Properties info){
            applicationConnection=rootConnection = this;
            internalDriver = driver;
-           transactionResourceImpl = new TransactionResourceImpl(driver,url,info);
-
+           //创建数据库
+           Database database = new BasicDatabase();
+           //将数据拒进行初始化和管理
+           transactionResourceImpl = new TransactionResourceImpl(driver,url,info,database);
+           storageFactory = new DirStorageFactory(System.getProperty(PersistentService.ROOT));
+           storageFactory.setDataDirectory(transactionResourceImpl.getDbname());
            active = true;
-
-            try {
+           try {
                 setupContextStack();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
             try{
                 EmbedConnectionContext context = pushConnectionContext(transactionResourceImpl.getContextManager());
-                //Database database = (Database) findService(Property.DATABASE_MODULE, transactionResourceImpl.getDBName());
-
-                Database database = new BasicDatabase();
-                transactionResourceImpl.setDatabase(database);
-                try {
-                    checkUserIsNotARole();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-
-
             }finally {
-
             }
+    }
 
+    private static boolean isTrue(Properties p, String attribute) {
+        return Boolean.valueOf(p.getProperty(attribute)).booleanValue();
     }
 
     protected final void setupContextStack() throws SQLException {
         getTransactionResourceImpl().setupContextStack();
+    }
+
+    protected final void restoreContextStack() throws SQLException {
+        TransactionResourceImpl tr = getTransactionResourceImpl();
+        tr.restoreContextStack();
     }
 
     /**
@@ -365,6 +375,7 @@ public class EmbedConnection implements Connection {
     }
 
 
+
     final protected Object getConnectionSynchronization() {
         return rootConnection;
     }
@@ -384,15 +395,12 @@ public class EmbedConnection implements Connection {
         return new EmbedConnectionContext(cm, this);
     }
 
-    private void checkUserIsNotARole() throws SQLException{
-        TransactionResourceImpl tr = getTransactionResourceImpl();
-        try{
-            tr.startTransaction();
-            LanguageConnectionContext lcc = tr.getLcc();
-            DataDictionary dd = lcc.getDataDictionary();
-            tr.rollback();
-        }catch (StandardException e) {
-            e.printStackTrace();
-        }
+    public LanguageConnectionContext getLcc(){
+        return getTransactionResourceImpl().getLcc();
     }
+
+    public void commitIfNeeded() throws SQLException {
+        getTransactionResourceImpl().commit();
+    }
+
 }

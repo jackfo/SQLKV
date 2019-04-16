@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.store.access.raw.data.BaseContainerHandle;
 import com.cfs.sqlkv.transaction.Transaction;
 
@@ -28,7 +28,7 @@ public interface LockingPolicy {
      *
      * @return 容器被锁住则返回真,返之返回false
      * */
-    public boolean lockContainer(Transaction transaction, BaseContainerHandle container, boolean waitForLock, boolean forUpdate) throws StandardException;
+    public boolean lockContainer(Transaction transaction, BaseContainerHandle container, boolean waitForLock, boolean forUpdate)  ;
 
     /**解锁容器*/
     public void unlockContainer(Transaction t, BaseContainerHandle container);

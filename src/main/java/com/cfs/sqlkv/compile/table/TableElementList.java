@@ -7,7 +7,7 @@ import com.cfs.sqlkv.common.UUID;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.compile.node.QueryTreeNodeVector;
 import com.cfs.sqlkv.engine.execute.ColumnInfo;
-import com.cfs.sqlkv.exception.StandardException;
+
 
 /**
  * @author zhengxiaokang
@@ -28,7 +28,7 @@ public class TableElementList extends QueryTreeNodeVector<TableElementNode> {
         }
     }
 
-    public void setCollationTypesOnCharacterStringColumns(SchemaDescriptor sd) throws StandardException {
+    public void setCollationTypesOnCharacterStringColumns(SchemaDescriptor sd)   {
 //        for (TableElementNode te : this) {
 //            if (te instanceof ColumnDefinitionNode) {
 //                setCollationTypeOnCharacterStringColumn(sd, (ColumnDefinitionNode)te );
@@ -65,7 +65,10 @@ public class TableElementList extends QueryTreeNodeVector<TableElementNode> {
         return numColumns;
     }
 
-    public int genColumnInfos(ColumnInfo[] colInfos) throws StandardException{
+    /**
+     * 获取列的相关信息
+     * */
+    public int genColumnInfos(ColumnInfo[] colInfos)  {
         int	numConstraints = 0;
         int size = size();
         for (int index = 0; index < size; index++){
@@ -75,8 +78,6 @@ public class TableElementList extends QueryTreeNodeVector<TableElementNode> {
                 continue;
             }
             ColumnDefinitionNode coldef = (ColumnDefinitionNode) elementAt(index);
-
-            //ProviderInfo[]	providerInfos = null;
             colInfos[index - numConstraints] = new ColumnInfo(coldef.getColumnName(),
                             coldef.getType(),
                             coldef.getDefaultValue(),

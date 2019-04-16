@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.engine.execute;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.sql.activation.Activation;
 
 /**
@@ -10,7 +10,7 @@ import com.cfs.sqlkv.sql.activation.Activation;
  */
 public interface ConstantAction {
 
-    public void	executeConstantAction(Activation activation ) throws StandardException;
+    public void	executeConstantAction(Activation activation )  ;
 
 
 }

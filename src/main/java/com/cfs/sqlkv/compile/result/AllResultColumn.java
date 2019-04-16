@@ -16,4 +16,10 @@ public class AllResultColumn extends ResultColumn{
     public AllResultColumn(TableName tableName, ContextManager cm){
         super(cm);
     }
+
+
+    @Override
+    public TableName getTableNameObject() {
+        return tableName;
+    }
 }

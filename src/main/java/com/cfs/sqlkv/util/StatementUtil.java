@@ -6,6 +6,7 @@ import com.cfs.sqlkv.common.StatementType;
 import com.cfs.sqlkv.compile.CompilerContext;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
 
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -45,6 +46,8 @@ public class StatementUtil {
      * 获取当前schemaName对应的描述
      * */
     public static SchemaDescriptor getSchemaDescriptor(String schemaName, boolean raiseError, DataDictionary dataDictionary, LanguageConnectionContext lcc, CompilerContext cc){
-        return null;
+        SchemaDescriptor sd = lcc.getDefaultSchema();
+        return sd;
     }
+
 }

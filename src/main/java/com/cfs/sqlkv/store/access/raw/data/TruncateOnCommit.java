@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw.data;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.service.monitor.SQLKVObservable;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.transaction.Transaction;
@@ -24,7 +24,7 @@ public class TruncateOnCommit extends ContainerHandleActionOnCommit{
      *对容器做截断
      * */
     @Override
-    protected void doIt(BaseContainerHandle handle) throws StandardException {
+    protected void doIt(BaseContainerHandle handle)   {
         handle.container.truncate(handle);
     }
 

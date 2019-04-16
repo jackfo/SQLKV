@@ -15,17 +15,14 @@ options
 }
 
 PARSER_BEGIN(SQLParser)
-
 package com.cfs.sqlkv.compile.parse;
 import com.cfs.sqlkv.catalog.types.*;
 import com.cfs.sqlkv.catalog.types.DataTypeDescriptor;
 import com.cfs.sqlkv.column.*;
 import com.cfs.sqlkv.common.context.*;
-import com.cfs.sqlkv.compile.CompilerContext;
-import com.cfs.sqlkv.compile.TypeCompiler;
+import com.cfs.sqlkv.compile.*;
 import com.cfs.sqlkv.compile.table.*;
 import com.cfs.sqlkv.compile.node.*;
-import com.cfs.sqlkv.exception.StandardException;
 import com.cfs.sqlkv.compile.result.*;
 import com.cfs.sqlkv.compile.name.TableName;
 import com.cfs.sqlkv.common.*;
@@ -44,6 +41,12 @@ public class SQLParser{
     private String statementSQLText;
 
     private boolean isDistinct;
+
+    private static final int DEFAULT_STRING_COLUMN_LENGTH = 1;
+
+    private static final int OFFSET_CLAUSE = 0;
+    private static final int FETCH_FIRST_CLAUSE = OFFSET_CLAUSE + 1;
+    private static final int OFFSET_CLAUSE_COUNT = FETCH_FIRST_CLAUSE + 1;
 
     /**
       * 如果最后一个标识符或关键字是分隔标识符
@@ -72,13 +75,48 @@ public class SQLParser{
 		this.cm = cc.getContextManager();
 	}
 
+	private final CompilerContext getCompilerContext(){
+    	return compilerContext;
+    }
+
 	//初始化Statement
-    private void initStatement(String statementSQLText, Object[] paramDefaults)throws StandardException{
+    private void initStatement(String statementSQLText, Object[] paramDefaults) {
         parameterNumber = 0;
         this.statementSQLText = statementSQLText;
         this.paramDefaults = paramDefaults;
         //TODO:尚未实现SQL优化器
    }
+
+   	private boolean remainingPredicateFollows()	{
+   		boolean retval = false;
+
+   		switch (getToken(1).kind){
+   		  case EQUALS_OPERATOR:
+   		  case NOT_EQUALS_OPERATOR:
+   		  case NOT_EQUALS_OPERATOR2: // !=
+   		  case LESS_THAN_OPERATOR:
+   		  case GREATER_THAN_OPERATOR:
+   		  case LESS_THAN_OR_EQUALS_OPERATOR:
+   		  case GREATER_THAN_OR_EQUALS_OPERATOR:
+   		  case IN:
+             case IS:
+   		  case LIKE:
+   		  case BETWEEN:
+   		  	retval = true;
+   			break;
+
+   		  case NOT:
+   		  	switch (getToken(2).kind){
+   			  case IN:
+   			  case LIKE:
+   			  case BETWEEN:
+   			  	retval = true;
+   			}
+   			break;
+   		}
+
+   		return retval;
+   	}
 
    	private final ContextManager getContextManager(){
    		return cm;
@@ -87,13 +125,91 @@ public class SQLParser{
     /**
      * 根据表名获取Java数据类型
      */
-   	private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName)throws StandardException{
+   	private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName) {
     	return new DataTypeDescriptor(TypeId.getUserDefinedTypeId( typeName.getSchemaName(), typeName.getTableName(), null ),true);
     }
 
 	boolean commonDatatypeName(boolean checkFollowingToken){
 	    return commonDatatypeName(1, checkFollowingToken);
 	}
+
+	private void setUpAndLinkParameters() {
+
+    }
+    public NumericConstantNode getNumericNode(String num, boolean intsOnly) {
+        ContextManager cm = getContextManager();
+        return new NumericConstantNode(TypeId.getBuiltInTypeId(Types.INTEGER),Integer.valueOf(num),cm);
+    }
+
+	 private StatementNode getDeleteNode(FromTable fromTable,
+										 TableName tableName,
+										 ValueNode whereClause){
+        FromList   fromList = new FromList(getContextManager());
+		fromList.addFromTable(fromTable);
+
+        SelectNode resultSet = new SelectNode(null,
+                                              fromList, /* FROM list */
+                                              whereClause, /* WHERE clause */
+                                              getContextManager());
+
+        StatementNode retval = new DeleteNode(tableName, resultSet, getContextManager());
+
+		setUpAndLinkParameters();
+
+		return retval;
+	}
+
+	 private StatementNode getUpdateNode(FromTable fromTable,TableName tableName,ResultColumnList setClause,ValueNode whereClause){
+        FromList   fromList = new FromList(getContextManager());
+		fromList.addFromTable(fromTable);
+        SelectNode resultSet = new SelectNode(setClause,
+                                              fromList, /* FROM list */
+                                              whereClause, /* WHERE clause */
+
+                                              getContextManager());
+
+        StatementNode retval =new UpdateNode(tableName, resultSet,getContextManager());
+
+		setUpAndLinkParameters();
+
+		return retval;
+	}
+
+    /**
+     *检测是否跟随着行值构造集合
+     *要求:第一个Token是(
+     */
+	private boolean rowValueConstructorListFollows(){
+	    int nesting;
+	    boolean returnValue = false;
+	    if(getToken(1).kind == LEFT_PAREN){
+	         nesting = 1;
+	         for (int i = 2; true; i++){
+	             int tokKind = getToken(i).kind;
+	             if (i == 2 && (tokKind == NULL || tokKind == _DEFAULT)){
+	                 returnValue = true;
+                 	 break;
+	             }
+	             if (nesting == 1 && tokKind == COMMA) {
+                 	 returnValue = true;
+                 	 break;
+                 }
+                 if (tokKind == EOF){
+                     break;
+                 }
+                 if (tokKind == LEFT_PAREN){
+                     nesting++;
+                 }else if (tokKind == RIGHT_PAREN){
+                  	 nesting--;
+                 }
+                 if (nesting == 0){
+                 	 break;
+                 }
+	         }
+	    }
+	    return returnValue;
+	}
+
 
    	boolean commonDatatypeName(int start, boolean checkFollowingToken)
     	{
@@ -404,20 +520,8 @@ TOKEN [IGNORE_CASE] :
 |	<YEAR: "year">
 }
 
-/*
-	This list should contain only and all SQL92 keywords that are non-reserved.
-	Non-reserved keywords can be used as identifiers in the language.
-	To make that happen, the individual tokens have to be repeated in
-	the nonReservedKeyword() rule -- unless there's some other JavaCC shorthand?
-
-	NOTE: I've commented out most of these because we won't be using them
-	right away and the grammar is taking forever to process.
- */
-/* NOTE - If you add a keyword, then you must add it to reservedKeyword()
- *	      or nonReservedKeyword() as well!
- */
 TOKEN [IGNORE_CASE] :
-{	/* SQL92 non-reserved Keywords */
+{
     <ABS: "abs">
 |    <ABSVAL: "absval">
 |	<ACTION: "action">
@@ -548,17 +652,9 @@ TOKEN [IGNORE_CASE] :
 |	<XMLSERIALIZE:	"xmlserialize">
 }
 
-/* NOTE - If you add a keyword, then you must add it to reservedKeyword()
- *	      or nonReservedKeyword() as well!
- *
- * NOTE: CONTENT, DOCUMENT, STRIP, WHITESPACE and PASSING are considered NON-
- * reserved words to comply with the SQL/XML (2003) standard, section 5.1.
- * Similarly, EMPTY, RETURNING, and SEQUENCE are all considered NON-reserved
- * words per SQL/XML (2006).  PRESERVE is also listed as non-reserved in the
- * SQL/XML spec, but since that word is already reserved, we leave it alone.
- */
+
 TOKEN [IGNORE_CASE] :
-{	/* Additional JSQL keywords -- non-SQL92 non-reserved Keywords */
+{
 	<AFTER: "after">
 |	<AGGREGATE: "aggregate">
 |	<BEFORE: "before">
@@ -966,7 +1062,7 @@ TOKEN :
 
 
 
-StatementNode statement(String statementSQLText, Object[] paramDefaults) throws StandardException :{
+StatementNode statement(String statementSQLText, Object[] paramDefaults)   :{
 	StatementNode	statementNode;
     initStatement(statementSQLText, paramDefaults);
 }
@@ -979,12 +1075,14 @@ StatementNode statement(String statementSQLText, Object[] paramDefaults) throws 
 	}
 }
 
+
+
 StatementNode searchCondition(String sql):{}{{return null;}}
 
 /**
  * 第一个实现查询语句preparableSQLDataStatement
  */
-StatementNode StatementPart(Token[] tokenHolder) throws StandardException :{
+StatementNode StatementPart(Token[] tokenHolder)   :{
 	StatementNode	statementNode;
 	if (tokenHolder != null){
 		tokenHolder[0] = getToken(1);
@@ -1009,16 +1107,255 @@ StatementNode StatementPart(Token[] tokenHolder) throws StandardException :{
 
 
 
-StatementNode preparableSQLDataStatement() throws StandardException:
+StatementNode preparableSQLDataStatement()  :
 {
   StatementNode	dmlStatement=null;
-  ResultColumnList	selectList;
  }{
-       preparableSelectStatement(false)
-       {return dmlStatement;}
+       dmlStatement = preparableSelectStatement(true)
+       {
+           return dmlStatement;
+       }
+|
+       	dmlStatement = insertStatement()
+       	{
+       		return dmlStatement;
+       	}
+|
+	    dmlStatement = preparableUpdateStatement()
+	    {
+		    return dmlStatement;
+	    }
+|
+	    dmlStatement = preparableDeleteStatement()
+        {
+        	return dmlStatement;
+        }
  }
 
- CursorNode preparableSelectStatement(boolean checkParams) throws StandardException :
+ StatementNode
+ preparableDeleteStatement():
+ {
+ 	StatementNode qtn;
+ }
+ {
+ 	<DELETE> qtn = deleteBody()
+ 	{
+ 		return qtn;
+ 	}
+ }
+
+
+StatementNode
+deleteBody():
+{
+	JavaToSQLValueNode	javaToSQLNode = null;
+	String				correlationName = null;
+	TableName  tableName = null;
+	ValueNode  whereClause = null;
+	FromTable  fromTable = null;
+	QueryTreeNode retval;
+	Properties targetProperties = null;
+	Token	   whereToken = null;
+}
+{
+
+    <FROM> tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+    whereToken = <WHERE>
+   	whereClause = whereClause(whereToken)
+   	{
+   		if (fromTable == null)
+                fromTable = new FromBaseTable(tableName,
+                                              correlationName,
+                                              FromBaseTable.DELETE,
+                                              null,
+                                              getContextManager());
+        return getDeleteNode(fromTable, tableName, whereClause);
+   	}
+}
+
+
+ StatementNode
+ insertStatement()   :
+ {
+ 	StatementNode	insertNode;
+ 	QueryTreeNode	targetTable;
+ }
+ {
+    <INSERT> <INTO> targetTable = targetTable()
+    			insertNode = insertColumnsAndSource(targetTable)
+ 	{
+ 		setUpAndLinkParameters();
+
+ 		return insertNode;
+ 	}
+ }
+
+
+ StatementNode
+ insertColumnsAndSource(QueryTreeNode targetTable)
+ 	  :
+ {
+ 	Properties			targetProperties = null;
+ 	ResultSetNode	queryExpression = null;
+ 	ResultColumnList	columnList = null;
+     ValueNode[] offsetClauses = new ValueNode[ OFFSET_CLAUSE_COUNT ];
+     boolean     hasJDBClimitClause = false;
+ }
+ {
+ 	[
+ 		LOOKAHEAD( { getToken(1).kind == LEFT_PAREN} )
+ 		<LEFT_PAREN> columnList = insertColumnList() <RIGHT_PAREN>
+ 	]
+ 	queryExpression = queryExpression(null, NO_SET_OP)
+ 	{
+
+ 	  return new InsertNode(
+        							targetTable,
+        							columnList,
+        							queryExpression,
+        							null,
+        							targetProperties,
+        							null,
+                                    offsetClauses[ OFFSET_CLAUSE ],
+                                    offsetClauses[ FETCH_FIRST_CLAUSE ],
+                                    hasJDBClimitClause,
+        							getContextManager());
+ 	}
+
+ }
+
+ ResultColumnList
+ insertColumnList()   :
+ {
+     ResultColumnList columnList = new ResultColumnList(getContextManager());
+ }
+ {
+ 	columnQualifiedNameList(columnList)
+ 	{
+ 		return columnList;
+ 	}
+ }
+
+ void
+ columnQualifiedNameList(ResultColumnList columnList)   :
+ {}
+ {
+ 	columnQualifiedNameItem(columnList) ( <COMMA> columnQualifiedNameItem(columnList) ) *
+ }
+ void
+ columnQualifiedNameItem(ResultColumnList columnList)   :
+ {
+ 	ColumnReference		columnRef;
+ 	ResultColumn	resultColumn;
+ }
+ {
+ 	/*
+ 		SQL92 only wants identifiers here (column names)
+ 		but JBuilder expects table.column, so we allow the
+ 		general form.
+ 	 */
+ 	columnRef = columnReference()
+ 	{
+ 		/*
+ 		** Store the column names for the result columns in the
+ 		** result column list.  We don't know yet what valueNodes
+ 		** should be hooked up to each result column, so set that
+ 		** to null for now.
+ 		*/
+        resultColumn = new ResultColumn(columnRef,
+ 										null,
+ 										getContextManager());
+ 		columnList.addResultColumn(resultColumn);
+ 	}
+ }
+
+
+
+ColumnReference
+columnReference()   :
+{
+	String		firstName;
+	String		secondName = null;
+	String		thirdName = null;
+	String		columnName = null;
+	String		tableName = null;
+	String		schemaName = null;
+	TableName	tabName = null;
+}
+{
+	firstName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false)
+	[
+		// This LOOKAHEAD is needed to ensure that, if the identifier
+		// after the PERIOD is a method name , we
+		// don't treat it as part of the column reference.
+		LOOKAHEAD( {
+					getToken(1).kind == PERIOD &&
+					getToken(3).kind != LEFT_PAREN
+				} )
+		<PERIOD> secondName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false)
+		[
+			// This LOOKAHEAD is needed to ensure that, if the identifier
+			// after the PERIOD is a method name , we
+			// don't treat it as part of the column reference.
+			LOOKAHEAD( {
+						getToken(1).kind == PERIOD &&
+						getToken(3).kind != LEFT_PAREN
+					} )
+			<PERIOD> thirdName = identifier(Limits.MAX_IDENTIFIER_LENGTH, false)
+		]
+	]
+	{
+		// Figure out what each name stands for
+		if (thirdName == null)
+		{
+			if (secondName == null)
+			{
+				// Only one name, must be column name
+				columnName = firstName;
+			}
+			else
+			{
+				// Two names: table.column
+				tableName = firstName;
+				columnName = secondName;
+			}
+		}
+		else
+		{
+			// Three names: schema.table.column
+			schemaName = firstName;
+			tableName = secondName;
+			columnName = thirdName;
+		}
+
+		IdUtil.checkIdentifierLengthLimit(columnName, Limits.MAX_IDENTIFIER_LENGTH);
+		if (schemaName != null)
+			IdUtil.checkIdentifierLengthLimit(schemaName, Limits.MAX_IDENTIFIER_LENGTH);
+		if (tableName != null)
+			IdUtil.checkIdentifierLengthLimit(tableName, Limits.MAX_IDENTIFIER_LENGTH);
+
+		if (tableName != null)
+		{
+            tabName = new TableName(
+                schemaName,
+                tableName,
+                (thirdName == null
+                     ? nextToLastIdentifierToken
+                     : thirdToLastIdentifierToken).beginOffset,
+                nextToLastIdentifierToken.endOffset,
+                getContextManager());
+		}
+
+        return new ColumnReference(
+            columnName,
+            tabName,
+            Integer.valueOf(lastIdentifierToken.beginOffset),
+            Integer.valueOf(lastIdentifierToken.endOffset),
+            getContextManager());
+	}
+}
+
+ CursorNode preparableSelectStatement(boolean checkParams)   :
  {
    ResultSetNode queryExpression;
    ArrayList<String> updateColumns = new ArrayList<String>();
@@ -1026,13 +1363,13 @@ StatementNode preparableSQLDataStatement() throws StandardException:
  }{
     queryExpression = queryExpression(null, NO_SET_OP)
     {
-       retval = new CursorNode(getContextManager());
+       retval = new CursorNode("SELECT",queryExpression,getContextManager());
        return retval;
     }
  }
 
 
-ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType) throws StandardException :
+ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType)   :
 {
   ResultSetNode	term;
 }
@@ -1042,7 +1379,7 @@ ResultSetNode queryExpression(ResultSetNode leftSide, int operatorType) throws S
  	}
 }
 
-ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws StandardException :
+ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType)   :
 {
    ResultSetNode term;
 }
@@ -1051,7 +1388,7 @@ ResultSetNode nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws 
    {return term;}
 }
 
-ResultSetNode nonJoinQueryPrimary() throws StandardException :
+ResultSetNode nonJoinQueryPrimary()   :
 {
   ResultSetNode	primary;
 }
@@ -1062,7 +1399,7 @@ ResultSetNode nonJoinQueryPrimary() throws StandardException :
 }
 
 ResultSetNode
-simpleTable() throws StandardException :
+simpleTable()   :
 {
 	ResultSetNode	resultSetNode;
 }
@@ -1071,12 +1408,17 @@ simpleTable() throws StandardException :
 	{
 		return resultSetNode;
 	}
+|
+    resultSetNode = tableValueConstructor()
+    {
+        return resultSetNode;
+    }
 }
 
 /**
  *详细查询
  */
-ResultSetNode querySpecification() throws StandardException :
+ResultSetNode querySpecification()   :
 {
 	ResultColumnList	selectList;
 	SelectNode			selectNode;
@@ -1091,17 +1433,38 @@ ResultSetNode querySpecification() throws StandardException :
 	}
 }
 
-SelectNode tableExpression(ResultColumnList selectList) throws StandardException :
+SelectNode tableExpression(ResultColumnList selectList)   :
 {
   SelectNode selectNode;
   FromList	fromList;
+  ValueNode	whereClause = null;
+  Token		whereToken;
 }
 {
    fromList = fromClause()
+   [ whereToken = <WHERE> whereClause = whereClause(whereToken) ]
    {
-     selectNode = new SelectNode(selectList,fromList,getContextManager());
+     selectNode = new SelectNode(selectList,fromList,whereClause,getContextManager());
       return selectNode;
    }
+}
+
+ValueNode
+whereClause(Token beginToken)   :
+{
+	ValueNode	value;
+	Token		endToken;
+}
+{
+	value = valueExpression()
+	{
+		endToken = getToken(0);
+
+		value.setBeginOffset( beginToken.endOffset + 1 );
+		value.setEndOffset( endToken.endOffset );
+
+		return value;
+	}
 }
 
 boolean setQuantifier():
@@ -1110,7 +1473,7 @@ boolean setQuantifier():
 {<DISTINCT>{return false;}}
 
 
-ResultColumnList selectList() throws StandardException :
+ResultColumnList selectList()   :
 {
      ResultColumn	allResultColumn;
      ResultColumnList resultColumns = new ResultColumnList(getContextManager());
@@ -1134,7 +1497,7 @@ ResultColumnList selectList() throws StandardException :
  *之后如果匹配到,则消费<COMMA>之后继续消费一个列
  *这样最后将所有的列明都进行了消费
  */
-void selectColumnList(ResultColumnList resultColumns) throws StandardException :
+void selectColumnList(ResultColumnList resultColumns)   :
 {
 }
 {
@@ -1142,7 +1505,7 @@ void selectColumnList(ResultColumnList resultColumns) throws StandardException :
 	selectSublist(resultColumns) ( <COMMA> selectSublist(resultColumns) ) *
 }
 
-void selectSublist(ResultColumnList resultColumns) throws StandardException :
+void selectSublist(ResultColumnList resultColumns)   :
 {
     /**定义结果列*/
 	ResultColumn	resultColumn;
@@ -1166,7 +1529,7 @@ void selectSublist(ResultColumnList resultColumns) throws StandardException :
 }
 
 
-ResultColumn derivedColumn(ResultColumnList resultColumns) throws StandardException :
+ResultColumn derivedColumn(ResultColumnList resultColumns)   :
 {
 	ValueNode	columnExpression;
 	String		columnName = null;
@@ -1181,7 +1544,7 @@ ResultColumn derivedColumn(ResultColumnList resultColumns) throws StandardExcept
 /**
  * 获取表名
  */
-TableName qualifiedName(int id_length_limit) throws StandardException :
+TableName qualifiedName(int id_length_limit)   :
 {
 	String	schemaName = null;
 	String	qualifiedId;
@@ -1211,7 +1574,7 @@ TableName qualifiedName(int id_length_limit) throws StandardException :
 }
 
 
-String identifier(int id_length_limit, boolean checkLength) throws StandardException :
+String identifier(int id_length_limit, boolean checkLength)   :
 {
 	String	id;
 }
@@ -1227,7 +1590,7 @@ String identifier(int id_length_limit, boolean checkLength) throws StandardExcep
  * 遇到标识符Token之后，将当前Token记录为最后一个Token
  * 在这里是记录倒数三个Token
  */
-String internalIdentifier( int id_length_limit, boolean checkLength) throws StandardException :
+String internalIdentifier( int id_length_limit, boolean checkLength)   :
 {
 	String	str;
 	Token 	tok;
@@ -1248,7 +1611,7 @@ String internalIdentifier( int id_length_limit, boolean checkLength) throws Stan
 
 
 FromList
-fromClause() throws StandardException :
+fromClause()   :
 {
     FromList fromList = new FromList(getContextManager());
 
@@ -1268,7 +1631,7 @@ fromClause() throws StandardException :
 }
 
 void
-dummyTableReferenceRule(FromList fromList) throws StandardException :
+dummyTableReferenceRule(FromList fromList)   :
 {
 	FromTable tableReference;
 }
@@ -1297,16 +1660,272 @@ dummyTableReferenceRule(FromList fromList) throws StandardException :
 	}
 }
 
-ValueNode valueExpression():
+/**
+ *值表达式 目前实现不存在任何表达式
+ */
+ValueNode valueExpression()  :
 {
-   int a;
+   ValueNode	leftOperand;
 }
 {
-   {return null;}
+   leftOperand = orExpression(null)
+   (<OR> leftOperand = orExpression(leftOperand) ) *
+   	{
+
+   		return leftOperand;
+   	}
 }
 
+ValueNode
+orExpression(ValueNode farLeftOperand)   :
+{
+	ValueNode	leftOperand;
+}
+{
+	leftOperand = andExpression(null)
+		(<AND> leftOperand = andExpression(leftOperand)) *
+	{
+		if (farLeftOperand == null)
+		{
+			return leftOperand;
+		}
+		else
+		{
+            return null;
+		}
+	}
+}
+
+//TODO:待实现
+ValueNode
+andExpression(ValueNode farLeftOperand)   :
+{
+    ValueNode	test = null;
+}
+{
+
+        test = isSearchCondition()
+    	{
+    		return test;
+    	}
+}
+
+ValueNode
+isSearchCondition()   :
+{
+	ValueNode	booleanPrimary;
+}
+{
+	booleanPrimary = booleanPrimary()
+	{
+        return booleanPrimary;
+	}
+}
+
+ValueNode
+booleanPrimary()   :
+{
+	ValueNode	primary;
+	ValueNode	searchCondition;
+}
+{
+	primary = predicate()
+	{
+		return	primary;
+	}
+}
+
+ValueNode
+predicate()   :
+{
+	ValueNode	value;
+}
+{
+	(
+		value = additiveExpression(null, 0)
+	)
+	(
+
+    		LOOKAHEAD( { remainingPredicateFollows() } )
+    		value = remainingPredicate(value)
+    )*
+	{
+		return value;
+	}
+}
+
+
+ValueNode
+remainingPredicate(ValueNode value)   :
+{
+	Token tok = null;
+}
+{
+	value = remainingNonNegatablePredicate(value)
+	{
+		return value;
+	}
+}
+
+ValueNode
+remainingNonNegatablePredicate(ValueNode leftOperand)   :
+{
+	int			operator;
+	String		javaClassName;
+	Token 		tok = null;
+	ValueNode	tree = null;
+	ValueNode	likePattern;
+	ValueNode	betweenLeft;
+	ValueNode	betweenRight;
+}
+{
+	operator = compOp()
+	leftOperand = additiveExpression(leftOperand, operator)
+	{
+		return leftOperand;
+	}
+}
+
+int
+compOp()   :
+{}
+{
+	<EQUALS_OPERATOR>
+	{
+		return BinaryOperatorNode.EQ;
+	}
+|
+	<NOT_EQUALS_OPERATOR>
+	{
+		return BinaryOperatorNode.NE;
+	}
+|
+	<NOT_EQUALS_OPERATOR2>
+	{
+		return BinaryOperatorNode.NE;
+	}
+|
+	<LESS_THAN_OPERATOR>
+	{
+		return BinaryOperatorNode.LT;
+	}
+|
+	<GREATER_THAN_OPERATOR>
+	{
+		return BinaryOperatorNode.GT;
+	}
+|
+	<LESS_THAN_OR_EQUALS_OPERATOR>
+	{
+		return BinaryOperatorNode.LE;
+	}
+|
+	<GREATER_THAN_OR_EQUALS_OPERATOR>
+	{
+		return BinaryOperatorNode.GE;
+	}
+}
+
+
+ValueNode
+additiveExpression(ValueNode farLeftOperand, int compOp)   :
+{
+	ValueNode	leftOperand;
+	int			operator;
+    int         kind;
+}
+{
+	leftOperand =  primaryExpression()
+    {
+			if (farLeftOperand == null)
+        			return leftOperand;
+    	    switch (compOp)
+    		{
+    		  case BinaryOperatorNode.EQ:
+                kind = BinaryRelationalOperatorNode.K_EQUALS;
+    			break;
+
+    		  case BinaryOperatorNode.NE:
+                kind = BinaryRelationalOperatorNode.K_NOT_EQUALS;
+    			break;
+
+    		  case BinaryOperatorNode.LT:
+                kind = BinaryRelationalOperatorNode.K_LESS_THAN;
+    			break;
+
+    		  case BinaryOperatorNode.GT:
+                kind = BinaryRelationalOperatorNode.K_GREATER_THAN;
+    			break;
+
+    		  case BinaryOperatorNode.LE:
+                kind = BinaryRelationalOperatorNode.K_LESS_EQUALS;
+    			break;
+
+    		  case BinaryOperatorNode.GE:
+                kind = BinaryRelationalOperatorNode.K_GREATER_EQUALS;
+    			break;
+
+    		  default:
+                kind = -1;
+    			break;
+    		}
+    		 return new BinaryRelationalOperatorNode(
+                                        kind,
+            							farLeftOperand,
+            							leftOperand,
+            							getContextManager());
+
+	}
+}
+
+
+ValueNode primaryExpression()   :
+{
+	ValueNode			value = null;
+}
+{
+	value = primary()
+	{
+		return value;
+	}
+}
+
+ValueNode
+primary():
+{
+
+	ValueNode	value;
+}
+{
+	value = valueExpressionPrimary()
+	{
+		return value;
+	}
+}
+
+
+ValueNode
+valueExpressionPrimary()   :
+{
+	ValueNode	value;
+	int			tokKind;
+}
+{
+	value = valueSpecification()
+	{
+		return value;
+	}
+	|
+	value = columnReference()
+    {
+    	return value;
+    }
+}
+
+
+
 FromTable
-tableReferenceTypes(boolean nestedInParens) throws StandardException :
+tableReferenceTypes(boolean nestedInParens)   :
 {
 	FromTable tableReference;
 }
@@ -1317,7 +1936,7 @@ tableReferenceTypes(boolean nestedInParens) throws StandardException :
 	}
 }
 
-FromTable tableReference(boolean nestedInParens) throws StandardException :
+FromTable tableReference(boolean nestedInParens)   :
 {
     FromTable fromTable;
     TableOperatorNode joinTable = null;
@@ -1329,7 +1948,7 @@ FromTable tableReference(boolean nestedInParens) throws StandardException :
     }
 }
 
-FromTable tableFactor() throws StandardException :
+FromTable tableFactor()   :
 {
 	JavaToSQLValueNode	javaToSQLNode = null;
 	TableName			tableName;
@@ -1358,7 +1977,7 @@ FromTable tableFactor() throws StandardException :
     	}
 }
 
-JavaToSQLValueNode vtiTableConstruct() throws StandardException :
+JavaToSQLValueNode vtiTableConstruct()   :
 {
    MethodCallNode invocationNode = null;
    TableName vtiTableName;
@@ -1371,7 +1990,7 @@ JavaToSQLValueNode vtiTableConstruct() throws StandardException :
   { return new JavaToSQLValueNode(invocationNode, getContextManager());}
 }
 
-StatementNode createStatements() throws StandardException :{
+StatementNode createStatements()   :{
 	StatementNode statementNode;
 	Token beginToken;
 	int tokKind;
@@ -1384,7 +2003,7 @@ StatementNode createStatements() throws StandardException :{
       }
 }
 
-StatementNode tableDefinition() throws StandardException :{
+StatementNode tableDefinition()   :{
 	char				lockGranularity = TableDescriptor.DEFAULT_LOCK_GRANULARITY;
 	Properties			properties = null;
 	TableName			tableName;
@@ -1413,7 +2032,7 @@ StatementNode tableDefinition() throws StandardException :{
 }
 
 
-TableElementList tableElementList() throws StandardException :
+TableElementList tableElementList()   :
 {
     TableElementList tableElementList = new TableElementList(getContextManager());
 }
@@ -1425,7 +2044,7 @@ TableElementList tableElementList() throws StandardException :
 }
 
 void
-tableElement(TableElementList tableElementList) throws StandardException :
+tableElement(TableElementList tableElementList)   :
 {
 	TableElementNode	tableElement;
 }
@@ -1437,7 +2056,7 @@ tableElement(TableElementList tableElementList) throws StandardException :
 }
 
 TableElementNode
-columnDefinition(TableElementList tableElementList) throws StandardException :
+columnDefinition(TableElementList tableElementList)   :
 {
 	DataTypeDescriptor[]	typeDescriptor = new DataTypeDescriptor[1];
 	ValueNode			defaultNode = null;
@@ -1447,20 +2066,14 @@ columnDefinition(TableElementList tableElementList) throws StandardException :
 {
 	columnName = identifier(Limits.MAX_IDENTIFIER_LENGTH, true)
 		[ ( typeDescriptor[0] = dataTypeDDL() ) ]
-    	//[ defaultNode = defaultAndConstraints(typeDescriptor, tableElementList, columnName, autoIncrementInfo) ]
 	{
-        return new ColumnDefinitionNode(
-								columnName,
-								defaultNode,
-								typeDescriptor[0],
-								autoIncrementInfo,
-								getContextManager());
+        return new ColumnDefinitionNode(columnName,defaultNode,typeDescriptor[0],autoIncrementInfo,getContextManager());
 	}
 }
 
 
 DataTypeDescriptor
-dataTypeDDL() throws StandardException :
+dataTypeDDL()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -1479,21 +2092,77 @@ dataTypeDDL() throws StandardException :
 }
 
 DataTypeDescriptor
-dataTypeCommon() throws StandardException :
+dataTypeCommon()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 	boolean checkCS = false;
 }
 {
 
-	typeDescriptor = numericType()
+	(typeDescriptor = characterStringType()|typeDescriptor = numericType())
 	{
 		return typeDescriptor;
 	}
 }
 
+
 DataTypeDescriptor
-javaType(TableName[] udtName) throws StandardException :
+characterStringType()   :
+{
+	int					length = DEFAULT_STRING_COLUMN_LENGTH;
+	Token				varyingToken = null;
+	int type;
+}
+{
+	(
+		<VARCHAR> length = charLength()
+	)
+	{
+		type = Types.VARCHAR;
+	}
+	{
+		DataTypeDescriptor charDTD = DataTypeDescriptor.getBuiltInDataTypeDescriptor(type, length);
+		return charDTD;
+	}
+}
+
+int
+charLength()   :
+{
+	int length;
+}
+{
+	<LEFT_PAREN> length = length() <RIGHT_PAREN>
+	{
+		return length;
+	}
+}
+
+int
+length()   :
+{
+	Token	tok;
+	int	retval;
+}
+{
+	tok = <EXACT_NUMERIC>
+	{
+		try
+		{
+			retval = Integer.parseInt(tok.image);
+
+			if (retval > 0)
+				return retval;
+		}
+		catch (NumberFormatException nfe)
+		{
+		}
+		throw new RuntimeException(String.format("invalid cloumn length:: %s",tok.image));
+	}
+}
+
+DataTypeDescriptor
+javaType(TableName[] udtName)   :
 {
 	TableName	typeName;
 }
@@ -1506,7 +2175,7 @@ javaType(TableName[] udtName) throws StandardException :
 }
 
 DataTypeDescriptor
-numericType() throws StandardException :
+numericType()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -1518,7 +2187,7 @@ numericType() throws StandardException :
 }
 
 DataTypeDescriptor
-exactNumericType() throws StandardException :
+exactNumericType()   :
 {
 	int precision = TypeCompiler.DEFAULT_DECIMAL_PRECISION;
 	int scale = TypeCompiler.DEFAULT_DECIMAL_SCALE;
@@ -1535,7 +2204,7 @@ exactNumericType() throws StandardException :
 }
 
 DataTypeDescriptor
-exactIntegerType() throws StandardException :
+exactIntegerType()   :
 {
 
 }
@@ -1551,7 +2220,7 @@ ValueNode
 defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
 					  TableElementList tableElementList,
 					  String columnName,
-					  long[] autoIncrementInfo) throws StandardException :
+					  long[] autoIncrementInfo)   :
 {
 	ValueNode		defaultNode = null;
 }
@@ -1559,5 +2228,246 @@ defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
 	//( columnConstraintDefinition(typeDescriptor, tableElementList, columnName) ) *
 	{
 		return defaultNode;
+	}
+}
+
+QueryTreeNode
+targetTable()   :
+{
+	JavaToSQLValueNode	javaToSQLNode = null;
+	String				correlationName = null;
+	TableName			tableName;
+}
+{
+	tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+	{
+		return tableName;
+	}
+}
+
+ResultSetNode
+tableValueConstructor()   :
+{
+	ResultSetNode	resultSetNode;
+}
+{
+	<VALUES> resultSetNode = tableValueConstructorList()
+	{
+		return resultSetNode;
+	}
+}
+
+ResultSetNode
+tableValueConstructorList()   :
+{
+	ResultSetNode	resultSetNode;
+}
+{
+    resultSetNode = rowValueConstructor(null)
+		( <COMMA> resultSetNode = rowValueConstructor(resultSetNode) ) *
+	{
+	    return resultSetNode;
+	}
+}
+
+ResultSetNode
+rowValueConstructor(ResultSetNode leftRSN)   :
+{
+    ResultColumnList resultColumns = new ResultColumnList(getContextManager());
+	ResultSetNode		newRSN;
+}
+{
+	<LEFT_PAREN> rowValueConstructorList(resultColumns) <RIGHT_PAREN>
+	{
+	   newRSN = new RowResultSetNode(resultColumns, null, getContextManager());
+	   return newRSN;
+	}
+
+}
+
+void
+rowValueConstructorList(ResultColumnList resultColumns)   :
+{}
+{
+	rowValueConstructorElement(resultColumns)
+		( <COMMA> rowValueConstructorElement(resultColumns) ) *
+}
+
+
+void
+rowValueConstructorElement(ResultColumnList resultColumns)   :
+{
+	ValueNode	value;
+}
+{
+	value = valueExpression()
+	{
+       resultColumns.addResultColumn(new ResultColumn((String)null,
+                                                       value,
+                                                       getContextManager()));
+	}
+}
+
+ValueNode
+literal()   :
+{
+   String	sign = "";
+   ValueNode constantNode;
+}
+{
+   [ sign = sign() ] constantNode = numericLiteral(sign)
+   {
+      return constantNode;
+   }
+}
+
+
+String
+sign() :
+{
+	Token	s;
+}
+{
+	s = <PLUS_SIGN>
+	{
+		return s.image;
+	}
+|
+	s = <MINUS_SIGN>
+	{
+		return s.image;
+	}
+}
+
+ValueNode
+valueSpecification() :
+{
+    ValueNode	   value;
+}
+{
+	value = literal()
+	{
+		return value;
+	}
+}
+
+
+ValueNode
+numericLiteral(String sign)   :
+{
+	Token	tok;
+}
+{
+    tok = <EXACT_NUMERIC>
+    {
+    	String num = tok.image;
+
+    	if (sign.equals("-")){
+    			num = sign.concat(num);
+    	}
+
+    	return getNumericNode(num, false);
+    }
+|    tok = <APPROXIMATE_NUMERIC>
+    {
+        StringBuffer doubleImage;
+        String doubleString;
+        int ePosn, dotPosn; // Position of letter e and '.' in value
+        Double		doubleValue;
+
+        doubleImage = new StringBuffer(sign);
+        doubleImage.append(tok.image);
+        doubleString = doubleImage.toString();
+        doubleValue = Double.valueOf(doubleString);
+        return new NumericConstantNode(
+                   TypeId.getBuiltInTypeId(Types.DOUBLE),
+                   doubleValue,
+                   getContextManager());
+    }
+}
+
+
+StatementNode
+preparableUpdateStatement() :
+{
+	StatementNode qtn;
+}
+{
+	<UPDATE> qtn = updateBody()
+	{
+		return qtn;
+	}
+
+}
+
+StatementNode
+updateBody() :
+{
+	ResultColumnList	columnList;
+	String				correlationName = null;
+	JavaToSQLValueNode	javaToSQLNode = null;
+	TableName  tableName = null;
+	ValueNode  whereClause = null;
+	FromTable  fromTable = null;
+	Properties targetProperties = null;
+	Token	   whereToken = null;
+}
+{
+    tableName = qualifiedName(Limits.MAX_IDENTIFIER_LENGTH)
+    <SET> columnList = setClauseList()
+    [
+    	whereToken = <WHERE>
+    	(
+    		whereClause = whereClause(whereToken)
+    	)
+    ]
+    {
+         fromTable = new FromBaseTable(tableName,
+                                              correlationName,
+                                              FromBaseTable.UPDATE,
+                                              null,
+                                              getContextManager());
+         return getUpdateNode(fromTable, tableName, columnList, whereClause);
+    }
+}
+
+ResultColumnList
+setClauseList() :
+{
+    ResultColumnList columnList = new ResultColumnList(getContextManager());
+}
+{
+	setClause(columnList) ( <COMMA> setClause(columnList) ) *
+	{
+		return columnList;
+	}
+}
+
+void
+setClause(ResultColumnList columnList):
+{
+	ResultColumn resultColumn;
+	ColumnReference	 columnName;
+	ValueNode	 valueNode;
+}
+{
+	columnName = columnReference() <EQUALS_OPERATOR> valueNode = updateSource(columnName.getColumnName())
+	{
+       resultColumn = new ResultColumn(columnName,
+										valueNode,
+										getContextManager());
+		columnList.addResultColumn(resultColumn);
+	}
+}
+
+ValueNode
+updateSource(String columnName) :
+{
+	ValueNode	valueNode;
+}
+{
+	valueNode = valueExpression()
+	{
+		return valueNode;
 	}
 }

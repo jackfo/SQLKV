@@ -1,3 +1,6 @@
 connect 'jdbc:derby:dbname';
 
 ResultSet相关笔记 http://www.cnblogs.com/timxgb/p/4796038.html
+==>preparableSelectStatementpreparableSQLDataStatement
+
+JAVACC https://www.cnblogs.com/puluotiya/p/6130578.html

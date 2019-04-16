@@ -1,5 +1,8 @@
 package com.cfs.sqlkv.context;
 
+import com.cfs.sqlkv.compile.result.ResultSet;
+import com.cfs.sqlkv.compile.result.NoPutResultSet;
+
 import com.cfs.sqlkv.sql.activation.Activation;
 
 /**
@@ -13,4 +16,12 @@ public interface StatementContext extends Context{
     public SQLSessionContext getSQLSessionContext();
 
     public void setActivation(Activation a);
+
+    public boolean	onStack();
+
+    public void setTopResultSet(ResultSet topResultSet, NoPutResultSet[] subqueryTrackingArray)  ;
+
+    public NoPutResultSet[] getSubqueryTrackingArray()  ;
+
+    public void pushMe();
 }

@@ -1,13 +1,14 @@
 package com.cfs.sqlkv.transaction;
 
 import com.cfs.sqlkv.common.UUID;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.factory.BaseDataFileFactory;
 import com.cfs.sqlkv.factory.DataValueFactory;
+import com.cfs.sqlkv.factory.DataValueFactoryImpl;
 import com.cfs.sqlkv.service.locks.LockFactory;
 import com.cfs.sqlkv.service.locks.LockSpace;
 import com.cfs.sqlkv.service.monitor.SQLKVObservable;
-import com.cfs.sqlkv.store.TransactionController;
+import com.cfs.sqlkv.store.TransactionManager;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
 import com.cfs.sqlkv.store.access.raw.TransactionContext;
@@ -27,21 +28,15 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Transaction extends SQLKVObservable {
 
     private static final long serialVersionUID = 1927816293512124184L;
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
-    private static final long valueOffset;
-    private volatile long value;
-    static {
-        try {
-            valueOffset = unsafe.objectFieldOffset(AtomicLong.class.getDeclaredField("value"));
-        } catch (Exception ex) { throw new Error(ex); }
-    }
+    private volatile AtomicLong value = new AtomicLong();
+    protected  DataValueFactory  dataValueFactory;
 
     public static final Integer COMMIT = 0;
     public static final Integer ABORT = 1;
     public static final Integer SAVEPOINT_ROLLBACK = 2;
     public static final Integer LOCK_ESCALATE = 3;
 
-    private final BaseDataFileFactory dataFactory;
+    private final BaseDataFileFactory dataFactory ;
 
     private final LogFactory logFactory;
 
@@ -60,15 +55,14 @@ public class Transaction extends SQLKVObservable {
         this.logFactory = logFactory;
         this.dataFactory = dataFactory;
         this.lockSpace = lockSpace;
-        //this.dataValueFactory       = dataValueFactory;
-        //this.readOnly               = readOnly;
+        this.dataValueFactory       = dataValueFactory;
     }
 
     /**
      *
      */
-    public long addContainer(long segmentId, long containerid, int mode, Properties tableProperties, int temporaryFlag) throws StandardException {
-        return dataFactory.addContainer(this, segmentId, containerid, mode, tableProperties, temporaryFlag);
+    public long addContainer(long segmentId, long containerid)   {
+        return dataFactory.addContainer(this, segmentId, containerid);
     }
 
 
@@ -79,34 +73,18 @@ public class Transaction extends SQLKVObservable {
     }
 
 
-    protected StandardException observerException;
-
-    public void setObserverException(StandardException se) {
-        if (observerException == null) {
-            observerException = se;
-        }
-    }
-
     public final long getAndIncrement() {
-        return unsafe.getAndAddLong(this, valueOffset, 1L);
+        return value.getAndIncrement();
     }
 
     /**
      * 通过指定的锁策略打开一个容器
      */
-    public BaseContainerHandle openContainer(ContainerKey containerId, LockingPolicy locking, int mode) throws StandardException {
-        setActiveState();
-
-        /**
-         * 获取锁的策略
-         * 默认获取无锁的事务隔离级别
-         * */
-        if (locking == null){
-            locking = transactionFactory.getLockingPolicy(LockingPolicy.MODE_NONE, TransactionController.ISOLATION_NOLOCK, false);
-        }
-
-        return dataFactory.openContainer(this, containerId, locking, mode);
+    public BaseContainerHandle openContainer(ContainerKey containerId)   {
+        return dataFactory.openContainer(this, containerId);
     }
+
+
 
     /**
      * 当前事务的状态
@@ -149,7 +127,7 @@ public class Transaction extends SQLKVObservable {
     /**
      * 设置激活状态
      */
-    protected final void setActiveState() throws StandardException {
+    protected final void setActiveState()   {
         Boolean isClosed = (state == CLOSED);
         Boolean isPrepared = !inAbort() && (state == PREPARED);
         /**
@@ -220,12 +198,12 @@ public class Transaction extends SQLKVObservable {
         return transactionFactory.getLockingPolicy(mode, isolation, stricterOk);
     }
 
-    public void dropStreamContainer(long segmentId, long containerId) throws StandardException {
+    public void dropStreamContainer(long segmentId, long containerId)   {
         setActiveState();
         //dataFactory.dropStreamContainer(this, segmentId, containerId);
     }
 
-    public void dropContainer(ContainerKey containerId)throws StandardException {
+    public void dropContainer(ContainerKey containerId)  {
 
         setActiveState();
 
@@ -236,7 +214,7 @@ public class Transaction extends SQLKVObservable {
      * 将事务工厂和上下文管理器传入
      * 开始一个内嵌事务
      * */
-    public Transaction startNestedTopTransaction() throws StandardException {
+    public Transaction startNestedTopTransaction()   {
         return transactionFactory.startNestedTopTransaction(transactionContext.getFactory(), transactionContext.getContextManager());
     }
 
@@ -255,5 +233,21 @@ public class Transaction extends SQLKVObservable {
 
     public final LockFactory getLockFactory() {
         return transactionFactory.getLockFactory();
+    }
+
+    public void close()  {
+
+    }
+
+    public DataValueFactory getDataValueFactory(){
+        if(dataValueFactory ==null){
+            this.dataValueFactory = new DataValueFactoryImpl();
+        }
+        return dataValueFactory;
+    }
+
+    private String transName;
+    public void setTransName(String name) {
+        transName = name;
     }
 }

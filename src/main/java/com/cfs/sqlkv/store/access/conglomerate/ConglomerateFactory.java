@@ -1,8 +1,10 @@
 package com.cfs.sqlkv.store.access.conglomerate;
 
 import com.cfs.sqlkv.column.ColumnOrdering;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.factory.MethodFactory;
+import com.cfs.sqlkv.store.TransactionManager;
+import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.type.DataValueDescriptor;
 
 import java.util.Properties;
@@ -15,37 +17,25 @@ import java.util.Properties;
  */
 public interface ConglomerateFactory extends MethodFactory {
 
-    static final int    HEAP_FACTORY_ID     = 0x00;
-    static final int    BTREE_FACTORY_ID    = 0x01;
+    static final int HEAP_FACTORY_ID = 0x00;
+    static final int BTREE_FACTORY_ID = 0x01;
 
-    int getConglomerateFactoryId();
+    public int getConglomerateFactoryId();
 
     /**
      * 创建一个Conglomerate
      *
-     * @param xact_mgr             transaction to perform the create in.
-     * @param segment              segment to create the conglomerate in.
-     * @param input_containerid    containerid to assign the container, or
-     * @param template             Template of row in the conglomerate.
-     * @param columnOrder          columns sort order for Index creation
-     * @param collationIds         collation ids of columns in the conglomerate.
-     * @param properties           Properties associated with the conglomerate.
-     * @param temporaryFlag
-     *
-     * @exception StandardException 出现异常
-     *
+     * @param transactionManager transaction to perform the create in.
+     * @param segment            segment to create the conglomerate in.
+     * @param input_containerid  containerid to assign the container, or
+     * @param template           Template of row in the conglomerate.
      * @return 返回一个Conglomerate
-     * */
-    Conglomerate createConglomerate(
-            TransactionManager      xact_mgr,
-            int                     segment,
-            long                    input_containerid,
-            DataValueDescriptor[]   template,
-            ColumnOrdering[]		columnOrder,
-            int[]                   collationIds,
-            Properties properties,
-            int						temporaryFlag)
-            throws StandardException;
+     * @  出现异常
+     */
+    public Conglomerate createConglomerate(TransactionManager transactionManager, int segment, long input_containerid, DataValueDescriptor[] template, ColumnOrdering[] columnOrder, Properties properties)  ;
+
+
+    public Conglomerate readConglomerate(TransactionManager transactionManager, ContainerKey container_key)  ;
 
 
 }

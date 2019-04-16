@@ -1,6 +1,7 @@
 package com.cfs.sqlkv.compile.result;
 
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.row.ExecRow;
 
 /**
  * @author zhengxiaokang
@@ -10,5 +11,17 @@ import com.cfs.sqlkv.exception.StandardException;
  */
 public interface ResultSet {
 
-    void open() throws StandardException;
+    public void open();
+
+    public ResultDescription getResultDescription();
+
+    boolean isClosed();
+
+    ExecRow getNextRow();
+
+    boolean returnsRows();
+
+    public void cleanUp();
+
+    public void	close();
 }

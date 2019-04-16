@@ -2,6 +2,7 @@ package com.cfs.sqlkv.store.access.raw;
 
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.context.ContextImpl;
+import com.cfs.sqlkv.row.RawStoreFactory;
 import com.cfs.sqlkv.transaction.Transaction;
 
 /**
@@ -15,7 +16,7 @@ public class TransactionContext extends ContextImpl {
     private RawStoreFactory factory;
     private	boolean   abortAll;
 
-    public TransactionContext(ContextManager cm,String name,Transaction transaction,boolean abortAll, RawStoreFactory factory){
+    public TransactionContext(ContextManager cm,String name,Transaction transaction,boolean abortAll, RawStoreFactory rawStore){
         super(cm, name);
         this.transaction = transaction;
         this.abortAll = abortAll;

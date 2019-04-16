@@ -10,17 +10,20 @@ import com.cfs.sqlkv.catalog.SchemaDescriptor;
  */
 public class SQLSessionContext {
 
-    private String currentUser;
-    private String currentRole;
+    /**
+     * 当前默认模式
+     * */
     private SchemaDescriptor currentDefaultSchema;
 
-    public SQLSessionContext(SchemaDescriptor sd,String currentUser){
-        currentRole = null;
+    public SQLSessionContext(SchemaDescriptor sd){
         currentDefaultSchema = sd;
-        this.currentUser = currentUser;
     }
 
     public SchemaDescriptor getDefaultSchema(){
         return currentDefaultSchema;
+    }
+
+    public void setDefaultSchema(SchemaDescriptor sd){
+        this.currentDefaultSchema = sd;
     }
 }

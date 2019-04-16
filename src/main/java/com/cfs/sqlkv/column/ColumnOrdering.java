@@ -7,4 +7,9 @@ package com.cfs.sqlkv.column;
  * @create 2019-01-08 11:08
  */
 public class ColumnOrdering {
+
+    boolean ascending;
+    public boolean getIsAscending() {
+        return ascending;
+    }
 }

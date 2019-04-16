@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.store.access.raw.data;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 
 /**
  * @author zhengxiaokang
@@ -16,7 +16,7 @@ public class ContainerOperation {
 
     public byte operation;
 
-    public ContainerOperation(BaseContainerHandle hdl, byte operation) throws StandardException {
+    public ContainerOperation(BaseContainerHandle hdl, byte operation)   {
         //super(hdl);
         this.operation = operation;
     }

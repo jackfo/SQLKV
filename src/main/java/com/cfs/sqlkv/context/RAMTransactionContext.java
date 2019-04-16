@@ -1,8 +1,9 @@
 package com.cfs.sqlkv.context;
 
 import com.cfs.sqlkv.common.context.ContextManager;
-import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.store.RAMTransaction;
+
+import com.cfs.sqlkv.store.JuniorTransaction;
+import com.cfs.sqlkv.store.TransactionManager;
 
 /**
  * @author zhengxiaokang
@@ -12,14 +13,14 @@ import com.cfs.sqlkv.store.RAMTransaction;
  */
 public class RAMTransactionContext extends ContextImpl{
 
-    private RAMTransaction transaction;
+    private JuniorTransaction transaction;
 
-    public RAMTransactionContext(ContextManager cm, String context_id, RAMTransaction theTransaction, boolean abortAll) throws StandardException {
+    public RAMTransactionContext(ContextManager cm, String context_id, JuniorTransaction theTransaction, boolean abortAll)   {
         super(cm, context_id);
         transaction = theTransaction;
     }
 
-    public RAMTransaction getTransaction() {
+    public JuniorTransaction getTransaction() {
         return transaction;
     }
 

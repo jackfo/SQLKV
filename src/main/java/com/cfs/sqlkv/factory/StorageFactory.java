@@ -27,5 +27,5 @@ public interface StorageFactory {
 
     public StorageFile newStorageFile( StorageFile directoryName, String fileName);
 
-
+    public void setDataDirectory(String dataDirectory);
 }

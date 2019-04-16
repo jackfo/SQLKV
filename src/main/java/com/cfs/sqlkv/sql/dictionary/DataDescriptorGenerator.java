@@ -4,6 +4,7 @@ import com.cfs.sqlkv.catalog.DataDictionary;
 import com.cfs.sqlkv.catalog.SchemaDescriptor;
 import com.cfs.sqlkv.common.UUID;
 
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -45,5 +46,11 @@ public class DataDescriptorGenerator {
                 tableID,
                 schemaID);
     }
+
+    public SchemaDescriptor	newSchemaDescriptor(String schemaName,String aid, UUID oid)  {
+        return new SchemaDescriptor(dataDictionary, schemaName, aid, oid, true);
+    }
+
+
 
 }

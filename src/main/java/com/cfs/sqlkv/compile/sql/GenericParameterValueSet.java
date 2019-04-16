@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.compile.sql;
 
-import com.cfs.sqlkv.loader.ClassInspector;
+import com.cfs.sqlkv.service.loader.ClassInspector;
 
 /**
  * @author zhengxiaokang

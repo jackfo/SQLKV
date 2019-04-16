@@ -1,6 +1,9 @@
 package com.cfs.sqlkv.compile.node;
 
+import com.cfs.sqlkv.catalog.DataDictionary;
 import com.cfs.sqlkv.common.context.ContextManager;
+import com.cfs.sqlkv.compile.ActivationClassBuilder;
+import com.cfs.sqlkv.service.compiler.MethodBuilder;
 
 /**
  * @author zhengxiaokang
@@ -16,7 +19,39 @@ public class CursorNode extends DMLStatementNode {
 
     public final static int READ_ONLY = 1;
 
-    public CursorNode(ContextManager contextManager) {
-        super(contextManager);
+    public CursorNode(String statementType, ResultSetNode resultSet, ContextManager contextManager) {
+        super(resultSet, contextManager);
     }
+
+    @Override
+    public int activationKind() {
+        return NEED_CURSOR_ACTIVATION;
+    }
+
+    @Override
+    public void generate(ActivationClassBuilder acb, MethodBuilder mb) {
+        //generateParameterValueSet(acb);
+        resultSet.markStatementResultSet();
+        resultSet.generate(acb, mb);
+
+    }
+
+    @Override
+    public void bindStatement() {
+        //获取数据字典
+        DataDictionary dataDictionary = getDataDictionary();
+        FromList fromList = new FromList(getContextManager());
+        //主要是对结果集的绑定
+        super.bind(dataDictionary);
+        resultSet.bindResultColumns(fromList);
+        resultSet.renameGeneratedResultNames();
+    }
+
+
+    @Override
+    public void optimizeStatement() {
+        super.optimizeStatement();
+    }
+
+
 }

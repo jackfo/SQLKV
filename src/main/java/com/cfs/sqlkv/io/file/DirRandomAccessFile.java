@@ -4,6 +4,7 @@ import com.cfs.sqlkv.io.storage.StorageRandomAccessFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
@@ -21,5 +22,9 @@ public class DirRandomAccessFile extends RandomAccessFile implements StorageRand
         super( name, mode);
         this.name = name;
         this.mode = mode;
+    }
+
+    public void sync( ) throws IOException {
+        getFD().sync();
     }
 }

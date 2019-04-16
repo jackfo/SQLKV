@@ -1,17 +1,19 @@
 package com.cfs.sqlkv.transaction;
 
+import com.cfs.sqlkv.common.PersistentService;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.common.context.ContextService;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.factory.BaseDataFileFactory;
 import com.cfs.sqlkv.factory.DataValueFactory;
 import com.cfs.sqlkv.factory.UUIDFactory;
-import com.cfs.sqlkv.io.Formatable;
 import com.cfs.sqlkv.io.TransactionTable;
+import com.cfs.sqlkv.row.RawStoreFactory;
+import com.cfs.sqlkv.service.io.Formatable;
 import com.cfs.sqlkv.service.locks.LockFactory;
-import com.cfs.sqlkv.store.TransactionController;
+import com.cfs.sqlkv.service.locks.LockSpace;
+import com.cfs.sqlkv.store.TransactionManager;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
-import com.cfs.sqlkv.store.access.raw.RawStoreFactory;
 import com.cfs.sqlkv.store.access.raw.TransactionContext;
 import com.cfs.sqlkv.store.access.raw.log.LogFactory;
 
@@ -23,20 +25,29 @@ import com.cfs.sqlkv.store.access.raw.log.LogFactory;
  */
 public class TransactionFactory {
 
+    protected static final String USER_CONTEXT_ID = "UserTransaction";
+
     public static final String module = TransactionFactory.class.getName();
 
     private UUIDFactory           uuidFactory;
     private ContextService        contextFactory;
     private LockFactory           lockFactory;
     private LogFactory            logFactory;
-    private BaseDataFileFactory   dataFactory;
     private DataValueFactory      dataValueFactory;
     private RawStoreFactory       rawStoreFactory;
-
+    //行存储实现,需要通过行存储来进行获取
+    private BaseDataFileFactory   dataFactory;
     private LockingPolicy[][] lockingPolicies = new LockingPolicy[3][6];
 
+
+
     /**事务表*/
-    public TransactionTable transactionTable;
+    public TransactionTable transactionTable = new TransactionTable();
+
+    public TransactionFactory(RawStoreFactory rawStoreFactory){
+        this.rawStoreFactory = rawStoreFactory;
+        dataFactory = rawStoreFactory.getDataFactory();
+    }
 
     /**
      * 设置一个新的事务id
@@ -69,7 +80,7 @@ public class TransactionFactory {
     }
 
     protected void add(Transaction transaction, boolean excludeMe) {
-        transactionTable.add(transaction, excludeMe);
+        //transactionTable.add(transaction, excludeMe);
     }
 
 
@@ -81,14 +92,14 @@ public class TransactionFactory {
      * */
     public final LockingPolicy getLockingPolicy(int mode,int isolation,boolean stricterOk){
         if (mode == LockingPolicy.MODE_NONE){
-            isolation = TransactionController.ISOLATION_NOLOCK;
+            isolation = TransactionManager.ISOLATION_NOLOCK;
         }
         LockingPolicy policy = lockingPolicies[mode][isolation];
         if ((policy != null) || (!stricterOk)){
             return policy;
         }
         for (mode++; mode <= LockingPolicy.MODE_CONTAINER; mode++){
-            for (int i = isolation; i <= TransactionController.ISOLATION_SERIALIZABLE; i++) {
+            for (int i = isolation; i <= TransactionManager.ISOLATION_SERIALIZABLE; i++) {
                 policy = lockingPolicies[mode][i];
                 if (policy != null){
                     return policy;
@@ -104,10 +115,10 @@ public class TransactionFactory {
 
 
     protected static final String NTT_CONTEXT_ID = "NestedTransaction";
-    public Transaction startNestedTopTransaction(RawStoreFactory rsf, ContextManager cm) throws StandardException {
+    public Transaction startNestedTopTransaction(RawStoreFactory rawStore, ContextManager cm)   {
         Transaction transaction = new Transaction(this, null, logFactory, dataFactory, dataValueFactory, false, null, false);
         transaction.setPostComplete();
-        pushTransactionContext(cm, NTT_CONTEXT_ID, transaction, true , rsf, true);
+        pushTransactionContext(cm, NTT_CONTEXT_ID, transaction, true , rawStore, true);
         return transaction;
     }
 
@@ -119,9 +130,9 @@ public class TransactionFactory {
      *
      * */
     protected void pushTransactionContext(ContextManager cm, String contextName, Transaction transaction,
-                                          boolean abortAll, RawStoreFactory rsf, boolean excludeMe){
+                                          boolean abortAll, RawStoreFactory rawStore, boolean excludeMe){
         //构造事务上下文
-        new TransactionContext(cm, contextName, transaction, abortAll, rsf);
+        new TransactionContext(cm, contextName, transaction, abortAll, rawStore);
         add(transaction, excludeMe);
     }
 
@@ -129,4 +140,33 @@ public class TransactionFactory {
         return lockFactory;
     }
 
+    public Transaction findUserTransaction(RawStoreFactory rawStore, ContextManager contextMgr, String transName)   {
+        TransactionContext transactionContext = (TransactionContext)contextMgr.getContext(USER_CONTEXT_ID);
+        if (transactionContext == null){
+            return startTransaction(rawStore, contextMgr, transName);
+        } else{
+            return transactionContext.getTransaction();
+        }
+    }
+
+    public Transaction startTransaction(RawStoreFactory rawStore, ContextManager cm, String transName)   {
+        return(
+                startCommonTransaction(
+                        rawStore,
+                        null,
+                        cm,
+                        false,              // user xact always read/write
+                        null,
+                        USER_CONTEXT_ID,
+                        transName,
+                        true,               // user xact always excluded during quiesce
+                        true));             // user xact default flush on xact end
+    }
+    private Transaction startCommonTransaction(RawStoreFactory rawStore, Transaction parentTransaction, ContextManager cm, boolean readOnly, LockSpace lockSpace,
+                                               String transaction_context_id, String transName, boolean excludeMe, boolean flush_log_on_xact_end){
+        Transaction transaction = new Transaction(this, parentTransaction, logFactory, dataFactory, dataValueFactory, readOnly, null, flush_log_on_xact_end);
+        transaction.setTransName(transName);
+        pushTransactionContext(cm, transaction_context_id, transaction, false, rawStore, false );
+        return transaction;
+    }
 }

@@ -2,9 +2,10 @@ package com.cfs.sqlkv.engine.execute;
 
 import com.cfs.sqlkv.catalog.DataDictionary;
 import com.cfs.sqlkv.catalog.SchemaDescriptor;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.sql.activation.Activation;
-import com.cfs.sqlkv.store.TransactionController;
+import com.cfs.sqlkv.store.TransactionManager;
+import com.cfs.sqlkv.temp.Temp;
 
 /**
  * @author zhengxiaokang
@@ -17,9 +18,9 @@ abstract class DDLConstantAction implements ConstantAction {
     /**
      * 获取字典描述
      * */
-    static SchemaDescriptor getSchemaDescriptorForCreate(DataDictionary dd, Activation activation, String schemaName) throws StandardException {
-        TransactionController tc = null;
-        SchemaDescriptor sd = dd.getSchemaDescriptor(schemaName, tc, false);
+    static SchemaDescriptor getSchemaDescriptorForCreate(DataDictionary dd, Activation activation, String schemaName)   {
+        TransactionManager tc = null;
+        SchemaDescriptor sd = Temp.schemaDescriptor;
         return sd;
     }
 

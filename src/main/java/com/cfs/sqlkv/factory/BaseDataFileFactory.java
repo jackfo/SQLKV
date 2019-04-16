@@ -1,12 +1,13 @@
 package com.cfs.sqlkv.factory;
 
 import com.cfs.sqlkv.common.UUID;
-import com.cfs.sqlkv.exception.StandardException;
+
+import com.cfs.sqlkv.io.storage.DirStorageFactory;
 import com.cfs.sqlkv.io.storage.StorageFile;
 import com.cfs.sqlkv.service.cache.CacheManager;
 import com.cfs.sqlkv.service.cache.Cacheable;
 import com.cfs.sqlkv.service.cache.CacheableFactory;
-import com.cfs.sqlkv.store.TransactionController;
+import com.cfs.sqlkv.store.TransactionManager;
 import com.cfs.sqlkv.store.access.raw.ContainerKey;
 import com.cfs.sqlkv.store.access.raw.LockingPolicy;
 import com.cfs.sqlkv.store.access.raw.data.*;
@@ -25,9 +26,7 @@ import java.util.Properties;
  */
 public class BaseDataFileFactory implements CacheableFactory {
 
-    public long getMaxContainerId() throws StandardException {
-        return(findMaxContainerId());
-    }
+
 
     private int actionCode;
     private static final int REMOVE_TEMP_DIRECTORY_ACTION           = 2;
@@ -44,11 +43,6 @@ public class BaseDataFileFactory implements CacheableFactory {
     private static final int RESTORE_DATA_DIRECTORY_ACTION          = 13;
     private static final int GET_CONTAINER_NAMES_ACTION             = 14;
 
-    private synchronized long findMaxContainerId() {
-        actionCode = FIND_MAX_CONTAINER_ID_ACTION;
-        return ((Long)run()).longValue();
-    }
-
     private boolean	readOnly;
 
     StorageFactory storageFactory;
@@ -63,137 +57,85 @@ public class BaseDataFileFactory implements CacheableFactory {
 
     private Hashtable<String,StorageFile> postRecoveryRemovedFiles;
 
-    private boolean inCreateNoLog;
+    /**数据存放的目录*/
+    private final String dataDirectory;
+
+
+    public BaseDataFileFactory(String dataDirectory){
+        this.dataDirectory = dataDirectory;
+        storageFactory = new DirStorageFactory(dataDirectory);
+    }
 
     public static int pageCacheSize = 1000;
     private CacheManager pageCache = new CacheManager(this, "PageCache", pageCacheSize / 2, pageCacheSize);
 
 
-    public long addContainer(Transaction transaction, long segmentId, long input_containerid, int mode, Properties tableProperties, int temporaryFlag) throws StandardException {
+    /**
+     * 通过数据工厂添加容器
+     * */
+    public long addContainer(Transaction transaction, long segmentId, long input_containerid)   {
+        //获取容器Id
         long containerId = ((input_containerid != BaseContainerHandle.DEFAULT_ASSIGN_ID) ? input_containerid : getNextId());
-
+        //创建容器标识
         ContainerKey identity = new ContainerKey(segmentId, containerId);
-        LockingPolicy   cl = null;
 
         boolean tmpContainer = (segmentId == BaseContainerHandle.TEMPORARY_SEGMENT);
 
-        BaseContainerHandle baseContainerHandle = null;
-
-        if(!tmpContainer){
-            baseContainerHandle = transaction.openContainer(identity, cl, (BaseContainerHandle.MODE_FORUPDATE | BaseContainerHandle.MODE_OPEN_FOR_LOCK_ONLY));
-        }
 
         //创建容器
-        FileContainer container = (FileContainer) containerCache.create(identity, tableProperties);
+        FileContainer container = (FileContainer) containerCache.create(identity,null);
 
-        BaseContainerHandle containerHdl = null;
+        BaseContainerHandle baseContainerHandle = null;
         Page            firstPage    = null;
+
         try{
-            containerHdl = transaction.openContainer(identity, null, (BaseContainerHandle.MODE_FORUPDATE | mode));
+            baseContainerHandle = transaction.openContainer(identity);
+
+
             //如果不是临时容器,则进行相关的操作
             if (!tmpContainer){
                 ContainerOperation lop = new ContainerOperation(baseContainerHandle, ContainerOperation.CREATE);
-                containerHdl.preDirty(true);
-
-                try{
-                    //写入日志
-                    //transaction.logAndDo(lop);
-                    //flush(transaction.getLastLogInstant());
-                }finally{
-                    baseContainerHandle.preDirty(false);
-                }
-
+                baseContainerHandle.preDirty(true);
             }
-
-            firstPage = containerHdl.addPage();
+            //在创建完容器之后需要添加一个分配页
+            firstPage = baseContainerHandle.addPage();
         }finally {
             if (firstPage != null) {
                 firstPage.unlatch();
                 firstPage = null;
             }
             containerCache.release(container);
-            if (containerHdl != null) {
-                containerHdl.close();
-                containerHdl = null;
+            if (baseContainerHandle != null) {
+                baseContainerHandle.close();
+                baseContainerHandle = null;
             }
-            if (!tmpContainer) {
-                cl.unlockContainer(transaction, ch);
-            }
+
         }
         return containerId;
     }
 
     private long nextContainerId = System.currentTimeMillis();
+    private int fileCacheSize = 100;
+    private CacheManager containerCache = new CacheManager(this, "ContainerCache", fileCacheSize / 2, fileCacheSize);
 
-    private CacheManager containerCache;
-
-    public BaseContainerHandle openContainer(Transaction transaction, ContainerKey containerId, LockingPolicy locking, int mode) throws StandardException{
-        return openContainer(transaction, containerId, locking, mode, false );
+    public BaseContainerHandle openContainer(Transaction transaction, ContainerKey containerId)  {
+        return openContainer(transaction, containerId, false );
     }
 
     /**
      * 创建容器句柄
      *    将容器,锁,页面行为,分配行为,事务封装进去
      * */
-    private BaseContainerHandle openContainer(Transaction  transaction, ContainerKey  identity, LockingPolicy locking, int mode, boolean droppedOK) throws StandardException {
-        boolean waitForLock = ((mode & BaseContainerHandle.MODE_LOCK_NOWAIT) == 0);
-        if ((mode & BaseContainerHandle.MODE_OPEN_FOR_LOCK_ONLY) != 0) {
-            BaseContainerHandle lockOnlyHandle = new BaseContainerHandle(getIdentifier(), transaction, identity, locking, mode);
-            if (lockOnlyHandle.useContainer(true, waitForLock)) {
-                return lockOnlyHandle;
-            } else {
-                return null;
-            }
-        }
-
+    private BaseContainerHandle openContainer(Transaction  transaction, ContainerKey  identity, boolean droppedOK)   {
         BaseContainerHandle c;
         FileContainer container = (FileContainer)containerCache.find(identity);
         if (container == null) {
             return null;
         }
-        if (identity.getSegmentId() == BaseContainerHandle.TEMPORARY_SEGMENT) {
-            if ((mode & BaseContainerHandle.MODE_TEMP_IS_KEPT) == BaseContainerHandle.MODE_TEMP_IS_KEPT) {
-                // 如果模式保存,不做截断
-                mode |= BaseContainerHandle.MODE_UNLOGGED;
-            } else {
-                mode |= (BaseContainerHandle.MODE_UNLOGGED | BaseContainerHandle.MODE_TRUNCATE_ON_ROLLBACK);
-            }
-
-            //构建相应的锁策略
-            locking = transaction.newLockingPolicy(LockingPolicy.MODE_NONE, TransactionController.ISOLATION_NOLOCK, true);
-        }else{
-            if (inCreateNoLog){
-
-            }else {
-
-            }
-        }
-
-        PageActions pageActions  = null;
-        AllocationActions allocActions = null;
-        if ((mode & BaseContainerHandle.MODE_FORUPDATE) == BaseContainerHandle.MODE_FORUPDATE){
-            if ((mode & BaseContainerHandle.MODE_UNLOGGED) == 0){
-                //pageActions  = getLoggablePageActions();
-                //allocActions = getLoggableAllocationActions();
-            }else{
-                pageActions  = new DirectActions();
-                allocActions = new DirectAllocActions();
-            }
-        }
-
+        PageActions pageActions  = new DirectActions();
+        AllocationActions allocActions = new DirectAllocActions();
         //创建容器句柄
-        c = new BaseContainerHandle(getIdentifier(), transaction, pageActions, allocActions, locking, container, mode);
-
-        //检测当前容器是否可以使用
-        try{
-            if (!c.useContainer(droppedOK, waitForLock)) {
-                containerCache.release(container);
-                return null;
-            }
-        }catch (StandardException se) {
-            containerCache.release(container);
-            throw se;
-        }
+        c = new BaseContainerHandle(getIdentifier(), transaction, pageActions, allocActions, container);
         return c;
     }
 
@@ -211,7 +153,7 @@ public class BaseDataFileFactory implements CacheableFactory {
     }
 
 
-    public final Object run(){
+    public final Object run(int actionCode){
         switch(actionCode) {
             case BOOT_ACTION:
                 readOnly = storageFactory.isReadOnlyDatabase();
@@ -281,39 +223,7 @@ public class BaseDataFileFactory implements CacheableFactory {
                 break;
             }
 
-            case FIND_MAX_CONTAINER_ID_ACTION:
-            {
-                long maxnum = 1;
-                StorageFile seg = storageFactory.newStorageFile( "seg0");
 
-                if (seg.exists() && seg.isDirectory())
-                {
-                    // create an array with names of all files in seg0
-                    String[] files = seg.list();
-
-                    // loop through array looking for maximum containerid.
-                    for (int f = files.length-1; f >= 0 ; f--)
-                    {
-                        try
-                        {
-                            long fileNumber =
-                                    Long.parseLong(
-                                            files[f].substring(
-                                                    1, (files[f].length() -4)), 16);
-
-                            if (fileNumber > maxnum)
-                                maxnum = fileNumber;
-                        }
-                        catch (Throwable t)
-                        {
-                            // ignore errors from parse, it just means that someone
-                            // put a file in seg0 that we didn't expect.  Continue
-                            // with the next one.
-                        }
-                    }
-                }
-                return maxnum;
-            } // end of case FIND_MAX_CONTAINER_ID_ACTION
 
             case DELETE_IF_EXISTS_ACTION:
             {
@@ -370,9 +280,17 @@ public class BaseDataFileFactory implements CacheableFactory {
         return null;
     }
 
+    /**
+     * 创建的缓存必然是StoredPage
+     * */
     @Override
     public Cacheable newCacheable(CacheManager cm) {
-        return null;
+        if (cm == pageCache) {
+            StoredPage sp = new StoredPage();
+            sp.setFactory(this);
+            return sp;
+        }
+        return new RAFContainer(this);
     }
 
     public CacheManager getPageCache() {
@@ -388,14 +306,36 @@ public class BaseDataFileFactory implements CacheableFactory {
     }
 
     private synchronized StorageFile getContainerPath(ContainerKey containerId, boolean stub, int code){
-        actionCode = code;
+
         this.containerId = containerId;
         this.stub = stub;
         try {
-            return  (StorageFile)run();
+            return  (StorageFile)run(code);
         }finally {
             this.containerId = null;
         }
+    }
+
+    /**
+     *构建文件目录,获取目录下所有的文件,进行遍历,基于基数16做偏移
+     * */
+    public synchronized long getMaxContainerId(){
+        long maxnum = 1;
+        StorageFile seg = storageFactory.newStorageFile( "seg0");
+        if (seg.exists() && seg.isDirectory()) {
+            String[] files = seg.list();
+            for (int f = files.length-1; f >= 0 ; f--) {
+                try {
+                    long fileNumber = Long.parseLong(files[f].substring(1, files[f].length()-4), 16);
+                    if (fileNumber > maxnum){
+                        maxnum = fileNumber;
+                    }
+                }
+                catch (Throwable t) {
+                }
+            }
+        }
+        return maxnum;
     }
 
     /**
@@ -412,4 +352,10 @@ public class BaseDataFileFactory implements CacheableFactory {
     public boolean isReadOnly() {
         return readOnly;
     }
+
+    public void checkpoint()   {
+        pageCache.cleanAll();
+        containerCache.cleanAll();
+    }
+
 }

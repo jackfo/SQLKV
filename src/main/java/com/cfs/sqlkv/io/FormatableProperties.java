@@ -7,17 +7,15 @@ package com.cfs.sqlkv.io;
  * @create 2019-01-06 10:51
  */
 
+import com.cfs.sqlkv.service.io.Formatable;
+import com.cfs.sqlkv.service.io.StoredFormatIds;
+
 import java.util.Enumeration;
 import java.util.Properties;
-
 import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
 
-/**
- * A formatable holder for a java.util.Properties.
- * Used to avoid serializing Properties.
- */
 public class FormatableProperties extends Properties implements Formatable
 {
     /********************************************************

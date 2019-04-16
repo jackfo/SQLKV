@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.service.locks;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Condition;
@@ -19,7 +19,7 @@ public class LockTable {
     /**
      * 通过指定的lockSpace 锁住对象
      * */
-    public Lock lockObject(LockSpace lockSpace, Lockable ref, Object qualifier, int timeout) throws StandardException {
+    public Lock lockObject(LockSpace lockSpace, Lockable ref, Object qualifier, int timeout)   {
         LockControl control;
         Lock lockItem;
 

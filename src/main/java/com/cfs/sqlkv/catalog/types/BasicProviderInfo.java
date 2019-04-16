@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.catalog.types;
 
-import com.cfs.sqlkv.catalog.Formatable;
+import com.cfs.sqlkv.service.io.Formatable;
 
 import java.io.IOException;
 import java.io.ObjectInput;

@@ -1,11 +1,12 @@
 package com.cfs.sqlkv.compile.table;
 
 import com.cfs.sqlkv.common.context.ContextManager;
+import com.cfs.sqlkv.compile.name.TableName;
 import com.cfs.sqlkv.compile.node.FromTable;
 import com.cfs.sqlkv.compile.node.MethodCallNode;
 import com.cfs.sqlkv.compile.result.ResultColumnList;
 import com.cfs.sqlkv.compile.vti.VTIEnvironment;
-import com.cfs.sqlkv.exception.StandardException;
+
 
 import java.util.Properties;
 
@@ -19,7 +20,18 @@ import java.util.Properties;
 public class FromVTI extends FromTable implements VTIEnvironment{
 
     public FromVTI(MethodCallNode invocation, String correlationName, ResultColumnList derivedRCL,
-                   Properties tableProperties, ContextManager cm) throws StandardException {
+                   Properties tableProperties, ContextManager cm)   {
+        super(null,cm);
+    }
+
+    public FromVTI(MethodCallNode invocation,
+            String correlationName,
+            ResultColumnList derivedRCL,
+            Properties tableProperties,
+            TableName exposedTableName,
+            ContextManager cm) {
+        super(null,cm);
+
 
     }
 }

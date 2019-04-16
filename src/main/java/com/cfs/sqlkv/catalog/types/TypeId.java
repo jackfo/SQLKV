@@ -2,8 +2,8 @@ package com.cfs.sqlkv.catalog.types;
 
 import com.cfs.sqlkv.catalog.TypeDescriptor;
 import com.cfs.sqlkv.common.Limits;
-import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.io.StoredFormatIds;
+
+import com.cfs.sqlkv.service.io.StoredFormatIds;
 import com.cfs.sqlkv.sql.types.*;
 import com.cfs.sqlkv.type.DataValueDescriptor;
 
@@ -15,54 +15,53 @@ import java.sql.Types;
  * @Email zheng.xiaokang@qq.com
  * @create 2018-12-26 16:47
  */
-public final class TypeId
-{
+public final class TypeId {
     /**
      * Various fixed numbers related to datatypes.
      */
-    public static final int LONGINT_PRECISION                       = 19;
-    public static final int LONGINT_SCALE                           = 0;
-    public static final int LONGINT_MAXWIDTH                        = 8;
+    public static final int LONGINT_PRECISION = 19;
+    public static final int LONGINT_SCALE = 0;
+    public static final int LONGINT_MAXWIDTH = 8;
 
-    public static final int INT_PRECISION                   = 10;
-    public static final int INT_SCALE                               = 0;
-    public static final int INT_MAXWIDTH                    = 4;
+    public static final int INT_PRECISION = 10;
+    public static final int INT_SCALE = 0;
+    public static final int INT_MAXWIDTH = 4;
 
-    public static final int SMALLINT_PRECISION                      = 5;
-    public static final int SMALLINT_SCALE                          = 0;
-    public static final int SMALLINT_MAXWIDTH                       = 2;
+    public static final int SMALLINT_PRECISION = 5;
+    public static final int SMALLINT_SCALE = 0;
+    public static final int SMALLINT_MAXWIDTH = 2;
 
-    public static final int TINYINT_PRECISION                       = 3;
-    public static final int TINYINT_SCALE                           = 0;
-    public static final int TINYINT_MAXWIDTH                        = 1;
-
-    // precision in number of bits
-    public static final int DOUBLE_PRECISION                        = 52;
-    // the ResultSetMetaData needs to have the precision for numeric data
-    // in decimal digits, rather than number of bits, so need a separate constant.
-    public static final int DOUBLE_PRECISION_IN_DIGITS              = 15;
-    public static final int DOUBLE_SCALE                            = 0;
-    public static final int DOUBLE_MAXWIDTH                         = 8;
+    public static final int TINYINT_PRECISION = 3;
+    public static final int TINYINT_SCALE = 0;
+    public static final int TINYINT_MAXWIDTH = 1;
 
     // precision in number of bits
-    public static final int REAL_PRECISION                  = 23;
+    public static final int DOUBLE_PRECISION = 52;
     // the ResultSetMetaData needs to have the precision for numeric data
     // in decimal digits, rather than number of bits, so need a separate constant.
-    public static final int REAL_PRECISION_IN_DIGITS        = 7;
-    public static final int REAL_SCALE                              = 0;
-    public static final int REAL_MAXWIDTH                   = 4;
+    public static final int DOUBLE_PRECISION_IN_DIGITS = 15;
+    public static final int DOUBLE_SCALE = 0;
+    public static final int DOUBLE_MAXWIDTH = 8;
 
-    public static final int DECIMAL_PRECISION                       = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
-    public static final int DECIMAL_SCALE                           = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
-    public static final int DECIMAL_MAXWIDTH                        = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
+    // precision in number of bits
+    public static final int REAL_PRECISION = 23;
+    // the ResultSetMetaData needs to have the precision for numeric data
+    // in decimal digits, rather than number of bits, so need a separate constant.
+    public static final int REAL_PRECISION_IN_DIGITS = 7;
+    public static final int REAL_SCALE = 0;
+    public static final int REAL_MAXWIDTH = 4;
 
-    public static final int BOOLEAN_MAXWIDTH                        = 1;
+    public static final int DECIMAL_PRECISION = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
+    public static final int DECIMAL_SCALE = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
+    public static final int DECIMAL_MAXWIDTH = Limits.DB2_MAX_DECIMAL_PRECISION_SCALE;
 
-    public static final int CHAR_MAXWIDTH           = Limits.DB2_CHAR_MAXWIDTH;
-    public static final int VARCHAR_MAXWIDTH        = Limits.DB2_VARCHAR_MAXWIDTH;
+    public static final int BOOLEAN_MAXWIDTH = 1;
+
+    public static final int CHAR_MAXWIDTH = Limits.DB2_CHAR_MAXWIDTH;
+    public static final int VARCHAR_MAXWIDTH = Limits.DB2_VARCHAR_MAXWIDTH;
     public static final int LONGVARCHAR_MAXWIDTH = Limits.DB2_LONGVARCHAR_MAXWIDTH;
-    public static final int BIT_MAXWIDTH            = Limits.DB2_CHAR_MAXWIDTH;
-    public static final int VARBIT_MAXWIDTH         = Limits.DB2_VARCHAR_MAXWIDTH;
+    public static final int BIT_MAXWIDTH = Limits.DB2_CHAR_MAXWIDTH;
+    public static final int VARBIT_MAXWIDTH = Limits.DB2_VARCHAR_MAXWIDTH;
     public static final int LONGVARBIT_MAXWIDTH = Limits.DB2_LONGVARCHAR_MAXWIDTH;
 
     // not supposed to be limited! 4096G should be ok(?), if Derby can handle...
@@ -76,17 +75,16 @@ public final class TypeId
     // classes (the result of toString() on those classes
     // is defined by the JDBC API).  This value is also
     // used as the "precision" for those types.
-    public static final int DATE_MAXWIDTH           = 10;	// yyyy-mm-dd
-    public static final int TIME_MAXWIDTH           = 8;	// hh:mm:ss
-
+    public static final int DATE_MAXWIDTH = 10;    // yyyy-mm-dd
+    public static final int TIME_MAXWIDTH = 8;    // hh:mm:ss
 
 
     // Scale DOES exist for time values.  For a TIMESTAMP value,
     // it's 9 ('fffffffff'); for a TIME value, it's 0 (because there
     // are no fractional seconds).  Note that date values do
     // not have a scale.
-    public static final int TIME_SCALE           = 0;
-    public static final int TIMESTAMP_SCALE      = 9;
+    public static final int TIME_SCALE = 0;
+    public static final int TIMESTAMP_SCALE = 9;
 
     /* These define all the type names for SQL92 and JDBC
      * NOTE: boolean is SQL3
@@ -95,81 +93,81 @@ public final class TypeId
     //public static final String      VARBIT_NAME = "BIT VARYING";
     //public static final String      LONGVARBIT_NAME = "LONG BIT VARYING";
 
-    public static final String      BIT_NAME = "CHAR () FOR BIT DATA";
-    public static final String      VARBIT_NAME = "VARCHAR () FOR BIT DATA";
-    public static final String      LONGVARBIT_NAME = "LONG VARCHAR FOR BIT DATA";
-    public static final String      TINYINT_NAME = "TINYINT";
-    public static final String      SMALLINT_NAME = "SMALLINT";
-    public static final String      INTEGER_NAME = "INTEGER";
-    public static final String      BIGINT_NAME = "BIGINT";
-    public static final String      FLOAT_NAME = "FLOAT";
-    public static final String      REAL_NAME = "REAL";
-    public static final String      DOUBLE_NAME = "DOUBLE";
-    public static final String      NUMERIC_NAME = "NUMERIC";
-    public static final String      DECIMAL_NAME = "DECIMAL";
-    public static final String      CHAR_NAME = "CHAR";
-    public static final String      VARCHAR_NAME = "VARCHAR";
-    public static final String      LONGVARCHAR_NAME = "LONG VARCHAR";
-    public static final String      DATE_NAME = "DATE";
-    public static final String      TIME_NAME = "TIME";
-    public static final String      TIMESTAMP_NAME = "TIMESTAMP";
-    public static final String      BINARY_NAME = "BINARY";
-    public static final String      VARBINARY_NAME = "VARBINARY";
-    public static final String      LONGVARBINARY_NAME = "LONGVARBINARY";
-    public static final String      BOOLEAN_NAME = "BOOLEAN";
-    public static final String      REF_NAME = "REF";
-    public static final String      REF_CURSOR = "REF CURSOR";
-    public static final String      NATIONAL_CHAR_NAME = "NATIONAL CHAR";
-    public static final String      NATIONAL_VARCHAR_NAME = "NATIONAL CHAR VARYING";
-    public static final String      NATIONAL_LONGVARCHAR_NAME = "LONG NVARCHAR";
-    public static final String      BLOB_NAME = "BLOB";
-    public static final String      CLOB_NAME = "CLOB";
-    public static final String      NCLOB_NAME = "NCLOB";
+    public static final String BIT_NAME = "CHAR () FOR BIT DATA";
+    public static final String VARBIT_NAME = "VARCHAR () FOR BIT DATA";
+    public static final String LONGVARBIT_NAME = "LONG VARCHAR FOR BIT DATA";
+    public static final String TINYINT_NAME = "TINYINT";
+    public static final String SMALLINT_NAME = "SMALLINT";
+    public static final String INTEGER_NAME = "INTEGER";
+    public static final String BIGINT_NAME = "BIGINT";
+    public static final String FLOAT_NAME = "FLOAT";
+    public static final String REAL_NAME = "REAL";
+    public static final String DOUBLE_NAME = "DOUBLE";
+    public static final String NUMERIC_NAME = "NUMERIC";
+    public static final String DECIMAL_NAME = "DECIMAL";
+    public static final String CHAR_NAME = "CHAR";
+    public static final String VARCHAR_NAME = "VARCHAR";
+    public static final String LONGVARCHAR_NAME = "LONG VARCHAR";
+    public static final String DATE_NAME = "DATE";
+    public static final String TIME_NAME = "TIME";
+    public static final String TIMESTAMP_NAME = "TIMESTAMP";
+    public static final String BINARY_NAME = "BINARY";
+    public static final String VARBINARY_NAME = "VARBINARY";
+    public static final String LONGVARBINARY_NAME = "LONGVARBINARY";
+    public static final String BOOLEAN_NAME = "BOOLEAN";
+    public static final String REF_NAME = "REF";
+    public static final String REF_CURSOR = "REF CURSOR";
+    public static final String NATIONAL_CHAR_NAME = "NATIONAL CHAR";
+    public static final String NATIONAL_VARCHAR_NAME = "NATIONAL CHAR VARYING";
+    public static final String NATIONAL_LONGVARCHAR_NAME = "LONG NVARCHAR";
+    public static final String BLOB_NAME = "BLOB";
+    public static final String CLOB_NAME = "CLOB";
+    public static final String NCLOB_NAME = "NCLOB";
 
     // Following use of "XML" is per SQL/XML (2003) spec,
     // section "10.2 Type name determination".
-    public static final String      XML_NAME = "XML";
+    public static final String XML_NAME = "XML";
 
     // ARRAY and STRUCT are JDBC 2.0 data types that are not
     // supported by Derby.
-    public static final String      ARRAY_NAME = "ARRAY";
-    public static final String      STRUCT_NAME = "STRUCT";
+    public static final String ARRAY_NAME = "ARRAY";
+    public static final String STRUCT_NAME = "STRUCT";
 
     // DATALINK is a JDBC 3.0 data type. Not supported by Derby.
-    public static final String      DATALINK_NAME = "DATALINK";
+    public static final String DATALINK_NAME = "DATALINK";
 
     // ROWID and SQLXML are new types in JDBC 4.0. Not supported
     // by Derby.
-    public static final String      ROWID_NAME = "ROWID";
-    public static final String      SQLXML_NAME = "SQLXML";
+    public static final String ROWID_NAME = "ROWID";
+    public static final String SQLXML_NAME = "SQLXML";
 
     /**
      * The following constants define the type precedence hierarchy.
      */
-    public static final int USER_PRECEDENCE  = 1000;
+    public static final int USER_PRECEDENCE = 1000;
 
-    public static final int XML_PRECEDENCE       = 180;
+    public static final int XML_PRECEDENCE = 180;
     public static final int BLOB_PRECEDENCE = 170;
     public static final int LONGVARBIT_PRECEDENCE = 160;
-    public static final int VARBIT_PRECEDENCE        = 150;
-    public static final int BIT_PRECEDENCE           = 140;
-    public static final int BOOLEAN_PRECEDENCE       = 130;
-    public static final int TIME_PRECEDENCE  = 120;
+    public static final int VARBIT_PRECEDENCE = 150;
+    public static final int BIT_PRECEDENCE = 140;
+    public static final int BOOLEAN_PRECEDENCE = 130;
+    public static final int TIME_PRECEDENCE = 120;
     public static final int TIMESTAMP_PRECEDENCE = 110;
-    public static final int DATE_PRECEDENCE  = 100;
-    public static final int DOUBLE_PRECEDENCE        = 90;
-    public static final int REAL_PRECEDENCE  = 80;
-    public static final int DECIMAL_PRECEDENCE       = 70;
-    public static final int NUMERIC_PRECEDENCE       = 69;
-    public static final int LONGINT_PRECEDENCE       = 60;
-    public static final int INT_PRECEDENCE           = 50;
+    public static final int DATE_PRECEDENCE = 100;
+    public static final int DOUBLE_PRECEDENCE = 90;
+    public static final int REAL_PRECEDENCE = 80;
+    public static final int DECIMAL_PRECEDENCE = 70;
+    public static final int NUMERIC_PRECEDENCE = 69;
+    public static final int LONGINT_PRECEDENCE = 60;
+    public static final int INT_PRECEDENCE = 50;
     public static final int SMALLINT_PRECEDENCE = 40;
-    public static final int TINYINT_PRECEDENCE       = 30;
-    public static final int REF_PRECEDENCE           = 25;
+    public static final int TINYINT_PRECEDENCE = 30;
+    public static final int REF_PRECEDENCE = 25;
     public static final int CLOB_PRECEDENCE = 14;
     public static final int LONGVARCHAR_PRECEDENCE = 12;
-    public static final int VARCHAR_PRECEDENCE  = 10;
-    public static final int CHAR_PRECEDENCE  = 0;
+    public static final int VARCHAR_PRECEDENCE = 10;
+    public static final int CHAR_PRECEDENCE = 0;
 
     /*
      ** Static runtime fields for typeIds
@@ -295,21 +293,21 @@ public final class TypeId
      * a BaseTypeIdImpl. Used to create the static final variables
      * of this class.
      */
-    private static TypeId create(int typeFormatId, int implTypeFormatId)
-    {
+    private static TypeId create(int typeFormatId, int implTypeFormatId) {
         return new TypeId(typeFormatId, new BaseTypeIdImpl(implTypeFormatId));
     }
 
     /**
      * Return all of the builtin type ids.
      */
-    public static TypeId[] getAllBuiltinTypeIds()
-    {
+    public static TypeId[] getAllBuiltinTypeIds() {
         int count = ALL_BUILTIN_TYPE_IDS.length;
 
-        TypeId[] retval = new TypeId[ count ];
+        TypeId[] retval = new TypeId[count];
 
-        for ( int i = 0; i < count; i++ ) { retval[ i ] = ALL_BUILTIN_TYPE_IDS[ i ]; }
+        for (int i = 0; i < count; i++) {
+            retval[i] = ALL_BUILTIN_TYPE_IDS[i];
+        }
 
         return retval;
     }
@@ -320,11 +318,10 @@ public final class TypeId
      * intended to be used for built-in types.  For user-defined types,
      * we will need a factory method that takes a Java type name.
      *
-     * @param JDBCTypeId    The JDBC Id of the type, as listed in
-     *                      java.sql.Types
-     *
-     * @return      The appropriate TypeId, or null if there is no such
-     *                      TypeId.
+     * @param JDBCTypeId The JDBC Id of the type, as listed in
+     *                   java.sql.Types
+     * @return The appropriate TypeId, or null if there is no such
+     * TypeId.
      */
 
     public static TypeId getBuiltInTypeId(int JDBCTypeId) {
@@ -394,77 +391,44 @@ public final class TypeId
         }
     }
 
-    public static TypeId getSQLTypeForJavaType(String javaTypeName)
-            throws StandardException
-    {
+    public static TypeId getSQLTypeForJavaType(String javaTypeName) {
         if (javaTypeName.equals("java.lang.Boolean") ||
-                javaTypeName.equals("boolean"))
-        {
+                javaTypeName.equals("boolean")) {
             return BOOLEAN_ID;
-        }
-        else if (javaTypeName.equals("byte[]"))
-        {
+        } else if (javaTypeName.equals("byte[]")) {
             return VARBIT_ID;
-        }
-        else if (javaTypeName.equals("java.lang.String"))
-        {
+        } else if (javaTypeName.equals("java.lang.String")) {
             return VARCHAR_ID;
-        }
-        else if (javaTypeName.equals("java.lang.Integer") ||
-                javaTypeName.equals("int"))
-        {
+        } else if (javaTypeName.equals("java.lang.Integer") ||
+                javaTypeName.equals("int")) {
             return INTEGER_ID;
-        }
-        else if (javaTypeName.equals("byte"))
-        {
+        } else if (javaTypeName.equals("byte")) {
             return TINYINT_ID;
-        }
-        else if (javaTypeName.equals("short"))
-        {
+        } else if (javaTypeName.equals("short")) {
             return SMALLINT_ID;
-        }
-        else if (javaTypeName.equals("java.lang.Long") ||
-                javaTypeName.equals("long"))
-        {
+        } else if (javaTypeName.equals("java.lang.Long") ||
+                javaTypeName.equals("long")) {
             return BIGINT_ID;
-        }
-        else if (javaTypeName.equals("java.lang.Float") ||
-                javaTypeName.equals("float"))
-        {
+        } else if (javaTypeName.equals("java.lang.Float") ||
+                javaTypeName.equals("float")) {
             return REAL_ID;
-        }
-        else if (javaTypeName.equals("java.lang.Double") ||
-                javaTypeName.equals("double"))
-        {
+        } else if (javaTypeName.equals("java.lang.Double") ||
+                javaTypeName.equals("double")) {
             return DOUBLE_ID;
-        }
-        else if (javaTypeName.equals("java.sql.Date"))
-        {
+        } else if (javaTypeName.equals("java.sql.Date")) {
             return DATE_ID;
-        }
-        else if (javaTypeName.equals("java.sql.Time"))
-        {
+        } else if (javaTypeName.equals("java.sql.Time")) {
             return TIME_ID;
-        }
-        else if (javaTypeName.equals("java.sql.Timestamp"))
-        {
+        } else if (javaTypeName.equals("java.sql.Timestamp")) {
             return TIMESTAMP_ID;
-        }
-        else if (javaTypeName.equals("java.sql.Blob"))
-        {
+        } else if (javaTypeName.equals("java.sql.Blob")) {
             return BLOB_ID;
-        }
-        else if (javaTypeName.equals("java.sql.Clob"))
-        {
+        } else if (javaTypeName.equals("java.sql.Clob")) {
             return CLOB_ID;
 
-        }
-        else if (javaTypeName.equals("org.apache.derby.iapi.types.XML"))
-        {
+        } else if (javaTypeName.equals("org.apache.derby.iapi.types.XML")) {
             return XML_ID;
-        }
-        else
-        {
+        } else {
             /*
              ** If it's a Java primitive type, return null to indicate that
              ** there is no corresponding SQL type (all the Java primitive
@@ -472,8 +436,7 @@ public final class TypeId
              **
              ** There is only one primitive type not mentioned above, char.
              */
-            if (javaTypeName.equals("char"))
-            {
+            if (javaTypeName.equals("char")) {
                 return null;
             }
 
@@ -485,24 +448,22 @@ public final class TypeId
         }
     }
 
-    public static TypeId getUserDefinedTypeId(String className)
-            throws StandardException
-    {
+    public static TypeId getUserDefinedTypeId(String className) {
         return new TypeId(StoredFormatIds.USERDEFINED_TYPE_ID_V3,
                 null);
     }
 
-    public static TypeId getUserDefinedTypeId(String schemaName, String unqualifiedName, String className )
-            throws StandardException
-    {
+    public static TypeId getUserDefinedTypeId(String schemaName, String unqualifiedName, String className) {
         return new TypeId
                 (
                         StoredFormatIds.USERDEFINED_TYPE_ID_V3,
-                     null
+                        null
                 );
     }
+
     /**
      * Given a SQL type name return the corresponding TypeId.
+     *
      * @param SQLTypeName Name of SQL type
      * @return TypeId or null if there is no corresponding SQL type.
      */
@@ -580,11 +541,21 @@ public final class TypeId
     /**
      * Get the TypeId (fundemental type information)
      * for a catalog type.
+     *
      * @param catalogType
      * @return TypeId that represents the base type, null if not applicable.
      */
-    public static TypeId getTypeId(TypeDescriptor catalogType)
-    {
+    public static TypeId getTypeId(TypeDescriptor catalogType) {
+        TypeDescriptorImpl tdi = (TypeDescriptorImpl) catalogType;
+        final int jdbcType = catalogType.getJDBCTypeId();
+        TypeId typeId = TypeId.getBuiltInTypeId(jdbcType);
+        if (typeId != null)
+            return typeId;
+
+        if (jdbcType == Types.JAVA_OBJECT) {
+            return new TypeId(StoredFormatIds.USERDEFINED_TYPE_ID_V3, tdi.getTypeId());
+        }
+
 
         return null;
     }
@@ -593,47 +564,44 @@ public final class TypeId
      * * Instance fields and methods
      */
 
-    private BaseTypeIdImpl  baseTypeId;
-    private int                             formatId;
+    private BaseTypeIdImpl baseTypeId;
+    private int formatId;
 
     /* Set in setTypeIdSpecificInstanceVariables() as needed */
-    private boolean                 isBitTypeId;
-    private boolean                 isLOBTypeId;
-    private boolean                 isBooleanTypeId;
-    private boolean                 isConcatableTypeId;
-    private boolean                 isDecimalTypeId;
-    private boolean                 isLongConcatableTypeId;
-    private boolean                 isNumericTypeId;
-    private boolean                 isRefTypeId;
-    private boolean                 isStringTypeId;
-    private boolean                 isFloatingPointTypeId;
-    private boolean                 isRealTypeId;
-    private boolean                 isDateTimeTimeStampTypeId;
-    private boolean                 isUserDefinedTypeId;
-    private int                             maxPrecision;
-    private int                             maxScale;
-    private int                             typePrecedence;
-    private String                  javaTypeName;
-    private int                             maxMaxWidth;
+    private boolean isBitTypeId;
+    private boolean isLOBTypeId;
+    private boolean isBooleanTypeId;
+    private boolean isConcatableTypeId;
+    private boolean isDecimalTypeId;
+    private boolean isLongConcatableTypeId;
+    private boolean isNumericTypeId;
+    private boolean isRefTypeId;
+    private boolean isStringTypeId;
+    private boolean isFloatingPointTypeId;
+    private boolean isRealTypeId;
+    private boolean isDateTimeTimeStampTypeId;
+    private boolean isUserDefinedTypeId;
+    private int maxPrecision;
+    private int maxScale;
+    private int typePrecedence;
+    private String javaTypeName;
+    private int maxMaxWidth;
 
     /**
      * Constructor for a TypeId
      *
-     * @param formatId      Format id of specific type id.
-     * @param baseTypeId    The Base type id
+     * @param formatId   Format id of specific type id.
+     * @param baseTypeId The Base type id
      */
-    public TypeId(int formatId, BaseTypeIdImpl baseTypeId)
-    {
+    public TypeId(int formatId, BaseTypeIdImpl baseTypeId) {
         this.formatId = formatId;
         this.baseTypeId = baseTypeId;
         setTypeIdSpecificInstanceVariables();
     }
 
 
-    private void setTypeIdSpecificInstanceVariables()
-    {
-        switch (formatId)
-        {
+    private void setTypeIdSpecificInstanceVariables() {
+        switch (formatId) {
             case StoredFormatIds.BIT_TYPE_ID:
                 typePrecedence = BIT_PRECEDENCE;
                 javaTypeName = "byte[]";
@@ -818,14 +786,12 @@ public final class TypeId
 
     }
 
-    public BaseTypeIdImpl getBaseTypeId(){
+    public BaseTypeIdImpl getBaseTypeId() {
         return baseTypeId;
     }
 
-    public DataValueDescriptor getNull()
-    {
-        switch (formatId)
-        {
+    public DataValueDescriptor getNull() {
+        switch (formatId) {
             case StoredFormatIds.BIT_TYPE_ID:
                 return new SQLBit();
 
@@ -901,20 +867,41 @@ public final class TypeId
         return isStringTypeId;
     }
 
-    /**返回数字最大精度*/
+    /**
+     * 返回数字最大精度
+     */
     public int getMaximumPrecision() {
         return maxPrecision;
     }
 
-    /**返回当前类型最大可读*/
+    /**
+     * 返回当前类型最大可读
+     */
     public int getMaximumScale() {
         return maxScale;
     }
 
-    /**返回当前类型最大宽度*/
+    /**
+     * 返回当前类型最大宽度
+     */
     public int getMaximumMaximumWidth() {
         return maxMaxWidth;
     }
 
+    public final int getJDBCTypeId() {
+        return baseTypeId.getJDBCTypeId();
+    }
+
+    public int getTypeFormatId() {
+        return formatId;
+    }
+
+    public boolean isBooleanTypeId() {
+        return isBooleanTypeId;
+    }
+
+    public boolean isRefTypeId() {
+        return isRefTypeId;
+    }
 }
 

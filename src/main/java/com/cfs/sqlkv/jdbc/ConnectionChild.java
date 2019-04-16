@@ -2,6 +2,10 @@ package com.cfs.sqlkv.jdbc;
 
 import com.cfs.sqlkv.context.LanguageConnectionContext;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.sql.SQLException;
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -22,17 +26,49 @@ public abstract class ConnectionChild {
 
     public LanguageConnectionContext lcc;
 
-    ConnectionChild(EmbedConnection conn) {
+    public ConnectionChild(EmbedConnection conn) {
         super();
         localConn = conn;
         factory = conn.getLocalDriver();
     }
 
-    final EmbedConnection getEmbedConnection() {
+    public final EmbedConnection getEmbedConnection() {
         return localConn;
     }
 
 
+    /**
+     * 获取连接的锁
+     * */
+    public final Object getConnectionSynchronization() {
+        return localConn.getConnectionSynchronization();
+    }
 
+    public final void setupContextStack() throws SQLException {
+        localConn.setupContextStack();
+    }
+
+    public final void restoreContextStack() throws SQLException {
+        localConn.restoreContextStack();
+    }
+
+    /**
+     * 获取连接对应的语言连接上下文
+     * */
+    public LanguageConnectionContext getLanguageConnectionContext( final EmbedConnection conn ) {
+        if ( lcc == null ) {
+            lcc = getLCC( conn );
+        }
+        return lcc;
+    }
+
+    public static LanguageConnectionContext	getLCC(final EmbedConnection conn ) {
+        return conn.getLcc();
+    }
+
+
+    public final void commitIfNeeded() throws SQLException {
+        localConn.commitIfNeeded();
+    }
 
 }

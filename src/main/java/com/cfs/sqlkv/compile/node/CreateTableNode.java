@@ -12,7 +12,7 @@ import com.cfs.sqlkv.compile.table.TableElementNode;
 import com.cfs.sqlkv.engine.execute.ColumnInfo;
 import com.cfs.sqlkv.engine.execute.ConstantAction;
 import com.cfs.sqlkv.engine.execute.CreateConstraintConstantAction;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.factory.GenericConstantActionFactory;
 import com.cfs.sqlkv.sql.dictionary.TableDescriptor;
 
@@ -42,7 +42,7 @@ public class CreateTableNode extends DDLStatementNode {
      * 创建表的节点
      * */
     public CreateTableNode(TableName tableName, TableElementList tableElementList, Properties properties,
-                           char lockGranularity, ContextManager cm) throws StandardException {
+                           char lockGranularity, ContextManager cm)   {
         super(tableName, cm);
         this.tableElementList = tableElementList;
         this.tableName = tableName;
@@ -56,14 +56,11 @@ public class CreateTableNode extends DDLStatementNode {
      * 绑定创建表的节点
      * */
     @Override
-    public void bindStatement() throws StandardException{
+    public void bindStatement()  {
         //获取数据字典
         DataDictionary dataDictionary = getDataDictionary();
         //主键数目
         int numPrimaryKeys;
-        //约束数目
-        int numCheckConstraints;
-
         //获取模式描述
         SchemaDescriptor sd = getSchemaDescriptor(tableType != TableDescriptor.GLOBAL_TEMPORARY_TABLE_TYPE, true);
 
@@ -74,21 +71,27 @@ public class CreateTableNode extends DDLStatementNode {
         //TODO:列大于限制
     }
 
+    @Override
+    String statementToString() {
+        return "CREATE TABLE";
+    }
+
 
     @Override
-    public ConstantAction makeConstantAction() throws StandardException{
+    public ConstantAction makeConstantAction()  {
         TableElementList coldefs = tableElementList;
 
         ColumnInfo[] colInfos = new ColumnInfo[coldefs.countNumberOfColumns()];
 
-        int numConstraints = coldefs.genColumnInfos(colInfos);
+        //将列节点的数据添加到colInfos
+        coldefs.genColumnInfos(colInfos);
 
+        //获取模式描述
         SchemaDescriptor sd = getSchemaDescriptor(tableType != TableDescriptor.GLOBAL_TEMPORARY_TABLE_TYPE, true);
 
         CreateConstraintConstantAction[] conActions = null;
 
-        return(GenericConstantActionFactory.getCreateTableConstantAction(
-                        sd.getSchemaName(),
+        return(GenericConstantActionFactory.getCreateTableConstantAction(sd.getSchemaName(),
                         getRelativeName(),
                         tableType,
                         colInfos,

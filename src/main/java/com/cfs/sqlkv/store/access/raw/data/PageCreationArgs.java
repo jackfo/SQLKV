@@ -17,22 +17,22 @@ public class PageCreationArgs {
     /**
      * 写入操作是否做异步
      * */
-    private final int syncFlag;
+    public final int syncFlag;
 
     /**
      * 页面的字节大小
      * */
-    private final int pageSize;
+    public final int pageSize;
 
     /**
      * 页面剩余空间
      * */
-    private final int spareSpace;
+    public final int spareSpace;
 
 
-    private final int minimumRecordSize;
+    public final int minimumRecordSize;
 
-    private final int containerInfoSize;
+    public final int containerInfoSize;
 
     public PageCreationArgs(int formatId, int syncFlag, int pageSize, int spareSpace, int minimumRecordSize, int containerInfoSize) {
         this.formatId = formatId;

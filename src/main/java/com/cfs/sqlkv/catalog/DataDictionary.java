@@ -2,9 +2,11 @@ package com.cfs.sqlkv.catalog;
 
 import com.cfs.sqlkv.common.UUID;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
-import com.cfs.sqlkv.exception.StandardException;
+
 import com.cfs.sqlkv.sql.dictionary.DataDescriptorGenerator;
-import com.cfs.sqlkv.store.TransactionController;
+import com.cfs.sqlkv.sql.dictionary.TableDescriptor;
+import com.cfs.sqlkv.store.TransactionControl;
+import com.cfs.sqlkv.store.TransactionManager;
 
 /**
  * @author zhengxiaokang
@@ -23,20 +25,22 @@ public interface DataDictionary {
 
     public static final String module = DataDictionary.class.getName();
 
-    public int startReading(LanguageConnectionContext lcc) throws StandardException;
+    public int startReading(LanguageConnectionContext lcc)  ;
 
-    public void doneReading(int mode, LanguageConnectionContext lcc) throws StandardException;
+    public void doneReading(int mode, LanguageConnectionContext lcc)  ;
 
-    public void startWriting(LanguageConnectionContext lcc) throws StandardException;
+    public void startWriting(LanguageConnectionContext lcc)  ;
 
-    public SchemaDescriptor	getSchemaDescriptor(UUID schemaId, TransactionController tc) throws StandardException;
+    public SchemaDescriptor	getSchemaDescriptor(UUID schemaId, TransactionManager tc)  ;
 
 
-    public SchemaDescriptor	getSchemaDescriptor(String schemaName, TransactionController tc, boolean raiseError) throws StandardException;
+    public SchemaDescriptor	getSchemaDescriptor(String schemaName, TransactionManager tc, boolean raiseError)  ;
 
     public DataDescriptorGenerator getDataDescriptorGenerator();
 
-    public void addDescriptor(TupleDescriptor tuple, TupleDescriptor parent, int catalogNumber, boolean allowsDuplicates, TransactionController tc) throws StandardException;
+    public void addDescriptor(TupleDescriptor tuple, TupleDescriptor parent, int catalogNumber, boolean allowsDuplicates, TransactionManager tc)  ;
 
+    public TableDescriptor getTableDescriptor(String tableName, SchemaDescriptor schema, TransactionManager tc);
 
+    public void addDescriptorArray(TupleDescriptor[] tuple, TupleDescriptor parent, int catalogNumber, boolean allowsDuplicates, TransactionManager tc)  ;
 }

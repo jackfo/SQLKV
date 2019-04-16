@@ -1,0 +1,147 @@
+2019-03-29 22:36:53
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.40-b25 mixed mode):
+
+"Attach Listener" #12 daemon prio=9 os_prio=31 tid=0x00007faad6083000 nid=0x5903 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Abandoned connection cleanup thread" #11 daemon prio=5 os_prio=31 tid=0x00007faad80df800 nid=0x5703 in Object.wait() [0x0000700005b99000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)
+	- locked <0x000000076b69f568> (a java.lang.ref.ReferenceQueue$Lock)
+	at com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:43)
+
+"Service Thread" #10 daemon prio=9 os_prio=31 tid=0x00007faada008000 nid=0x4203 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C1 CompilerThread3" #9 daemon prio=9 os_prio=31 tid=0x00007faad6831800 nid=0x4403 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread2" #8 daemon prio=9 os_prio=31 tid=0x00007faad6830800 nid=0x3f03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread1" #7 daemon prio=9 os_prio=31 tid=0x00007faad682e000 nid=0x3d03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread0" #6 daemon prio=9 os_prio=31 tid=0x00007faad682d000 nid=0x4503 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Monitor Ctrl-Break" #5 daemon prio=5 os_prio=31 tid=0x00007faad6825800 nid=0x3b03 runnable [0x0000700005484000]
+   java.lang.Thread.State: RUNNABLE
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:170)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	at sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:284)
+	at sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:326)
+	at sun.nio.cs.StreamDecoder.read(StreamDecoder.java:178)
+	- locked <0x000000076adcdac8> (a java.io.InputStreamReader)
+	at java.io.InputStreamReader.read(InputStreamReader.java:184)
+	at java.io.BufferedReader.fill(BufferedReader.java:161)
+	at java.io.BufferedReader.readLine(BufferedReader.java:324)
+	- locked <0x000000076adcdac8> (a java.io.InputStreamReader)
+	at java.io.BufferedReader.readLine(BufferedReader.java:389)
+	at com.intellij.rt.execution.application.AppMainV2$1.run(AppMainV2.java:64)
+
+"Signal Dispatcher" #4 daemon prio=9 os_prio=31 tid=0x00007faad7822800 nid=0x3a03 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Finalizer" #3 daemon prio=8 os_prio=31 tid=0x00007faad7807000 nid=0x3403 in Object.wait() [0x000070000527e000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x000000076ab06f58> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)
+	- locked <0x000000076ab06f58> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:164)
+	at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+"Reference Handler" #2 daemon prio=10 os_prio=31 tid=0x00007faad7806800 nid=0x4d03 in Object.wait() [0x000070000517b000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x000000076ab06998> (a java.lang.ref.Reference$Lock)
+	at java.lang.Object.wait(Object.java:502)
+	at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:157)
+	- locked <0x000000076ab06998> (a java.lang.ref.Reference$Lock)
+
+"main" #1 prio=5 os_prio=31 tid=0x00007faad680c000 nid=0x2603 in Object.wait() [0x000070000475b000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x000000076b9cb590> (a com.cfs.sqlkv.store.access.raw.data.AllocPage)
+	at java.lang.Object.wait(Object.java:502)
+	at com.cfs.sqlkv.store.access.raw.data.BasePage.setExclusive(BasePage.java:66)
+	- locked <0x000000076b9cb590> (a com.cfs.sqlkv.store.access.raw.data.AllocPage)
+	at com.cfs.sqlkv.store.access.raw.data.BaseContainer.latchPage(BaseContainer.java:182)
+	at com.cfs.sqlkv.store.access.raw.data.FileContainer.latchPage(FileContainer.java:89)
+	at com.cfs.sqlkv.store.access.raw.data.BaseContainer.getAllocPage(BaseContainer.java:172)
+	at com.cfs.sqlkv.store.access.raw.data.BaseContainerHandle.getAllocPage(BaseContainerHandle.java:215)
+	at com.cfs.sqlkv.store.access.raw.data.AllocationCache.validate(AllocationCache.java:81)
+	at com.cfs.sqlkv.store.access.raw.data.AllocationCache.getLastPageNumber(AllocationCache.java:45)
+	at com.cfs.sqlkv.store.access.raw.data.FileContainer.pageValid(FileContainer.java:103)
+	- locked <0x000000076b9081a8> (a com.cfs.sqlkv.store.access.raw.data.AllocationCache)
+	at com.cfs.sqlkv.store.access.raw.data.FileContainer.getUserPage(FileContainer.java:68)
+	at com.cfs.sqlkv.store.access.raw.data.FileContainer.getPage(FileContainer.java:117)
+	at com.cfs.sqlkv.store.access.raw.data.BaseContainerHandle.getPage(BaseContainerHandle.java:159)
+	at com.cfs.sqlkv.store.access.Heap.create(Heap.java:107)
+	at com.cfs.sqlkv.store.access.heap.TableConglomerateFactory.createConglomerate(TableConglomerateFactory.java:38)
+	at com.cfs.sqlkv.store.JuniorTransaction.createConglomerate(JuniorTransaction.java:60)
+	at com.cfs.sqlkv.catalog.DataDictionaryImpl.createConglomerate(DataDictionaryImpl.java:107)
+	at com.cfs.sqlkv.catalog.DataDictionaryImpl.createDictionaryTables(DataDictionaryImpl.java:98)
+	at com.cfs.sqlkv.catalog.DataDictionaryImpl.initializeCoreInfo(DataDictionaryImpl.java:71)
+	at com.cfs.sqlkv.catalog.DataDictionaryImpl.<init>(DataDictionaryImpl.java:59)
+	at com.cfs.sqlkv.db.BasicDatabase.init(BasicDatabase.java:52)
+	at com.cfs.sqlkv.jdbc.TransactionResourceImpl.<init>(TransactionResourceImpl.java:58)
+	at com.cfs.sqlkv.jdbc.EmbedConnection.<init>(EmbedConnection.java:61)
+	at com.cfs.sqlkv.jdbc.InternalDriver.getNewEmbedConnection(InternalDriver.java:208)
+	at com.cfs.sqlkv.jdbc.InternalDriver.connect(InternalDriver.java:79)
+	at com.cfs.sqlkv.jdbc.InternalDriver.connect(InternalDriver.java:51)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:270)
+	at SQLParseTest.<clinit>(SQLParseTest.java:24)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:422)
+	at org.junit.runners.BlockJUnit4ClassRunner.createTest(BlockJUnit4ClassRunner.java:250)
+	at org.junit.runners.BlockJUnit4ClassRunner.createTest(BlockJUnit4ClassRunner.java:260)
+	at org.junit.runners.BlockJUnit4ClassRunner$2.runReflectiveCall(BlockJUnit4ClassRunner.java:309)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.BlockJUnit4ClassRunner.methodBlock(BlockJUnit4ClassRunner.java:306)
+	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:365)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:330)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:78)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:328)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:65)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:292)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:305)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:412)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
+	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+
+"VM Thread" os_prio=31 tid=0x00007faad681f000 nid=0x3203 runnable 
+
+"GC task thread#0 (ParallelGC)" os_prio=31 tid=0x00007faad6004800 nid=0x1d07 runnable 
+
+"GC task thread#1 (ParallelGC)" os_prio=31 tid=0x00007faad8000800 nid=0x2a03 runnable 
+
+"GC task thread#2 (ParallelGC)" os_prio=31 tid=0x00007faad7803000 nid=0x2c03 runnable 
+
+"GC task thread#3 (ParallelGC)" os_prio=31 tid=0x00007faad8003000 nid=0x5303 runnable 
+
+"GC task thread#4 (ParallelGC)" os_prio=31 tid=0x00007faad8004000 nid=0x2d03 runnable 
+
+"GC task thread#5 (ParallelGC)" os_prio=31 tid=0x00007faad8004800 nid=0x2f03 runnable 
+
+"GC task thread#6 (ParallelGC)" os_prio=31 tid=0x00007faad8005000 nid=0x3003 runnable 
+
+"GC task thread#7 (ParallelGC)" os_prio=31 tid=0x00007faad7803800 nid=0x4f03 runnable 
+
+"VM Periodic Task Thread" os_prio=31 tid=0x00007faad6036800 nid=0x5503 waiting on condition 
+
+JNI global references: 44
+

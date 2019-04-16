@@ -7,8 +7,9 @@ import com.cfs.sqlkv.compile.parse.ParseException;
 import com.cfs.sqlkv.compile.parse.ParserImpl;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
 import com.cfs.sqlkv.context.StatementContext;
-import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.loader.GeneratedClass;
+
+import com.cfs.sqlkv.service.loader.GeneratedClass;
+import com.cfs.sqlkv.service.loader.GeneratedClass;
 import com.cfs.sqlkv.util.ByteArray;
 
 import java.sql.Timestamp;
@@ -35,17 +36,17 @@ public class GenericStatement implements Statement{
     }
 
     @Override
-    public PreparedStatement prepare(LanguageConnectionContext lcc) throws StandardException, ParseException {
+    public PreparedStatement prepare(LanguageConnectionContext lcc) throws ParseException {
         return prepare(lcc,false);
     }
 
     @Override
-    public PreparedStatement prepare(LanguageConnectionContext lcc, boolean forMetaData) throws ParseException, StandardException {
+    public PreparedStatement prepare(LanguageConnectionContext lcc, boolean forMetaData) throws ParseException {
         return prepMinion(lcc, true, (Object[]) null, (SchemaDescriptor) null, forMetaData);
     }
 
     @Override
-    public PreparedStatement prepareStorable(LanguageConnectionContext lcc, PreparedStatement ps, Object[] paramDefaults, SchemaDescriptor spsSchema, boolean internalSQL) throws StandardException {
+    public PreparedStatement prepareStorable(LanguageConnectionContext lcc, PreparedStatement ps, Object[] paramDefaults, SchemaDescriptor spsSchema, boolean internalSQL)   {
         return null;
     }
 
@@ -57,7 +58,7 @@ public class GenericStatement implements Statement{
     /**
      * 记录相关的时间
      * */
-    private PreparedStatement prepMinion(LanguageConnectionContext lcc, boolean cacheMe, Object[] paramDefaults, SchemaDescriptor spsSchema, boolean internalSQL) throws ParseException, StandardException {
+    private PreparedStatement prepMinion(LanguageConnectionContext lcc, boolean cacheMe, Object[] paramDefaults, SchemaDescriptor spsSchema, boolean internalSQL) throws ParseException{
         long				beginTime = 0;
         long				parseTime = 0;
         long				bindTime = 0;
@@ -106,6 +107,10 @@ public class GenericStatement implements Statement{
         }
 
         qt.bindStatement();
+        /**
+         * 对Statement做一些优化
+         * */
+        qt.optimizeStatement();
 
         try{
 
@@ -114,9 +119,13 @@ public class GenericStatement implements Statement{
                 dataDictionary.doneReading(ddMode, lcc);
             }
         }
-        GeneratedClass ac = new GeneratedClass();
-        preparedStmt.setConstantAction( qt.makeConstantAction() );
+
+        //
+        GeneratedClass ac =qt.generate(preparedStmt.getByteCodeSaver());
+        preparedStmt.setConstantAction(qt.makeConstantAction() );
+        preparedStmt.setSavedObjects( cc.getSavedObjects() );
         preparedStmt.setActivationClass(ac);
+        preparedStmt.completeCompile(qt);
 
         return preparedStmt;
     }

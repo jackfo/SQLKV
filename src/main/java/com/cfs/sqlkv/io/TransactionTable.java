@@ -1,5 +1,6 @@
 package com.cfs.sqlkv.io;
 
+import com.cfs.sqlkv.service.io.Formatable;
 import com.cfs.sqlkv.store.access.transaction.TransactionTableEntry;
 import com.cfs.sqlkv.transaction.Transaction;
 import com.cfs.sqlkv.transaction.TransactionId;

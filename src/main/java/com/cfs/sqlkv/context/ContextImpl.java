@@ -13,7 +13,7 @@ public class ContextImpl implements Context{
     private final String myIdName;
     private final ContextManager myContextManager;
 
-    protected ContextImpl(ContextManager cm, String id) {
+    public ContextImpl(ContextManager cm, String id) {
         myIdName = id;
         myContextManager = cm;
         cm.pushContext(this);

@@ -16,28 +16,8 @@ options
 
 PARSER_BEGIN(SQLParser)
 
-/*
 
-   Derby - File org.apache.derby.impl.sql.compile.sqlgrammar.jj
-
-   Licensed to the Apache Software Foundation (ASF) under one or more
-   contributor license agreements.  See the NOTICE file distributed with
-   this work for additional information regarding copyright ownership.
-   The ASF licenses this file to you under the Apache License, Version 2.0
-   (the "License"); you may not use this file except in compliance with
-   the License.  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-*/
-
-package org.apache.derby.impl.sql.compile;
+package test;
 
 import java.math.BigDecimal;
 import java.sql.ParameterMetaData;
@@ -53,9 +33,9 @@ import org.apache.derby.shared.common.error.StandardException;
 import org.apache.derby.shared.common.reference.Limits;
 import org.apache.derby.shared.common.reference.Property;
 import org.apache.derby.shared.common.reference.SQLState;
-import org.apache.derby.iapi.services.context.ContextManager;
-import org.apache.derby.iapi.services.io.FormatableProperties;
-import org.apache.derby.shared.common.sanity.SanityManager;
+import com.cfs.sqlkv.service.context.ContextManager;
+import com.cfs.sqlkv.service.io.FormatableProperties;
+import com.cfs.sqlkv.common.sanity.SanityManager;
 import org.apache.derby.iapi.sql.StatementType;
 import org.apache.derby.iapi.sql.compile.CompilerContext;
 import org.apache.derby.iapi.sql.compile.JoinStrategy;
@@ -198,7 +178,7 @@ public class SQLParser
 	  * @exception StandardException		Thrown on error
 	  */
     private final OptimizerFactory getOptimizerFactory()
-            throws StandardException
+
 	{
         if ( optimizerFactory == null )
 		{
@@ -215,7 +195,7 @@ public class SQLParser
 
 	private DataTypeDescriptor getDataTypeServices(int type, int precision, int scale,
 			int length)
-        throws StandardException
+
 	{
 		return new DataTypeDescriptor(
 					TypeId.getBuiltInTypeId(type),
@@ -227,7 +207,7 @@ public class SQLParser
 	}
 
 	private DataTypeDescriptor getJavaClassDataTypeDescriptor(TableName typeName) 
-        throws StandardException
+
 	{
 		return new DataTypeDescriptor
             (
@@ -256,7 +236,7 @@ public class SQLParser
 		@param feature SQL Feature name, for error text.
         @throws If the database is not at the required level.
 	*/
-	private boolean checkVersion(int version, String feature) throws StandardException
+	private boolean checkVersion(int version, String feature)
 	{
 		return getLanguageConnectionContext()
 				.getDataDictionary().checkVersion(version, feature);
@@ -268,7 +248,7 @@ public class SQLParser
 
 		@param command "GRANT", "REVOKE", "CREATE/DROP/SET ROLE" or CURRENT_ROLE
     */
-	private void checkSqlStandardAccess( String command) throws StandardException
+	private void checkSqlStandardAccess( String command)
 	{
 		if( getLanguageConnectionContext().usesSqlAuthorization())
 			return;
@@ -296,7 +276,7 @@ public class SQLParser
 
 		@exception StandardException current mode does not support statement
 	*/
-	private void checkInternalFeature(String feature) throws StandardException
+	private void checkInternalFeature(String feature)
 	{
 		CompilerContext cc = getCompilerContext();
 		if ((cc.getReliability() & CompilerContext.INTERNAL_SQL_ILLEGAL) != 0)
@@ -307,7 +287,7 @@ public class SQLParser
 	 * check if the type length is ok for the given type.
 	 */
 	private void checkTypeLimits(int type, int length)
-		throws StandardException
+
 	{	
 	boolean valid = true;
 
@@ -345,7 +325,7 @@ public class SQLParser
 		return cm;
 	}
 
-	private static void verifyImageLength(String image) throws StandardException
+	private static void verifyImageLength(String image)
 		{
 		// beetle 2758.  For right now throw an error for literals > 64K
 		if (image.length() > MAX_UTF8_LENGTH)
@@ -393,7 +373,7 @@ public class SQLParser
 	ValueNode multOp(ValueNode leftOperand,
 							ValueNode rightOperand,
 							int multiplicativeOperator)
-					throws StandardException
+
 	{
 		if (leftOperand == null)
 		{
@@ -436,9 +416,7 @@ public class SQLParser
 	 * 
 	 *	@exception	StandardException
 	 */
-	 private void setUpAndLinkParameters()
-			throws StandardException
-	 {
+	 private void setUpAndLinkParameters() {
 		CompilerContextImpl cc = (CompilerContextImpl) getCompilerContext();
 		cc.setParameterList(parameterList);
 		/* Link the untyped parameters to the array of parameter descriptors */
@@ -483,7 +461,7 @@ public class SQLParser
 	 *	@exception	StandardException
 	 */
 	ParameterNode	makeParameterNode(  )
-					throws StandardException
+
 	{
 		ParameterNode	parm;
 		DataValueDescriptor sdv = null;
@@ -511,7 +489,7 @@ public class SQLParser
 	 * @exception StandardException		Thrown on error
 	 */
 	NumericConstantNode getNumericNode(String num, boolean intsOnly)
-		throws StandardException
+
 	{
 		ContextManager cm = getContextManager();
 
@@ -712,7 +690,7 @@ public class SQLParser
 	 private StatementNode getDeleteNode(FromTable fromTable,
 										 TableName tableName,
 										 ValueNode whereClause)
-		throws StandardException
+
 	{
         FromList   fromList = new FromList(getContextManager());
 
@@ -745,7 +723,7 @@ public class SQLParser
 										 TableName tableName,
 										 ResultColumnList setClause,
 										 ValueNode whereClause)
-		throws StandardException
+
 	{
         FromList   fromList = new FromList(getContextManager());
 
@@ -776,7 +754,7 @@ public class SQLParser
      * @param trimSource expression to be trimmed.
      */
     private ValueNode getTrimOperatorNode(Integer trimSpec, ValueNode trimChar,
-        ValueNode trimSource, ContextManager cm) throws StandardException
+        ValueNode trimSource, ContextManager cm)
     {
         if (trimChar == null)
         {
@@ -1611,7 +1589,7 @@ public class SQLParser
 		Object targetName,
 		Object aliasSpecificInfo,
                 char aliasType)
-		throws StandardException
+
 	{
         String methodName = null;
 
@@ -1652,7 +1630,7 @@ public class SQLParser
 		Create a node for the drop alias/procedure call.
 	*/
 	StatementNode
-    dropAliasNode(TableName aliasName, char type) throws StandardException
+    dropAliasNode(TableName aliasName, char type)
 	{
         return new DropAliasNode(aliasName, type, getContextManager());
 	}
@@ -1665,7 +1643,7 @@ public class SQLParser
      * @exception StandardException  Thrown on error
      */
     ValueNode getSubstringNode( ValueNode stringValue, ValueNode startPosition, 
-                         ValueNode length) throws StandardException
+                         ValueNode length)
     {
         return new TernaryOperatorNode(
 		    				stringValue,
@@ -1677,7 +1655,7 @@ public class SQLParser
     }
 
     private void initStatement( String statementSQLText, Object[] paramDefaults)
-        throws StandardException
+
     {
         /* Do per-statement initialization here */
         parameterNumber = 0;
@@ -1687,7 +1665,7 @@ public class SQLParser
         initUnnamedParameterList();
     } // End of initStatement
 
-    private ValueNode getJdbcIntervalNode( int intervalType) throws StandardException
+    private ValueNode getJdbcIntervalNode( int intervalType)
     {
         return new NumericConstantNode(
             TypeId.getBuiltInTypeId(Types.INTEGER),
@@ -1703,7 +1681,7 @@ public class SQLParser
         @param  clauses the array of declared clauses.
     */
     void checkRequiredRoutineClause(int[] required, Object[] clauses)
-        throws StandardException
+
     {
         for (int i = 0; i < required.length; i++)
         {
@@ -1742,7 +1720,7 @@ public class SQLParser
 	TableElementNode wrapAlterColumnDefaultValue(
 		ValueNode defaultNode,
 		String columnName,
-		long[] autoIncrementInfo) throws StandardException {
+		long[] autoIncrementInfo)   {
 
 		if (autoIncrementInfo
 				[QueryTreeNode.AUTOINCREMENT_IS_AUTOINCREMENT_INDEX] == 0) {
@@ -1760,7 +1738,7 @@ public class SQLParser
 
 	private boolean
 		isTableValueConstructor(ResultSetNode expression)
-			throws StandardException {
+			  {
 
 		return expression instanceof RowResultSetNode ||
 			(expression instanceof UnionNode &&
@@ -1781,7 +1759,7 @@ public class SQLParser
     private JoinNode newJoinNode(ResultSetNode leftRSN, ResultSetNode rightRSN,
                          ValueNode onClause, ResultColumnList usingClause,
                          int joinType)
-    throws StandardException
+
     {
         switch(joinType)
         {
@@ -1846,7 +1824,7 @@ TOKEN_MGR_DECLS :
 }
 
 SKIP :
-{	/* white space */
+{
 	  " "
 	| "\t"
 	| "\n"
@@ -2864,7 +2842,7 @@ TOKEN :
  * <A NAME="Statement">Statement</A>
  */
 StatementNode
-Statement( String statementSQLText, Object[] paramDefaults) throws StandardException :
+Statement( String statementSQLText, Object[] paramDefaults)   :
 {
 	StatementNode	statementNode;
 
@@ -2887,7 +2865,7 @@ Statement( String statementSQLText, Object[] paramDefaults) throws StandardExcep
  * @return a {@code ValueNode} representing the search condition
  */
 ValueNode
-SearchCondition(String sqlFragment) throws StandardException :
+SearchCondition(String sqlFragment)   :
 {
     ValueNode valueNode;
     initStatement(sqlFragment, null);
@@ -2902,7 +2880,7 @@ SearchCondition(String sqlFragment) throws StandardException :
 }
 
 StatementNode 
-proceduralStatement(Token[] tokenHolder) throws StandardException : 
+proceduralStatement(Token[] tokenHolder)   :
 {
 	StatementNode statementNode;
 	tokenHolder[0] = getToken(1);
@@ -2933,7 +2911,7 @@ proceduralStatement(Token[] tokenHolder) throws StandardException :
  * the statement.  If null, ignored.
  */
 StatementNode
-StatementPart(Token[] tokenHolder) throws StandardException :
+StatementPart(Token[] tokenHolder)   :
 {
 	StatementNode	statementNode;
 
@@ -2991,7 +2969,7 @@ StatementPart(Token[] tokenHolder) throws StandardException :
  * <A NAME="createStatements">spsCreateStatement</A>
  */
 StatementNode
-createStatements() throws StandardException :
+createStatements()   :
 {
 	StatementNode statementNode;
 	Token beginToken;
@@ -3031,7 +3009,7 @@ createStatements() throws StandardException :
  * <A NAME="dropStatements">spsDropStatement</A>
  */
 StatementNode
-dropStatements() throws StandardException :
+dropStatements()   :
 {
 	StatementNode statementNode;
 }
@@ -3056,7 +3034,7 @@ dropStatements() throws StandardException :
  * <A NAME="spsAlterStatement">spsAlterStatement</A>
  */
 StatementNode
-spsAlterStatement() throws StandardException :
+spsAlterStatement()   :
 {
 	StatementNode statementNode;
 }
@@ -3074,7 +3052,7 @@ spsAlterStatement() throws StandardException :
  * <A NAME="spsSetStatement">spsSetStatement</A>
  */
 StatementNode
-spsSetStatement() throws StandardException :
+spsSetStatement()   :
 {
 	StatementNode statementNode;
 }
@@ -3108,7 +3086,7 @@ spsSetStatement() throws StandardException :
  * <A NAME="constraintsReference">constraintsReference</A>
  */
 void
-constraintsReference(List<TableName> constraints) throws StandardException :
+constraintsReference(List<TableName> constraints)   :
 {
     TableName constraint;
 }
@@ -3124,7 +3102,7 @@ constraintsReference(List<TableName> constraints) throws StandardException :
  * <A NAME="setConstraintsStatement">setConstraintsStatement</A>
  */
 StatementNode
-setConstraintsStatement() throws StandardException :
+setConstraintsStatement()   :
 {
     List<TableName> constraints = new ArrayList<TableName>();
     boolean initiallyDeferred;
@@ -3169,7 +3147,7 @@ setConstraintsStatement() throws StandardException :
  * instead of a direct select (without FOR UPDATE)
  */
 StatementNode
-preparableSQLDataStatement() throws StandardException :
+preparableSQLDataStatement()   :
 {
 	StatementNode	dmlStatement;
 }
@@ -3219,7 +3197,7 @@ preparableSQLDataStatement() throws StandardException :
  *	This may be a search or positioned delete statement.
  */
 StatementNode
-preparableDeleteStatement() throws StandardException :
+preparableDeleteStatement()   :
 {
 	StatementNode qtn;
 }
@@ -3231,7 +3209,7 @@ preparableDeleteStatement() throws StandardException :
 }
 
 StatementNode
-deleteBody() throws StandardException :
+deleteBody()   :
 {
 	JavaToSQLValueNode	javaToSQLNode = null;
 	String				correlationName = null;
@@ -3319,7 +3297,7 @@ deleteBody() throws StandardException :
  * <A NAME="currentOfClause">currentOfClause</A>
  */
 FromTable
-currentOfClause( String correlationName ) throws StandardException :
+currentOfClause( String correlationName )   :
 {
 	String cursorName = null;
 }
@@ -3345,7 +3323,7 @@ currentOfClause( String correlationName ) throws StandardException :
  *	an order by clause but also a for update clause.
  */
 CursorNode
-preparableSelectStatement(boolean checkParams) throws StandardException :
+preparableSelectStatement(boolean checkParams)   :
 {
 	ResultSetNode	  queryExpression;
 	ArrayList<String> updateColumns = new ArrayList<String>();
@@ -3401,7 +3379,7 @@ preparableSelectStatement(boolean checkParams) throws StandardException :
  * <A NAME="insertStatement">insertStatement</A>
  */
 StatementNode
-insertStatement() throws StandardException :
+insertStatement()   :
 {
 	StatementNode	insertNode;
 	QueryTreeNode	targetTable;
@@ -3417,7 +3395,7 @@ insertStatement() throws StandardException :
 }
 
 QueryTreeNode
-targetTable() throws StandardException :
+targetTable()   :
 {
 	JavaToSQLValueNode	javaToSQLNode = null;
 	String				correlationName = null;
@@ -3448,7 +3426,7 @@ targetTable() throws StandardException :
  * <A NAME="preparableUpdateStatement">preparableUpdateStatement</A>
  */
 StatementNode
-preparableUpdateStatement() throws StandardException :
+preparableUpdateStatement()   :
 {
 	StatementNode qtn;
 }
@@ -3480,7 +3458,7 @@ tableOrIndex() :
 }
 
 StatementNode
-updateBody() throws StandardException :
+updateBody()   :
 {
 	ResultColumnList	columnList;
 	String				correlationName = null;
@@ -3562,7 +3540,7 @@ updateBody() throws StandardException :
  * <A NAME="callStatement">callStatement</A>
  */
 StatementNode
-callStatement() throws StandardException :
+callStatement()   :
 {
 	StatementNode retval;
 }
@@ -3580,7 +3558,7 @@ callStatement() throws StandardException :
  * <A NAME="bareCallStatement">baseCallStatement</A>
  */
 StatementNode
-bareCallStatement() throws StandardException :
+bareCallStatement()   :
 {
 	ParameterNode		returnParam;
 
@@ -3655,7 +3633,7 @@ bareCallStatement() throws StandardException :
  * <A NAME="mergeStatement">mergeStatement</A>
  */
 StatementNode
-mergeStatement() throws StandardException :
+mergeStatement()   :
 {
 	FromTable   targetTable;
     FromTable       sourceTable;
@@ -3687,7 +3665,7 @@ mergeStatement() throws StandardException :
  * <A NAME="matchingClauseList">matchingClauseList</A>
  */
 QueryTreeNodeVector<MatchingClauseNode>
-matchingClauseList() throws StandardException :
+matchingClauseList()   :
 {
     QueryTreeNodeVector<MatchingClauseNode> matchingClauses =
             new QueryTreeNodeVector<MatchingClauseNode>(
@@ -3705,7 +3683,7 @@ matchingClauseList() throws StandardException :
  */
 void
 matchingClause(QueryTreeNodeVector<MatchingClauseNode> matchingClauses)
-    throws StandardException :
+      :
 {
     ValueNode   matchingRefinement = null;
     ResultColumnList               updateColumns = null;
@@ -3753,7 +3731,7 @@ matchingClause(QueryTreeNodeVector<MatchingClauseNode> matchingClauses)
 /*
  * <A NAME="primaryExpression">primaryExpression</A>
  */
-ValueNode primaryExpression() throws StandardException :
+ValueNode primaryExpression()   :
 {
 	ValueNode			value = null;
 }
@@ -3785,7 +3763,7 @@ ValueNode primaryExpression() throws StandardException :
 	2 - Boolean - ON ROLLBACK RETAIN CURSORS clause
  */
 StatementNode
-savepointStatement() throws StandardException :
+savepointStatement()   :
 {
 	String			savepointName = null;
 	int			savepointStatementType;
@@ -3815,7 +3793,7 @@ savepointStatement() throws StandardException :
 	}
 }
 
-void savepointStatementClause(Object[] savepointStatementClauses) throws StandardException :
+void savepointStatementClause(Object[] savepointStatementClauses)   :
 {
 	int clausePosition = -1;
 }
@@ -3868,7 +3846,7 @@ LocksOrCursors() :
 	2 - Boolean - on rollback behavior
  */
 StatementNode
-globalTemporaryTableDeclaration() throws StandardException :
+globalTemporaryTableDeclaration()   :
 {
 	TableName			tableName;
 	TableElementList tableElementList;
@@ -3898,7 +3876,7 @@ globalTemporaryTableDeclaration() throws StandardException :
 	}
 }
 
-void declareTableClause(Object[] declareTableClauses) throws StandardException :
+void declareTableClause(Object[] declareTableClauses)   :
 {
 	int clausePosition = -1;
 	Object clauseValue = null;
@@ -3952,7 +3930,7 @@ onCommit() :
  * <A NAME="tableElementList">tableElementList</A>
  */
 TableElementList
-tableElementList() throws StandardException :
+tableElementList()   :
 {
     TableElementList tableElementList =
         new TableElementList(getContextManager());
@@ -3969,7 +3947,7 @@ tableElementList() throws StandardException :
  * <A NAME="tableElement">tableElement</A>
  */
 void
-tableElement(TableElementList tableElementList) throws StandardException :
+tableElement(TableElementList tableElementList)   :
 {
 	TableElementNode	tableElement;
 }
@@ -3989,7 +3967,7 @@ tableElement(TableElementList tableElementList) throws StandardException :
  * <A NAME="columnDefinition">columnDefinition</A>
  */
 TableElementNode
-columnDefinition(TableElementList tableElementList) throws StandardException :
+columnDefinition(TableElementList tableElementList)   :
 {
 	DataTypeDescriptor[]	typeDescriptor = new DataTypeDescriptor[1];
 	ValueNode			defaultNode = null;
@@ -3997,11 +3975,6 @@ columnDefinition(TableElementList tableElementList) throws StandardException :
 	long[]				autoIncrementInfo = new long[5];
 }
 {
-	/*
-	** RESOLVE: We are ignoring domains and collation.
-	*/
-
-	/* identifier() used to be columnName() */
 	columnName = identifier(Limits.MAX_IDENTIFIER_LENGTH, true) 
 	[ ( typeDescriptor[0] = dataTypeDDL() ) ]
 	[ defaultNode = defaultAndConstraints(typeDescriptor, tableElementList, columnName, autoIncrementInfo) ]
@@ -4029,7 +4002,7 @@ ValueNode
 defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
 					  TableElementList tableElementList,
 					  String columnName,
-					  long[] autoIncrementInfo) throws StandardException :
+					  long[] autoIncrementInfo)   :
 {
 	ValueNode		defaultNode = null;
 }
@@ -4047,11 +4020,9 @@ defaultAndConstraints(DataTypeDescriptor[] typeDescriptor,
 	}
 }
 
-/*
- * <A NAME="dataTypeDDL">dataTypeDDL</A>
- */
+/**数据的DDL类型*/
 DataTypeDescriptor
-dataTypeDDL() throws StandardException :
+dataTypeDDL()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -4074,7 +4045,7 @@ dataTypeDDL() throws StandardException :
    the Java interface TypeDescriptor.
 */
 TypeDescriptor
-catalogType() throws StandardException :
+catalogType()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -4090,7 +4061,7 @@ catalogType() throws StandardException :
  * <A NAME="dataTypeCast">dataTypeCast</A>
  */
 DataTypeDescriptor
-dataTypeCast(TableName[] udtName) throws StandardException :
+dataTypeCast(TableName[] udtName)   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -4113,23 +4084,17 @@ dataTypeCast(TableName[] udtName) throws StandardException :
  * <A NAME="dataTypeCommon">dataTypeCommon</A>
  */
 DataTypeDescriptor
-dataTypeCommon() throws StandardException :
+dataTypeCommon()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 	boolean checkCS = false;
 }
 {
 (
-	/* RESOLVE: Ignoring decimal, numeric, long */
 
-	/*
-	** We are not planning to support character sets, so I commented
-	** out characterSetSpecification().
-	*/
 	( LOOKAHEAD({getToken(2).kind != LARGE})
 		typeDescriptor = characterStringType()
 	)
-		/* [ <CHARACTER> <SET> characterSetSpecification() ] */
 |
 	( LOOKAHEAD({getToken(3).kind != LARGE})
 		typeDescriptor = nationalCharacterStringType()
@@ -4162,7 +4127,7 @@ dataTypeCommon() throws StandardException :
  * <A NAME="characterStringType">characterStringType</A>
  */
 DataTypeDescriptor
-characterStringType() throws StandardException :
+characterStringType()   :
 {
 	int					length = DEFAULT_STRING_COLUMN_LENGTH;
 	Token				varyingToken = null;
@@ -4212,7 +4177,7 @@ charOrCharacter() :
  * <A NAME="charType">charType</A>
  */
 int
-charLength() throws StandardException :
+charLength()   :
 {
 	int length;
 }
@@ -4249,7 +4214,7 @@ forBitData(int charType) :
  * <A NAME="nationalCharacterStringType">nationalCharacterStringType</A>
  */
 DataTypeDescriptor
-nationalCharacterStringType() throws StandardException :
+nationalCharacterStringType()   :
 {
 	DataTypeDescriptor	dataTypeDescriptor;
 	int					length = DEFAULT_STRING_COLUMN_LENGTH;
@@ -4304,7 +4269,7 @@ nationalCharacterStringType() throws StandardException :
  * <A NAME="LOBType">lobType</A>
  */
 DataTypeDescriptor
-LOBType() throws StandardException :
+LOBType()   :
 {
 	int	length = 2147483647; // default to 2GB-1 if no length specified
 	String	type;
@@ -4356,7 +4321,7 @@ LOBType() throws StandardException :
  * <A NAME="numericType">numericType</A>
  */
 DataTypeDescriptor
-numericType() throws StandardException :
+numericType()   :
 {
 	DataTypeDescriptor	typeDescriptor;
 }
@@ -4376,7 +4341,7 @@ numericType() throws StandardException :
  * <A NAME="exactNumericType">exactNumericType</A>
  */
 DataTypeDescriptor
-exactNumericType() throws StandardException :
+exactNumericType()   :
 {
 	int precision = TypeCompiler.DEFAULT_DECIMAL_PRECISION;
 	int scale = TypeCompiler.DEFAULT_DECIMAL_SCALE;
@@ -4433,7 +4398,7 @@ exactNumericType() throws StandardException :
  * <A NAME="exactNumericType">exactNumericType</A>
  */
 DataTypeDescriptor
-exactIntegerType() throws StandardException :
+exactIntegerType()   :
 {
 
 }
@@ -4458,7 +4423,7 @@ exactIntegerType() throws StandardException :
  * <A NAME="approximateNumericType">approximateNumericType</A>
  */
 DataTypeDescriptor
-approximateNumericType() throws StandardException :
+approximateNumericType()   :
 {
 	int type = 0, scale = 0, width = 0;
 	int prec = -1;
@@ -4516,7 +4481,7 @@ approximateNumericType() throws StandardException :
  * <A NAME="doubleType">doubleType</A>
  */
 DataTypeDescriptor
-doubleType() throws StandardException :
+doubleType()   :
 
 {
 
@@ -4533,7 +4498,7 @@ doubleType() throws StandardException :
  * <A NAME="longType">longType</A>
  */
 DataTypeDescriptor
-longType() throws StandardException :
+longType()   :
 {
 	DataTypeDescriptor	dataTypeDescriptor;
 }
@@ -4546,7 +4511,7 @@ longType() throws StandardException :
 
 
 DataTypeDescriptor
-longSubType() throws StandardException :
+longSubType()   :
 {
 	int lvcType = Types.LONGVARCHAR;
 }
@@ -4568,7 +4533,7 @@ longSubType() throws StandardException :
  * <A NAME="XMLType">XMLType</A>
  */
 DataTypeDescriptor
-XMLType() throws StandardException :
+XMLType()   :
 {
 	DataTypeDescriptor value;
 }
@@ -4589,7 +4554,7 @@ XMLType() throws StandardException :
  *
  */
 void
-xmlDocOrContent() throws StandardException :
+xmlDocOrContent()   :
 {
 }
 {
@@ -4618,7 +4583,7 @@ xmlDocOrContent() throws StandardException :
  * <A NAME="javaType">javaType</A>
  */
 DataTypeDescriptor
-javaType(TableName[] udtName) throws StandardException :
+javaType(TableName[] udtName)   :
 {
 	TableName	typeName;
 }
@@ -4683,7 +4648,7 @@ javaDSLNameExtender(String dotSeparatedList)  :
  * <A NAME="length">lengthAndModifier</A>
  */
 int
-lengthAndModifier() throws StandardException :
+lengthAndModifier()   :
 {
 	Token	tok;
 	Token	tokmod = null;
@@ -4747,7 +4712,7 @@ lengthAndModifier() throws StandardException :
  * <A NAME="length">length</A>
  */
 int
-length() throws StandardException :
+length()   :
 {
 	Token	tok;
 	int	retval;
@@ -4774,7 +4739,7 @@ length() throws StandardException :
  * <A NAME="exactNumber">exactNumber</A>
 */
 long
-exactNumber() throws StandardException :
+exactNumber()   :
 {
 	Token longToken;
 	String sign = "";
@@ -4818,7 +4783,7 @@ exactNumber() throws StandardException :
  * <A NAME="precision">precision</A>
  */
 int
-precision() throws StandardException :
+precision()   :
 {
 	int uintValue;
 }
@@ -4833,7 +4798,7 @@ precision() throws StandardException :
  * <A NAME="uint_value">uint_value</A>
  */
 int 
-uint_value() throws StandardException :
+uint_value()   :
 {
 	Token uintToken;
 }
@@ -4855,7 +4820,7 @@ uint_value() throws StandardException :
  * <A NAME="scale">scale</A>
  */
 int
-scale() throws StandardException :
+scale()   :
 {
 	int uintValue;
 }
@@ -4871,7 +4836,7 @@ scale() throws StandardException :
  * <A NAME="datetimeType">datetimeType</A>
  */
 DataTypeDescriptor
-datetimeType() throws StandardException :
+datetimeType()   :
 {
 	Token tzTok = null;
 	int prec = -1; // know the value back is positive and in range
@@ -4912,7 +4877,7 @@ datetimeType() throws StandardException :
  * <A NAME="qualifiedName">qualifiedName</A>
  */
 TableName
-qualifiedName(int id_length_limit) throws StandardException :
+qualifiedName(int id_length_limit)   :
 {
 	//String	catalogName = null;
 	String	schemaName = null;
@@ -4976,7 +4941,7 @@ qualifiedName(int id_length_limit) throws StandardException :
  * set operator to produce a query tree with the correct associativity.
  */
 ResultSetNode
-queryExpression(ResultSetNode leftSide, int operatorType) throws StandardException :
+queryExpression(ResultSetNode leftSide, int operatorType)   :
 {
 	ResultSetNode	term;
 }
@@ -4991,7 +4956,7 @@ queryExpression(ResultSetNode leftSide, int operatorType) throws StandardExcepti
  * <A NAME="unionOrExcept">unionOrExcept</A>
  */
 ResultSetNode
-unionOrExcept(ResultSetNode term) throws StandardException :
+unionOrExcept(ResultSetNode term)   :
 {
 	ResultSetNode	expression;
 	Token 			tok = null;
@@ -5029,7 +4994,7 @@ unionOrExcept(ResultSetNode term) throws StandardException :
  * See the comment on queryExpression.
  */
 ResultSetNode
-nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws StandardException :
+nonJoinQueryTerm(ResultSetNode leftSide, int operatorType)   :
 {
 	ResultSetNode	term;
 }
@@ -5100,7 +5065,7 @@ nonJoinQueryTerm(ResultSetNode leftSide, int operatorType) throws StandardExcept
  * <A NAME="intersect">intersect</A>
  */
 ResultSetNode
-intersect(ResultSetNode term) throws StandardException :
+intersect(ResultSetNode term)   :
 {
 	ResultSetNode	expression;
 	Token 			tok = null;
@@ -5119,7 +5084,7 @@ intersect(ResultSetNode term) throws StandardException :
  * <A NAME="nonJoinQueryPrimary">nonJoinQueryPrimary</A>
  */
 ResultSetNode
-nonJoinQueryPrimary() throws StandardException :
+nonJoinQueryPrimary()   :
 {
 	ResultSetNode	primary;
     boolean     hasJDBClimitClause = false;
@@ -5176,7 +5141,7 @@ nonJoinQueryPrimary() throws StandardException :
  * <A NAME="simpleTable">simpleTable</A>
  */
 ResultSetNode
-simpleTable() throws StandardException :
+simpleTable()   :
 {
 	ResultSetNode	resultSetNode;
 }
@@ -5196,7 +5161,7 @@ simpleTable() throws StandardException :
  * <A NAME="querySpecification">querySpecification</A>
  */
 ResultSetNode
-querySpecification() throws StandardException :
+querySpecification()   :
 {
 	ResultColumnList	selectList;
 	SelectNode			selectNode;
@@ -5260,7 +5225,7 @@ setQuantifier() :
  * <A NAME="selectList">selectList</A>
  */
 ResultColumnList
-selectList() throws StandardException :
+selectList()   :
 {
 	ResultColumn	allResultColumn;
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
@@ -5282,7 +5247,7 @@ selectList() throws StandardException :
 }
 
 void
-selectColumnList(ResultColumnList resultColumns) throws StandardException :
+selectColumnList(ResultColumnList resultColumns)   :
 {
 }
 {
@@ -5293,7 +5258,7 @@ selectColumnList(ResultColumnList resultColumns) throws StandardException :
  * <A NAME="selectSublist">selectSublist</A>
  */
 void
-selectSublist(ResultColumnList resultColumns) throws StandardException :
+selectSublist(ResultColumnList resultColumns)   :
 {
 	ResultColumn	resultColumn;
 	ResultColumn	allResultColumn;
@@ -5333,7 +5298,7 @@ selectSublist(ResultColumnList resultColumns) throws StandardException :
  * <A NAME="derivedColumn">derivedColumn</A>
  */
 ResultColumn
-derivedColumn(ResultColumnList resultColumns) throws StandardException :
+derivedColumn(ResultColumnList resultColumns)   :
 {
 	ValueNode	columnExpression;
 	String		columnName = null;
@@ -5363,7 +5328,7 @@ derivedColumn(ResultColumnList resultColumns) throws StandardException :
  * <A NAME="asClause">asClause</A>
  */
 String
-asClause() throws StandardException :
+asClause()   :
 {
 	String	columnName;
 }
@@ -5379,7 +5344,7 @@ asClause() throws StandardException :
  * <A NAME="valueExpression">valueExpression</A>
  */
 ValueNode
-valueExpression() throws StandardException :
+valueExpression()   :
 {
 	ValueNode	leftOperand;
 }
@@ -5396,7 +5361,7 @@ valueExpression() throws StandardException :
  * <A NAME="orExpression">orExpression</A>
  */
 ValueNode
-orExpression(ValueNode farLeftOperand) throws StandardException :
+orExpression(ValueNode farLeftOperand)   :
 {
 	ValueNode	leftOperand;
 }
@@ -5419,7 +5384,7 @@ orExpression(ValueNode farLeftOperand) throws StandardException :
  * <A NAME="andExpression">andExpression</A>
  */
 ValueNode
-andExpression(ValueNode farLeftOperand) throws StandardException :
+andExpression(ValueNode farLeftOperand)   :
 {
 	Token		tok = null;
 	ValueNode	test;
@@ -5447,7 +5412,7 @@ andExpression(ValueNode farLeftOperand) throws StandardException :
  * <A NAME="isSearchCondition">isSearchCondition</A>
  */
 ValueNode
-isSearchCondition() throws StandardException :
+isSearchCondition()   :
 {
 	ValueNode	booleanPrimary;
 }
@@ -5462,7 +5427,7 @@ isSearchCondition() throws StandardException :
  * <A NAME="booleanPrimary">booleanPrimary</A>
  */
 ValueNode
-booleanPrimary() throws StandardException :
+booleanPrimary()   :
 {
 	ValueNode	primary;
 	ValueNode	searchCondition;
@@ -5478,7 +5443,7 @@ booleanPrimary() throws StandardException :
  * <A NAME="predicate">predicate</A>
  */
 ValueNode
-predicate() throws StandardException :
+predicate()   :
 {
 	ValueNode	value;
 }
@@ -5516,7 +5481,7 @@ predicate() throws StandardException :
  * <A NAME="remainingPredicates">remainingPredicates</A>
  */
 ValueNode
-remainingPredicate(ValueNode value) throws StandardException :
+remainingPredicate(ValueNode value)   :
 {
 	Token tok = null;
 }
@@ -5542,7 +5507,7 @@ remainingPredicate(ValueNode value) throws StandardException :
  * <A NAME="remainingNonNegatablePredicate">remainingNonNegatablePredicate</A>
  */
 ValueNode 
-remainingNonNegatablePredicate(ValueNode leftOperand) throws StandardException :
+remainingNonNegatablePredicate(ValueNode leftOperand)   :
 {
 	int			operator;
 	String		javaClassName;
@@ -5579,7 +5544,7 @@ remainingNonNegatablePredicate(ValueNode leftOperand) throws StandardException :
  * <A NAME="remainingNegatablePredicate">remainingNegatablePredicate</A>
  */
 ValueNode 
-remainingNegatablePredicate(ValueNode leftOperand) throws StandardException :
+remainingNegatablePredicate(ValueNode leftOperand)   :
 {
 	ValueNode	tree = null;
 	ValueNode	likePattern;
@@ -5635,7 +5600,7 @@ remainingNegatablePredicate(ValueNode leftOperand) throws StandardException :
  * <A NAME="compOp">compOp</A>
  */
 int
-compOp() throws StandardException :
+compOp()   :
 {}
 {
 	<EQUALS_OPERATOR>
@@ -5678,7 +5643,7 @@ compOp() throws StandardException :
  * <A NAME="additiveExpression">additiveExpression</A>
  */
 ValueNode
-additiveExpression(ValueNode farLeftOperand, int compOp) throws StandardException :
+additiveExpression(ValueNode farLeftOperand, int compOp)   :
 {
 	ValueNode	leftOperand;
 	int			operator;
@@ -5738,7 +5703,7 @@ additiveExpression(ValueNode farLeftOperand, int compOp) throws StandardExceptio
  * <A NAME="additiveOperator">additiveOperator</A>
  */
 int
-additiveOperator() throws StandardException :
+additiveOperator()   :
 {
 	Token tok;
 }
@@ -5757,7 +5722,7 @@ additiveOperator() throws StandardException :
  * <A NAME="multiplicativeExpression">multiplicativeExpression</A>
  */
 ValueNode
-multiplicativeExpression(ValueNode farLeftOperand, int additiveOperator) throws StandardException :
+multiplicativeExpression(ValueNode farLeftOperand, int additiveOperator)   :
 {
 	ValueNode	leftOperand;
 	int			multOp;
@@ -5799,7 +5764,7 @@ multiplicativeExpression(ValueNode farLeftOperand, int additiveOperator) throws 
  * <A NAME="multiplicativeOperator">multiplicativeOperator</A>
  */
 int
-multiplicativeOperator() throws StandardException :
+multiplicativeOperator()   :
 { }
 {	<ASTERISK> 
 	{
@@ -5821,7 +5786,7 @@ multiplicativeOperator() throws StandardException :
  * <A NAME="unaryExpression">unaryExpression</A>
  */
 ValueNode
-unaryExpression(ValueNode farLeftOperand, int multiplicativeOperator) throws StandardException :
+unaryExpression(ValueNode farLeftOperand, int multiplicativeOperator)   :
 {
 	ValueNode	value;
 	String		sign = null;
@@ -5899,7 +5864,7 @@ sign() :
  * <A NAME="primaryExpressionXX">primaryExpressionXX</A>
  */
 ValueNode
-primaryExpressionXX() throws StandardException :
+primaryExpressionXX()   :
 {
 	ValueNode	value;
 }
@@ -5912,7 +5877,7 @@ primaryExpressionXX() throws StandardException :
 }
 
 ValueNode
-nonStaticMethodCallOrFieldAccess(ValueNode receiver) throws StandardException :
+nonStaticMethodCallOrFieldAccess(ValueNode receiver)   :
 {
 	ValueNode value;
 }
@@ -5927,7 +5892,7 @@ nonStaticMethodCallOrFieldAccess(ValueNode receiver) throws StandardException :
  * <A NAME="nonStaticMethodInvocation">nonStaticMethodInvocation</A>
  */
 ValueNode
-nonStaticMethodInvocation(ValueNode receiver) throws StandardException :
+nonStaticMethodInvocation(ValueNode receiver)   :
 {
 	ArrayList<ValueNode>	parameterList = new ArrayList<ValueNode>();
 	MethodCallNode			methodNode;
@@ -5995,7 +5960,7 @@ nonStaticMethodInvocation(ValueNode receiver) throws StandardException :
  * <A NAME="methodName">methodName</A>
  */
 MethodCallNode
-methodName(ValueNode receiver) throws StandardException :
+methodName(ValueNode receiver)   :
 {
 	String	methodName;
 }
@@ -6017,7 +5982,7 @@ methodName(ValueNode receiver) throws StandardException :
  * <A NAME="staticMethodName">staticMethodName</A>
  */
 MethodCallNode
-staticMethodName(String javaClassName) throws StandardException :
+staticMethodName(String javaClassName)   :
 {
 	String	methodName;
 }
@@ -6039,7 +6004,7 @@ staticMethodName(String javaClassName) throws StandardException :
  * <A NAME="methodParameter">methodParameter</A>
  */
 void
-methodParameter(List<ValueNode> parameterList) throws StandardException :
+methodParameter(List<ValueNode> parameterList)   :
 {
 	ValueNode	parameter;
 }
@@ -6060,7 +6025,7 @@ methodParameter(List<ValueNode> parameterList) throws StandardException :
  * <A NAME="primary">primary</A>
  */
 ValueNode
-primary() throws StandardException :
+primary()   :
 {
 	String		javaClassName;
 	ValueNode	value;
@@ -6084,7 +6049,7 @@ primary() throws StandardException :
  * <A NAME="staticClassReference">staticClassReference</A>
  */
 ValueNode
-staticClassReference() throws StandardException :
+staticClassReference()   :
 {
 	String		javaClassName;
 	ValueNode value;
@@ -6100,7 +6065,7 @@ staticClassReference() throws StandardException :
  * <A NAME="staticClassReferenceType">staticClassReferenceType</A>
  */
 ValueNode
-staticClassReferenceType(String javaClassName) throws StandardException :
+staticClassReferenceType(String javaClassName)   :
 {
 	ValueNode value;
 }
@@ -6122,7 +6087,7 @@ staticClassReferenceType(String javaClassName) throws StandardException :
  * <A NAME="staticClassFieldReference">staticClassFieldReference</A>
  */
 ValueNode
-staticClassFieldReference(String javaClassName) throws StandardException :
+staticClassFieldReference(String javaClassName)   :
 {
 	String		fieldName = null;
 }
@@ -6174,7 +6139,7 @@ nonSecondDatetimeField() :
 
 
 ValueNode
-escapedValueFunction() throws StandardException :
+escapedValueFunction()   :
 {
 	ValueNode	value;
     ValueNode   str1;
@@ -6250,7 +6215,7 @@ escapedValueFunction() throws StandardException :
  * <A NAME="numericValueFunction">numericValueFunction</A>
  */
 ValueNode
-escapedSYSFUNFunction() throws StandardException :
+escapedSYSFUNFunction()   :
 {
     ArrayList<ValueNode> parameterList = new ArrayList<ValueNode>();
 	Token tok;
@@ -6284,7 +6249,7 @@ escapedSYSFUNFunction() throws StandardException :
  * <A NAME="timestampArithmeticFuncion">timestampArithmeticFuncion</A>
  */
 ValueNode
-timestampArithmeticFuncion() throws StandardException :
+timestampArithmeticFuncion()   :
 {
     ValueNode intervalType;
     ValueNode tstamp1;
@@ -6320,7 +6285,7 @@ timestampArithmeticFuncion() throws StandardException :
 /*
  * <A NAME="jdbcIntervalType">jdbcIntervalType</A>
  */
-ValueNode jdbcIntervalType() throws StandardException :
+ValueNode jdbcIntervalType()   :
 {
 }
 {
@@ -6374,7 +6339,7 @@ ValueNode jdbcIntervalType() throws StandardException :
  * <A NAME="numericValueFunction">numericValueFunction</A>
  */
 ValueNode
-numericValueFunction() throws StandardException :
+numericValueFunction()   :
 {
 	ValueNode	value;
 	int			field;
@@ -6422,7 +6387,7 @@ numericValueFunction() throws StandardException :
  * <A NAME="coalesceFunction">coalesceFunction</A>
  */
 ValueNode
-coalesceFunction(String coalesceOrValue) throws StandardException :
+coalesceFunction(String coalesceOrValue)   :
 {
     ValueNodeList expressionList = new ValueNodeList(getContextManager());
 }
@@ -6443,7 +6408,7 @@ coalesceFunction(String coalesceOrValue) throws StandardException :
  * <A NAME="coalesceExpression">coalesceExpression</A>
  */
 void
-coalesceExpression(ValueNodeList expressionList) throws StandardException :
+coalesceExpression(ValueNodeList expressionList)   :
 {
 	ValueNode	expression;
 }
@@ -6458,7 +6423,7 @@ coalesceExpression(ValueNodeList expressionList) throws StandardException :
  * <A NAME="absFunction">absFunction</A>
  */
 ValueNode
-absFunction() throws StandardException :
+absFunction()   :
 {
     ValueNode value;
 }
@@ -6475,7 +6440,7 @@ absFunction() throws StandardException :
  * <A NAME="modFunction">modFunction</A>
  */
 ValueNode
-modFunction() throws StandardException :
+modFunction()   :
 {
     ValueNode int1;
 	ValueNode int2;
@@ -6514,7 +6479,7 @@ datetimeField() :
 
 
 ValueNode
-characterValueFunction() throws StandardException :
+characterValueFunction()   :
 {
 	ValueNode 	value = null;
 	ValueNode 	str1;
@@ -6577,7 +6542,7 @@ characterValueFunction() throws StandardException :
 
 
 ValueNode
-trimFunction() throws StandardException :
+trimFunction()   :
 {
 	ValueNode	source;
 	Integer		trimType;
@@ -6598,7 +6563,7 @@ trimFunction() throws StandardException :
 
 
 ValueNode
-ansiTrim() throws StandardException  :
+ansiTrim()    :
 {
     Integer trimSpec = StringDataValue.BOTH;
     ValueNode trimChar = null;
@@ -6680,7 +6645,7 @@ trimType() :
  * <A NAME="valueExpressionPrimary">valueExpressionPrimary</A>
  */
 ValueNode
-valueExpressionPrimary() throws StandardException :
+valueExpressionPrimary()   :
 {
 	ValueNode	value;
 	int			tokKind;
@@ -6788,7 +6753,7 @@ valueExpressionPrimary() throws StandardException :
  * <A NAME="miscBuiltins">miscBuiltins</A>
  */
 ValueNode
-miscBuiltins() throws StandardException :
+miscBuiltins()   :
 {
 	ValueNode value;
 }
@@ -6866,7 +6831,7 @@ miscBuiltins() throws StandardException :
 }
 
 ValueNode
-miscBuiltinsCore( boolean isJDBCEscape) throws StandardException :
+miscBuiltinsCore( boolean isJDBCEscape)   :
 {
 	ValueNode value;
 }
@@ -6939,7 +6904,7 @@ miscBuiltinsCore( boolean isJDBCEscape) throws StandardException :
  * <A NAME="dataTypeScalarFunction">dataTypeScalarFunction</A>
  */
 ValueNode
-	dataTypeScalarFunction() throws StandardException :
+	dataTypeScalarFunction()   :
 {
 	DataTypeDescriptor dts;
 	ValueNode value;           //converted result
@@ -6983,7 +6948,7 @@ ValueNode
  *
  */
 ValueNode
-	xmlFunction() throws StandardException :
+	xmlFunction()   :
 {
 	ValueNode value;
 	checkVersion(DataDictionary.DD_VERSION_DERBY_10_1, "XML");
@@ -7043,7 +7008,7 @@ ValueNode
  *
  */
 ValueNode
-	xmlParseValue() throws StandardException :
+	xmlParseValue()   :
 {
 	ValueNode value;
 	boolean wsOption;
@@ -7066,7 +7031,7 @@ ValueNode
  *
  */
 boolean
-	xmlPreserveWhitespace() throws StandardException :
+	xmlPreserveWhitespace()   :
 {
 }
 {
@@ -7108,7 +7073,7 @@ boolean
  *
  */
 ValueNode
-	xmlSerializeValue() throws StandardException :
+	xmlSerializeValue()   :
 {
 	ValueNode value;
 	DataTypeDescriptor targetType;
@@ -7132,7 +7097,7 @@ ValueNode
  * Parse the target type of an XMLSERIALIZE operation.
  *
  */
-DataTypeDescriptor xmlSerializeTargetType() throws StandardException :
+DataTypeDescriptor xmlSerializeTargetType()   :
 {
 	DataTypeDescriptor targetType;
 }
@@ -7196,7 +7161,7 @@ DataTypeDescriptor xmlSerializeTargetType() throws StandardException :
  *
  */
 ValueNode
-	xmlQueryValue(boolean existsOnly) throws StandardException :
+	xmlQueryValue(boolean existsOnly)   :
 {
 	// The query expression (currently must be an expression
 	// supported by Xalan--i.e. XPath only).
@@ -7264,7 +7229,7 @@ ValueNode
  */
 
 ValueNode xqVarList()
-	throws StandardException :
+	  :
 {
 	// Placeholder for the XML context item as we parse the
 	// argument list.
@@ -7287,7 +7252,7 @@ ValueNode xqVarList()
  * otherwise, throw a "not supported" errror (for now).
  */
 
-void xqVariable(ValueNode [] xmlVal) throws StandardException :
+void xqVariable(ValueNode [] xmlVal)   :
 {
 	ValueNode curVal;
 	String varName = null;
@@ -7385,7 +7350,7 @@ void xqVariable(ValueNode [] xmlVal) throws StandardException :
  * due to lack of deep copying.
  */
 short
-	xmlPassingMechanism() throws StandardException :
+	xmlPassingMechanism()   :
 {
 }
 {
@@ -7429,7 +7394,7 @@ short
  * Derby XML columns.
  */
 short
-	xqReturningClause() throws StandardException :
+	xqReturningClause()   :
 {
 }
 {
@@ -7457,7 +7422,7 @@ short
  * empty sequence.
  */
 short
-	xqEmptyHandlingClause() throws StandardException :
+	xqEmptyHandlingClause()   :
 {
 }
 {
@@ -7482,7 +7447,7 @@ short
  * <A NAME="numericFunctionType">numericFunctionType</A>
  */
 DataTypeDescriptor
-numericFunctionType() throws StandardException :
+numericFunctionType()   :
 
 {
 	DataTypeDescriptor dts;
@@ -7503,7 +7468,7 @@ numericFunctionType() throws StandardException :
  * <A NAME="dateTimeScalarFunction">dateTimeScalarFunction</A>
  */
 ValueNode
-dateTimeScalarFunction() throws StandardException :
+dateTimeScalarFunction()   :
 {
 	ValueNode	value;
 	ValueNode	timestampNode;
@@ -7551,7 +7516,7 @@ dateTimeScalarFunction() throws StandardException :
  * <A NAME="timestampFunctionCompletion">timestampFunctionCompletion</A>
  */
 ValueNode
-timestampFunctionCompletion( ValueNode firstArg) throws StandardException :
+timestampFunctionCompletion( ValueNode firstArg)   :
 {
         ValueNode timeValue;
 }
@@ -7595,7 +7560,7 @@ booleanLiteral() :
  * <A NAME="generalValueSpecification">generalValueSpecification</A>
  */
 ValueNode
-generalValueSpecification() throws StandardException :
+generalValueSpecification()   :
 {
 		ValueNode	parm;
 }
@@ -7617,7 +7582,7 @@ generalValueSpecification() throws StandardException :
 }
 
 ValueNode
-userNode() throws StandardException :
+userNode()   :
 {
 }
 {
@@ -7645,7 +7610,7 @@ userNode() throws StandardException :
  * <A NAME="currentRoleNode">currentRoleNode</A>
  */
 ValueNode
-currentRoleNode() throws StandardException :
+currentRoleNode()   :
 {
 }
 {
@@ -7663,7 +7628,7 @@ currentRoleNode() throws StandardException :
  * <A NAME="newInvocation">newInvocation</A>
  */
 JavaToSQLValueNode
-newInvocation() throws StandardException :
+newInvocation()   :
 {
     NewInvocationNode   newNode;
 	ArrayList<ValueNode> parameterList = new ArrayList<ValueNode>();
@@ -7715,7 +7680,7 @@ newInvocation() throws StandardException :
  * Note that this latter syntax is still supported.
  */
 JavaToSQLValueNode
-vtiTableConstruct() throws StandardException :
+vtiTableConstruct()   :
 {
     NewInvocationNode newNode = null;
     MethodCallNode invocationNode = null;
@@ -7768,7 +7733,7 @@ vtiTableConstruct() throws StandardException :
  * <A NAME="staticMethodInvocation">staticMethodInvocation</A>
  */
 ValueNode
-staticMethodInvocation(String javaClassName) throws StandardException :
+staticMethodInvocation(String javaClassName)   :
 {
 	ArrayList<ValueNode> parameterList = new ArrayList<ValueNode>();
 	MethodCallNode	methodNode;
@@ -7791,7 +7756,7 @@ staticMethodInvocation(String javaClassName) throws StandardException :
  * <A NAME="methodCallParameterList">methodCallParameterList</A>
 */
 
-void methodCallParameterList(List<ValueNode> parameterList) throws StandardException :
+void methodCallParameterList(List<ValueNode> parameterList)   :
 {
 }
 {
@@ -7805,7 +7770,7 @@ void methodCallParameterList(List<ValueNode> parameterList) throws StandardExcep
  * <A NAME="routineInvocation">routineInvocation</A>
  */
 ValueNode
-routineInvocation() throws StandardException :
+routineInvocation()   :
 {
 	ValueNode	valueNode;
 }
@@ -7827,7 +7792,7 @@ routineInvocation() throws StandardException :
  * <A NAME="routineExpression">routineExpression</A>
  */
 ValueNode
-routineExpression() throws StandardException :
+routineExpression()   :
 {
 	ArrayList<ValueNode> parameterList = new ArrayList<ValueNode>();
 	TableName	routineName;
@@ -7855,7 +7820,7 @@ routineExpression() throws StandardException :
  * <A NAME="distinctUDA">distinctUDA</A>
  */
 ValueNode
-distinctUDA() throws StandardException :
+distinctUDA()   :
 {
 	ValueNode		value;
 	TableName  aggName;
@@ -7884,7 +7849,7 @@ distinctUDA() throws StandardException :
  */
 
 String
-javaClass() throws StandardException :
+javaClass()   :
 {
 	String javaClassName;
 }
@@ -7899,7 +7864,7 @@ javaClass() throws StandardException :
  * <A NAME="columnMethodInvocation">columnMethodInvocation</A>
  */
 ValueNode
-columnMethodInvocation() throws StandardException :
+columnMethodInvocation()   :
 {
 	ValueNode	columnReference;
 	ValueNode	methodNode;
@@ -7916,7 +7881,7 @@ columnMethodInvocation() throws StandardException :
  * <A NAME="columnNameForInvocation">columnNameForInvocation</A>
  */
 ValueNode
-columnNameForInvocation() throws StandardException :
+columnNameForInvocation()   :
 {
 	String firstName;
 	String secondName = null;
@@ -8007,7 +7972,7 @@ columnNameForInvocation() throws StandardException :
  * <A NAME="columnReference">columnReference</A>
  */
 ColumnReference
-columnReference() throws StandardException :
+columnReference()   :
 {
 	String		firstName;
 	String		secondName = null;
@@ -8092,7 +8057,7 @@ columnReference() throws StandardException :
 
 /*
 void
-columnReference() throws StandardException :
+columnReference()   :
 {}
 {
 	/*
@@ -8118,7 +8083,7 @@ columnReference() throws StandardException :
 */
 
 OrderByList
-orderByClause(ResultSetNode rs) throws StandardException :
+orderByClause(ResultSetNode rs)   :
 {
 	OrderByList orderCols;
 }
@@ -8132,7 +8097,7 @@ orderByClause(ResultSetNode rs) throws StandardException :
 }
 
 int
-atIsolationLevel() throws StandardException :
+atIsolationLevel()   :
 {
 	int isolationLevel;
 }
@@ -8145,7 +8110,7 @@ atIsolationLevel() throws StandardException :
 }
 
 OrderByList
-sortSpecificationList(ResultSetNode rs) throws StandardException :
+sortSpecificationList(ResultSetNode rs)   :
 { 
     OrderByList orderCols = new OrderByList(rs, getContextManager());
 }
@@ -8157,7 +8122,7 @@ sortSpecificationList(ResultSetNode rs) throws StandardException :
 }
 
 void
-sortSpecification(OrderByList orderCols) throws StandardException :
+sortSpecification(OrderByList orderCols)   :
 {	OrderByColumn orderCol; }
 {
 	orderCol = sortKey() /* [ collateClause() ] */ [ orderingSpecification(orderCol) ] [ nullOrdering(orderCol) ]
@@ -8167,7 +8132,7 @@ sortSpecification(OrderByList orderCols) throws StandardException :
 }
 
 OrderByColumn
-sortKey() throws StandardException :
+sortKey()   :
 {
 	ValueNode columnExpression;
 } 
@@ -8229,7 +8194,7 @@ nullOrdering(OrderByColumn orderCol) :
  * <A NAME="offsetFetchFirstClause">offsetFetchFirstClause</A>
  */
 boolean
-offsetFetchFirstClause( ValueNode[] clauses ) throws StandardException :
+offsetFetchFirstClause( ValueNode[] clauses )   :
 {
     boolean result = false;
 }
@@ -8256,7 +8221,7 @@ offsetFetchFirstClause( ValueNode[] clauses ) throws StandardException :
  * <A NAME="sqlStandardOffsetFetchFirst">sqlStandardOffsetFetchFirst</A>
  */
 void
-sqlStandardOffsetFetchFirst( ValueNode[] clauses ) throws StandardException :
+sqlStandardOffsetFetchFirst( ValueNode[] clauses )   :
 {}
 {
     [ clauses[ OFFSET_CLAUSE ] = offsetClause() ]
@@ -8267,7 +8232,7 @@ sqlStandardOffsetFetchFirst( ValueNode[] clauses ) throws StandardException :
  * <A NAME="jdbcLimitOffset">jdbcLimitOffset</A>
  */
 void
-jdbcLimitOffset( ValueNode[] clauses ) throws StandardException :
+jdbcLimitOffset( ValueNode[] clauses )   :
 {
     ValueNode rowCount = null;
     ValueNode startRow = null;
@@ -8303,7 +8268,7 @@ jdbcLimitOffset( ValueNode[] clauses ) throws StandardException :
  * <A NAME="offsetClause">offsetClause</A>
  */
 ValueNode
-offsetClause() throws StandardException :
+offsetClause()   :
 {
 	ValueNode result = null;
 }
@@ -8327,7 +8292,7 @@ offsetClause() throws StandardException :
  * <A NAME="fetchFirstClause">fetchFirstClause</A>
  */
 ValueNode
-fetchFirstClause() throws StandardException :
+fetchFirstClause()   :
 {
 	// The default number of rows to fetch if the literal is omitted is 1:
 	ValueNode result = getNumericNode("1", true);
@@ -8347,7 +8312,7 @@ fetchFirstClause() throws StandardException :
  * <A NAME="forUpdateClause">forUpdateClause</A>
  */
 int
-forUpdateClause(List<String> columnList) throws StandardException :
+forUpdateClause(List<String> columnList)   :
 {
 }
 {
@@ -8371,7 +8336,7 @@ forUpdateClause(List<String> columnList) throws StandardException :
  * <A NAME="forUpdateColumnList">forUpdateColumnList</A>
  */
 void
-forUpdateColumnList(List<String> columnList) throws StandardException :
+forUpdateColumnList(List<String> columnList)   :
 {
 }
 {
@@ -8382,7 +8347,7 @@ forUpdateColumnList(List<String> columnList) throws StandardException :
  * <A NAME="forUpdateColumn">forUpdateColumn</A>
  */
 void
-forUpdateColumn(List<String> columnList) throws StandardException :
+forUpdateColumn(List<String> columnList)   :
 {
 	String		 columnName;
 }
@@ -8398,7 +8363,7 @@ forUpdateColumn(List<String> columnList) throws StandardException :
  * <A NAME="setClauseList">setClauseList</A>
  */
 ResultColumnList
-setClauseList() throws StandardException :
+setClauseList()   :
 {
     ResultColumnList columnList = new ResultColumnList(getContextManager());
 }
@@ -8413,7 +8378,7 @@ setClauseList() throws StandardException :
  * <A NAME="setClause">setClause</A>
  */
 void
-setClause(ResultColumnList columnList) throws StandardException :
+setClause(ResultColumnList columnList)   :
 {
 	ResultColumn resultColumn;
 	ColumnReference	 columnName;
@@ -8439,7 +8404,7 @@ setClause(ResultColumnList columnList) throws StandardException :
  * <A NAME="updateSource">updateSource</A>
  */
 ValueNode
-updateSource(String columnName) throws StandardException :
+updateSource(String columnName)   :
 {
 	ValueNode	valueNode;
 }
@@ -8464,7 +8429,7 @@ updateSource(String columnName) throws StandardException :
  * <A NAME="nullSpecification">nullSpecification</A>
  */
 ValueNode
-nullSpecification() throws StandardException :
+nullSpecification()   :
 {}
 {
 	<NULL>
@@ -8479,7 +8444,7 @@ nullSpecification() throws StandardException :
  */
 StatementNode
 insertColumnsAndSource(QueryTreeNode targetTable) 
-	throws StandardException :
+	  :
 {
 	Properties			targetProperties = null;
 	ResultSetNode	queryExpression;
@@ -8550,7 +8515,7 @@ insertColumnsAndSource(QueryTreeNode targetTable)
  * <A NAME="insertColumnList">insertColumnList</A>
  */
 ResultColumnList
-insertColumnList() throws StandardException :
+insertColumnList()   :
 {
     ResultColumnList columnList = new ResultColumnList(getContextManager());
 }
@@ -8565,7 +8530,7 @@ insertColumnList() throws StandardException :
  * <A NAME="columnQualifiedNameList">columnQualifiedNameList</A>
  */
 void
-columnQualifiedNameList(ResultColumnList columnList) throws StandardException :
+columnQualifiedNameList(ResultColumnList columnList)   :
 {}
 {
 	columnQualifiedNameItem(columnList) ( <COMMA> columnQualifiedNameItem(columnList) ) *
@@ -8575,7 +8540,7 @@ columnQualifiedNameList(ResultColumnList columnList) throws StandardException :
  * <A NAME="columnQualifiedNameItem">columnQualifiedNameItem</A>
  */
 void
-columnQualifiedNameItem(ResultColumnList columnList) throws StandardException :
+columnQualifiedNameItem(ResultColumnList columnList)   :
 {
 	ColumnReference		columnRef;
 	ResultColumn	resultColumn;
@@ -8605,7 +8570,7 @@ columnQualifiedNameItem(ResultColumnList columnList) throws StandardException :
  * <A NAME="rowValueConstructor">rowValueConstructor</A>
  */
 ResultSetNode
-rowValueConstructor(ResultSetNode leftRSN) throws StandardException :
+rowValueConstructor(ResultSetNode leftRSN)   :
 {
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
 	ResultSetNode		newRSN;
@@ -8665,7 +8630,7 @@ rowValueConstructor(ResultSetNode leftRSN) throws StandardException :
  * <A NAME="rowValueConstructorElement">rowValueConstructorElement</A>
  */
 void
-rowValueConstructorElement(ResultColumnList resultColumns) throws StandardException :
+rowValueConstructorElement(ResultColumnList resultColumns)   :
 {
 	ValueNode	value;
 }
@@ -8701,7 +8666,7 @@ rowValueConstructorElement(ResultColumnList resultColumns) throws StandardExcept
  * <A NAME="rowValueConstructorList">rowValueConstructorList</A>
  */
 void
-rowValueConstructorList(ResultColumnList resultColumns) throws StandardException :
+rowValueConstructorList(ResultColumnList resultColumns)   :
 {}
 {
 	rowValueConstructorElement(resultColumns)
@@ -8713,7 +8678,7 @@ rowValueConstructorList(ResultColumnList resultColumns) throws StandardException
  * <A NAME="tableSubquery">tableSubquery</A>
  */
 SubqueryNode
-tableSubquery(int subqueryType, ValueNode leftOperand) throws StandardException :
+tableSubquery(int subqueryType, ValueNode leftOperand)   :
 {
 	SubqueryNode	subqueryNode;
 }
@@ -8729,7 +8694,7 @@ tableSubquery(int subqueryType, ValueNode leftOperand) throws StandardException 
  * <A NAME="subquery">subquery</A>
  */
 SubqueryNode
-subquery(int subqueryType, ValueNode leftOperand) throws StandardException :
+subquery(int subqueryType, ValueNode leftOperand)   :
 {
 	ResultSetNode	queryExpression;
 	SubqueryNode	subqueryNode;
@@ -8758,7 +8723,7 @@ subquery(int subqueryType, ValueNode leftOperand) throws StandardException :
  * <A NAME="inPredicateValue">inPredicateValue</A>
  */
 ValueNode
-inPredicateValue(ValueNode leftOperand) throws StandardException :
+inPredicateValue(ValueNode leftOperand)   :
 {
 	ValueNode		retval;
 	int				tokKind;
@@ -8786,7 +8751,7 @@ inPredicateValue(ValueNode leftOperand) throws StandardException :
  * <A NAME="inValueList">inValueList</A>
  */
 ValueNode
-inValueList(ValueNode leftOperand) throws StandardException:
+inValueList(ValueNode leftOperand)  :
 {
     ValueNodeList inList = new ValueNodeList(getContextManager());
 }
@@ -8801,7 +8766,7 @@ inValueList(ValueNode leftOperand) throws StandardException:
  * <A NAME="inElement">inElement</A>
  */
 void
-inElement(ValueNodeList inList) throws StandardException :
+inElement(ValueNodeList inList)   :
 {
 	ValueNode valueNode;
 }
@@ -8817,7 +8782,7 @@ inElement(ValueNodeList inList) throws StandardException :
  * <A NAME="quantifier">quantifier</A>
  */
 int
-quantifier(int opType) throws StandardException :
+quantifier(int opType)   :
 {
 	int retval = 0;
 }
@@ -8901,7 +8866,7 @@ quantifier(int opType) throws StandardException :
  * <A NAME="some">some</A>
  */
 void
-some() throws StandardException :
+some()   :
 {}
 {
 	<SOME> |
@@ -8912,7 +8877,7 @@ some() throws StandardException :
  * <A NAME="existsExpression">existsExpression</A>
  */
 SubqueryNode
-existsExpression() throws StandardException :
+existsExpression()   :
 {
 	SubqueryNode	subqueryNode;
 }
@@ -8929,7 +8894,7 @@ existsExpression() throws StandardException :
  * <A NAME="tableExpression">tableExpression</A>
  */
 SelectNode
-tableExpression(ResultColumnList selectList) throws StandardException :
+tableExpression(ResultColumnList selectList)   :
 {
 	SelectNode	selectNode;
 	FromList	fromList;
@@ -8980,7 +8945,7 @@ tableExpression(ResultColumnList selectList) throws StandardException :
  * <A NAME="fromClause">fromClause</A>
  */
 FromList
-fromClause() throws StandardException :
+fromClause()   :
 {
     FromList fromList = new FromList(
         getOptimizerFactory().doJoinOrderOptimization(),
@@ -9009,7 +8974,7 @@ fromClause() throws StandardException :
  * <A NAME="fromListProperties">fromListProperties</A>
  */
 void
-fromListProperties(FromList fromList) throws StandardException :
+fromListProperties(FromList fromList)   :
 {
 	Properties properties;
 }
@@ -9024,7 +8989,7 @@ fromListProperties(FromList fromList) throws StandardException :
  * to the fromList.
  */
 void
-dummyTableReferenceRule(FromList fromList) throws StandardException :
+dummyTableReferenceRule(FromList fromList)   :
 {
 	FromTable tableReference;
 }
@@ -9054,7 +9019,7 @@ dummyTableReferenceRule(FromList fromList) throws StandardException :
 }
 
 FromTable
-tableReferenceTypes(boolean nestedInParens) throws StandardException :
+tableReferenceTypes(boolean nestedInParens)   :
 {
 	FromTable tableReference;
 }
@@ -9071,7 +9036,7 @@ tableReferenceTypes(boolean nestedInParens) throws StandardException :
 }
 
 Object[]
-optionalTableClauses() throws StandardException :
+optionalTableClauses()   :
 {
 	Object[]			 otc = null;
 	Properties			tableProperties = null;
@@ -9100,7 +9065,7 @@ optionalTableClauses() throws StandardException :
 }
 
 Object[]
-optionalTableProperties() throws StandardException :
+optionalTableProperties()   :
 {
 	Object[]			otc = null;
 	Properties			tableProperties = null;
@@ -9118,7 +9083,7 @@ optionalTableProperties() throws StandardException :
  * <A NAME="tableReference">tableReference</A>
  */
 FromTable
-tableReference(boolean nestedInParens) throws StandardException :
+tableReference(boolean nestedInParens)   :
 {
     FromTable fromTable;
     TableOperatorNode joinTable = null;
@@ -9134,7 +9099,7 @@ tableReference(boolean nestedInParens) throws StandardException :
     }
 }
 
-FromTable tableFactor() throws StandardException :
+FromTable tableFactor()   :
 {
 	JavaToSQLValueNode	javaToSQLNode = null;
 	TableName			tableName;
@@ -9242,7 +9207,7 @@ FromTable tableFactor() throws StandardException :
  * <A NAME="derivedColumnList">derivedColumnList</A>
  */
 ResultColumnList
-derivedColumnList() throws StandardException :
+derivedColumnList()   :
 {
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
 }
@@ -9257,7 +9222,7 @@ derivedColumnList() throws StandardException :
  * <A NAME="columnNameList">columnNameList</A>
  */
 void
-columnNameList(ResultColumnList columnList) throws StandardException :
+columnNameList(ResultColumnList columnList)   :
 {}
 {
 	columnNameItem(columnList) ( <COMMA> columnNameItem(columnList) ) *
@@ -9267,7 +9232,7 @@ columnNameList(ResultColumnList columnList) throws StandardException :
  * <A NAME="columnNameItem">columnNameItem</A>
  */
 void
-columnNameItem(ResultColumnList columnList) throws StandardException :
+columnNameItem(ResultColumnList columnList)   :
 {
 	String		columnName;
 	ResultColumn	resultColumn;
@@ -9293,7 +9258,7 @@ columnNameItem(ResultColumnList columnList) throws StandardException :
  * <A NAME="indexColumnList">indexColumnList</A>
  */
 void
-indexColumnList(List<String> columnList) throws StandardException :
+indexColumnList(List<String> columnList)   :
 {}
 {
 	indexColumnItem(columnList) ( <COMMA> indexColumnItem(columnList) ) *
@@ -9303,7 +9268,7 @@ indexColumnList(List<String> columnList) throws StandardException :
  * <A NAME="indexColumnItem">indexColumnItem</A>
  */
 void
-indexColumnItem(List<String> columnList) throws StandardException :
+indexColumnItem(List<String> columnList)   :
 {
 	String		columnName;
 }
@@ -9323,7 +9288,7 @@ indexColumnItem(List<String> columnList) throws StandardException :
  * <A NAME="derivedTable">derivedTable</A>
  */
 SubqueryNode
-derivedTable() throws StandardException :
+derivedTable()   :
 {
 	SubqueryNode tableSubquery;
 }
@@ -9337,7 +9302,7 @@ derivedTable() throws StandardException :
 }
 
 TableOperatorNode
-joinedTableExpression(ResultSetNode leftRSN, boolean nestedInParens) throws StandardException :
+joinedTableExpression(ResultSetNode leftRSN, boolean nestedInParens)   :
 {
 	TableOperatorNode joinNode;
 }
@@ -9360,7 +9325,7 @@ joinedTableExpression(ResultSetNode leftRSN, boolean nestedInParens) throws Stan
 
 TableOperatorNode
 crossJoin(ResultSetNode leftRSN, boolean nestedInParens)
-throws StandardException :
+  :
 {
     ResultSetNode rightRSN;
 }
@@ -9379,7 +9344,7 @@ throws StandardException :
 }
 
 TableOperatorNode
-qualifiedJoin(ResultSetNode leftRSN, boolean nestedInParens) throws StandardException :
+qualifiedJoin(ResultSetNode leftRSN, boolean nestedInParens)   :
 {
 	int					joinType = JoinNode.INNERJOIN;
 	ResultSetNode		rightRSN;
@@ -9418,7 +9383,7 @@ qualifiedJoin(ResultSetNode leftRSN, boolean nestedInParens) throws StandardExce
 }
 
 TableOperatorNode naturalJoin(ResultSetNode leftRSN, boolean nestedInParens)
-throws StandardException :
+  :
 {
     int joinType = JoinNode.INNERJOIN;
     ResultSetNode rightRSN;
@@ -9434,7 +9399,7 @@ throws StandardException :
 }
 
 int
-joinType() throws StandardException :
+joinType()   :
 {
 	int joinType;
 }
@@ -9451,7 +9416,7 @@ joinType() throws StandardException :
 }
 
 int
-outerJoinType() throws StandardException :
+outerJoinType()   :
 {}
 {
 	<LEFT> 
@@ -9467,7 +9432,7 @@ outerJoinType() throws StandardException :
 
 Object[]
 joinSpecification(ResultSetNode leftRSN, ResultSetNode rightRSN) 
-		throws StandardException :
+		  :
 {
 	Object[]			onOrUsingClause = new Object[ON_OR_USING_CLAUSE_SIZE];
 	ResultColumnList	usingClause = null;
@@ -9490,7 +9455,7 @@ joinSpecification(ResultSetNode leftRSN, ResultSetNode rightRSN)
 }
 
 ValueNode
-joinCondition() throws StandardException :
+joinCondition()   :
 {
 	ValueNode joinClause;
 }
@@ -9503,7 +9468,7 @@ joinCondition() throws StandardException :
 }
 
 ResultColumnList
-namedColumnsJoin() throws StandardException :
+namedColumnsJoin()   :
 {
     ResultColumnList usingClause = new ResultColumnList(getContextManager());
 }
@@ -9518,7 +9483,7 @@ namedColumnsJoin() throws StandardException :
  * <A NAME="tableValueConstructor">tableValueConstructor</A>
  */
 ResultSetNode
-tableValueConstructor() throws StandardException :
+tableValueConstructor()   :
 {
 	ResultSetNode	resultSetNode;
 }
@@ -9533,7 +9498,7 @@ tableValueConstructor() throws StandardException :
  * <A NAME="tableValueConstructorList">tableValueConstructorList</A>
  */
 ResultSetNode
-tableValueConstructorList() throws StandardException :
+tableValueConstructorList()   :
 {
 	ResultSetNode	resultSetNode;
 }
@@ -9558,7 +9523,7 @@ tableValueConstructorList() throws StandardException :
  * <A NAME="datetimeValueFunction">datetimeValueFunction</A>
  */
 ValueNode
-datetimeValueFunction() throws StandardException :
+datetimeValueFunction()   :
 {
 	int prec = -1; // can't be negative, if used
 }
@@ -9609,7 +9574,7 @@ datetimeValueFunction() throws StandardException :
 ** aggregate nodes.
 */
 ValueNode
-windowOrAggregateFunctionNode() throws StandardException :
+windowOrAggregateFunctionNode()   :
 {
    WindowNode window = null;
     AggregateNode agg = null;
@@ -9655,7 +9620,7 @@ windowOrAggregateFunctionNode() throws StandardException :
 
 
 WindowNode
-overClause() throws StandardException :
+overClause()   :
 {
 	String windowRef;
 	OrderByList orderCols = null;
@@ -9679,7 +9644,7 @@ overClause() throws StandardException :
 
 
 AggregateNode
-aggregateExpression(String aggName, Class aggClass) throws StandardException :
+aggregateExpression(String aggName, Class aggClass)   :
 {
 	boolean		distinct = false;
 	ValueNode	value;
@@ -9696,7 +9661,7 @@ aggregateExpression(String aggName, Class aggClass) throws StandardException :
 }
 
 AggregateNode
-generalAggregate() throws StandardException :
+generalAggregate()   :
 {
 	Token			aggToken;
 	String			methodAliasString;
@@ -9723,7 +9688,7 @@ generalAggregate() throws StandardException :
 ** COUNT(*) and COUNT(<expression>).
 */
 Token
-builtInAggregateType() throws StandardException :
+builtInAggregateType()   :
 {
 	Token	retval;
 }
@@ -9740,7 +9705,7 @@ builtInAggregateType() throws StandardException :
 }
 
 ValueNode
-castSpecification() throws StandardException :
+castSpecification()   :
 {
 	DataTypeDescriptor dts;
 	ValueNode		 value;
@@ -9781,7 +9746,7 @@ castSpecification() throws StandardException :
  * Next value from a sequence object
  */
 ValueNode
-nextValueExpression() throws StandardException :
+nextValueExpression()   :
 {
 	TableName sequenceName;
 }
@@ -9813,7 +9778,7 @@ charOrVarchar() :
 }
 
 ValueNode
-castOperand() throws StandardException :
+castOperand()   :
 {
 	ValueNode value;
 }
@@ -9834,7 +9799,7 @@ castOperand() throws StandardException :
  * <A NAME="dynamicParameterSpecification">dynamicParameterSpecification</A>
  */
 ParameterNode
-dynamicParameterSpecification() throws StandardException :
+dynamicParameterSpecification()   :
 {}
 {
 	<QUESTION_MARK>
@@ -9847,7 +9812,7 @@ dynamicParameterSpecification() throws StandardException :
  * <A NAME="whereClause">whereClause</A>
  */
 ValueNode
-whereClause(Token beginToken) throws StandardException :
+whereClause(Token beginToken)   :
 {
 	ValueNode	value;
 	Token		endToken;
@@ -9866,7 +9831,7 @@ whereClause(Token beginToken) throws StandardException :
 }
 
 GroupByList
-groupByClause() throws StandardException :
+groupByClause()   :
 {
 	GroupByList groupingCols;
 }
@@ -9889,7 +9854,7 @@ groupByClause() throws StandardException :
 }
 
 GroupByList
-groupingColumnReferenceList() throws StandardException :
+groupingColumnReferenceList()   :
 {
     GroupByList groupingCols = new GroupByList(getContextManager());
 }
@@ -9901,7 +9866,7 @@ groupingColumnReferenceList() throws StandardException :
 }
 
 void
-groupingColumnReference(GroupByList groupingCols) throws StandardException :
+groupingColumnReference(GroupByList groupingCols)   :
 {
         ValueNode columnExpression;
 }
@@ -9940,7 +9905,7 @@ groupingColumnReference(GroupByList groupingCols) throws StandardException :
 }
 
 ValueNode
-havingClause() throws StandardException :
+havingClause()   :
 {
 	ValueNode value;
 }
@@ -9954,7 +9919,7 @@ havingClause() throws StandardException :
 
 
 WindowList
-windowClause() throws StandardException :
+windowClause()   :
 {
     WindowList windows = new WindowList(getContextManager());
 }
@@ -9968,7 +9933,7 @@ windowClause() throws StandardException :
 
 
 WindowList
-windowDefinition(WindowList wl) throws StandardException :
+windowDefinition(WindowList wl)   :
 {
 	String windowName;
 	OrderByList orderCols = null;
@@ -9989,7 +9954,7 @@ windowDefinition(WindowList wl) throws StandardException :
  * <A NAME="optimizerOverridePlan">optimizerOverridePlan</A>
  */
 OptimizerPlan
-optimizerOverridePlan() throws StandardException :
+optimizerOverridePlan()   :
 {
     OptimizerPlan       optimizerOverridePlan;
 }
@@ -10004,7 +9969,7 @@ optimizerOverridePlan() throws StandardException :
  * <A NAME="optimizerPlan">optimizerPlan</A>
  */
 OptimizerPlan
-optimizerPlan() throws StandardException :
+optimizerPlan()   :
 {
     OptimizerPlan       plan;
 }
@@ -10025,7 +9990,7 @@ optimizerPlan() throws StandardException :
  * <A NAME="optimizerJoin">optimizerJoin</A>
  */
 OptimizerPlan
-optimizerJoin() throws StandardException :
+optimizerJoin()   :
 {
     JoinStrategy        strategy;
     OptimizerPlan       leftPlan;
@@ -10044,7 +10009,7 @@ optimizerJoin() throws StandardException :
  * <A NAME="joinStrategy">joinStrategy</A>
  */
 JoinStrategy
-joinStrategy() throws StandardException :
+joinStrategy()   :
 {
 }
 {
@@ -10063,7 +10028,7 @@ joinStrategy() throws StandardException :
  * <A NAME="optimizerRowSource">optimizerRowSource</A>
  */
 OptimizerPlan
-optimizerRowSource() throws StandardException :
+optimizerRowSource()   :
 {
     TableName       sourceName = null;
 	Token	           leftParenToken = null;
@@ -10084,7 +10049,7 @@ optimizerRowSource() throws StandardException :
 }
 
 StatementNode
-schemaDefinition() throws StandardException :
+schemaDefinition()   :
 {
 	String	schemaName = null;
 	String	authName = null;
@@ -10131,7 +10096,7 @@ schemaDefinition() throws StandardException :
  * <A NAME="roleDefinition">roleDefinition</A>
  */
 StatementNode
-roleDefinition() throws StandardException :
+roleDefinition()   :
 {
 	String	roleName = null;
 }
@@ -10160,7 +10125,7 @@ roleDefinition() throws StandardException :
  * <A NAME="sequenceDefinition">sequenceDefinition</A>
  */
 StatementNode
-sequenceDefinition() throws StandardException :
+sequenceDefinition()   :
 {
 	TableName qualifiedSequenceName = null;
 	DataTypeDescriptor dtd =  null;
@@ -10217,7 +10182,7 @@ sequenceDefinition() throws StandardException :
  * <A NAME="sequenceGeneratorOption">sequenceGeneratorOption</A>
  */
 void
-sequenceGeneratorOption( Object[] optionalClauses ) throws StandardException :
+sequenceGeneratorOption( Object[] optionalClauses )   :
 {
     Object option =  null;
     int  optionIndex = -1;
@@ -10275,7 +10240,7 @@ sequenceGeneratorOption( Object[] optionalClauses ) throws StandardException :
  * <A NAME="cycleClause">cycleClause</A>
  */
 Token
-cycleClause( Boolean[] cycleOption ) throws StandardException :
+cycleClause( Boolean[] cycleOption )   :
 {
     Token token = null;
 }
@@ -10297,7 +10262,7 @@ cycleClause( Boolean[] cycleOption ) throws StandardException :
  * <A NAME="exactIntegerObject">exactNumberObject</A>
  */
 Long
-exactIntegerObject() throws StandardException :
+exactIntegerObject()   :
 {
 	long exactNumeric;
 }
@@ -10312,7 +10277,7 @@ exactIntegerObject() throws StandardException :
  * <A NAME="stepValue">stepValue</A>
  */
 Long
-stepValue() throws StandardException :
+stepValue()   :
 {
 	long stepValue;
 }
@@ -10328,7 +10293,7 @@ stepValue() throws StandardException :
  * <A NAME="dropSequenceStatement">dropSequenceStatement</A>
  */
 StatementNode
-dropSequenceStatement() throws StandardException :
+dropSequenceStatement()   :
 {
 	TableName sequenceName;
 }
@@ -10348,7 +10313,7 @@ dropSequenceStatement() throws StandardException :
  * <A NAME="tableDefinition">tableDefinition</A>
  */
 StatementNode
-tableDefinition() throws StandardException :
+tableDefinition()   :
 {
 	char				lockGranularity = TableDescriptor.DEFAULT_LOCK_GRANULARITY;
 	Properties			properties = null;
@@ -10407,7 +10372,7 @@ tableDefinition() throws StandardException :
 }
 
 ResultColumnList
-tableColumnList() throws StandardException :
+tableColumnList()   :
 {
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
 }
@@ -10435,7 +10400,7 @@ tableColumnList() throws StandardException :
  * will not be acceptable from an INSERT statement from a user SQL statement.
  */
 Properties
-propertyList(boolean propertiesUseAllowed) throws StandardException :
+propertyList(boolean propertiesUseAllowed)   :
 {
 	Properties properties = new FormatableProperties();
 	StringTokenizer commaSeparatedProperties;
@@ -10517,7 +10482,7 @@ propertyList(boolean propertiesUseAllowed) throws StandardException :
  * <A NAME="DB2lockGranularityClause">DB2lockGranularityClause</A>
  */
 char
-DB2lockGranularityClause() throws StandardException :
+DB2lockGranularityClause()   :
 {
 	char lockGranularity;
 }
@@ -10532,7 +10497,7 @@ DB2lockGranularityClause() throws StandardException :
  * <A NAME="lockGranularity">lockGranularity</A>
  */
 char
-lockGranularity() throws StandardException :
+lockGranularity()   :
 {
 }
 {
@@ -10551,7 +10516,7 @@ lockGranularity() throws StandardException :
  * <A NAME="indexDefinition">indexDefinition</A>
  */
 StatementNode
-indexDefinition() throws StandardException :
+indexDefinition()   :
 {
 	Boolean		unique = Boolean.FALSE;
 	Properties	properties = null;
@@ -10611,7 +10576,7 @@ indexDefinition() throws StandardException :
  * <A NAME="unique">unique</A>
  */
 Boolean
-unique() throws StandardException :
+unique()   :
 {
 }
 {
@@ -10639,7 +10604,7 @@ unique() throws StandardException :
 */
 
 StatementNode
-procedureDefinition() throws StandardException :
+procedureDefinition()   :
 {
 	TableName procedureName;
 	Object[] procedureElements = new Object[CreateAliasNode.ROUTINE_ELEMENT_COUNT];
@@ -10659,7 +10624,7 @@ procedureDefinition() throws StandardException :
 		}
 }
 
-void routineElement(boolean isProcedure, boolean isTableFunction, Object[] routineElements) throws StandardException :
+void routineElement(boolean isProcedure, boolean isTableFunction, Object[] routineElements)   :
 {
 	int drs;
 	int clausePosition = -1;
@@ -10737,7 +10702,7 @@ void routineElement(boolean isProcedure, boolean isTableFunction, Object[] routi
 	}
 }
 
-Boolean calledOnNullInput(boolean isProcedure) throws StandardException :
+Boolean calledOnNullInput(boolean isProcedure)   :
 {
 	Boolean calledOnNull;
 }
@@ -10758,7 +10723,7 @@ Boolean calledOnNullInput(boolean isProcedure) throws StandardException :
 	}
 }
 
-boolean  routineSecurityClause() throws StandardException :
+boolean  routineSecurityClause()   :
 {
     boolean result = false;
 }
@@ -10773,7 +10738,7 @@ boolean  routineSecurityClause() throws StandardException :
 }
 
 
-Short parameterStyle( boolean isTableFunction ) throws StandardException :
+Short parameterStyle( boolean isTableFunction )   :
 {
 }
 {
@@ -10805,7 +10770,7 @@ Short parameterStyle( boolean isTableFunction ) throws StandardException :
 }
 
 Object[]
-procedureParameterList( Object[] procedureElements ) throws StandardException :
+procedureParameterList( Object[] procedureElements )   :
 {
     List<String>    names = new ArrayList<String>();
     List<TypeDescriptor>    types = new ArrayList<TypeDescriptor>();
@@ -10840,7 +10805,7 @@ procedureParameterDefinition
     List<String> names,
     List<TypeDescriptor>    types,
     List<Integer>    inOut
-) throws StandardException :
+)   :
 {
 	DataTypeDescriptor	typeDescriptor;
 	String				parameterName = "";
@@ -10892,7 +10857,7 @@ inoutParameter() :
 */
 
 StatementNode
-functionDefinition() throws StandardException :
+functionDefinition()   :
 {
 	TableName functionName;
 	TypeDescriptor  returnType;
@@ -10916,7 +10881,7 @@ functionDefinition() throws StandardException :
 }
 
 Object[]
-functionParameterList( Object[] functionElements ) throws StandardException :
+functionParameterList( Object[] functionElements )   :
 {
     List<String>    names = new ArrayList<String>();
     List<TypeDescriptor>    types = new ArrayList<TypeDescriptor>();
@@ -10943,7 +10908,7 @@ functionParameterList( Object[] functionElements ) throws StandardException :
 }
 
 Boolean
-ellipsis() throws StandardException :
+ellipsis()   :
 {}
 {
     <ELLIPSIS>
@@ -10962,7 +10927,7 @@ functionParameterDefinition
     List<String>    names,
     List<TypeDescriptor>    types,
     List<Integer>    inOut
-) throws StandardException :
+)   :
 {
 	DataTypeDescriptor	typeDescriptor;
 	String				parameterName = "";
@@ -10985,7 +10950,7 @@ functionParameterDefinition
  * <A NAME="functionReturnDataType">functionReturnDataType</A>
  */
 TypeDescriptor
-functionReturnDataType() throws StandardException :
+functionReturnDataType()   :
 {
     TypeDescriptor	typeDescriptor;
 }
@@ -11004,7 +10969,7 @@ functionReturnDataType() throws StandardException :
  * <A NAME="functionTableType">functionTableType</A>
  */
 TypeDescriptor
-functionTableType() throws StandardException :
+functionTableType()   :
 {
 	ArrayList<String>                       names = new ArrayList<String>();
 	ArrayList<TypeDescriptor>          types = new ArrayList<TypeDescriptor>();
@@ -11051,7 +11016,7 @@ functionTableReturnColumn
     ArrayList<String> names,
     ArrayList<TypeDescriptor> types
 )
-throws StandardException :
+  :
 {
 	String                          name;
 	DataTypeDescriptor	typeDescriptor;
@@ -11070,7 +11035,7 @@ throws StandardException :
 */
 
 StatementNode
-udtDefinition() throws StandardException :
+udtDefinition()   :
 {
 	TableName udtName;
 	String externalName;
@@ -11090,7 +11055,7 @@ udtDefinition() throws StandardException :
 }
 
 StatementNode
-aggregateDefinition() throws StandardException :
+aggregateDefinition()   :
 {
 	TableName aggregateName;
     DataTypeDescriptor  forType;
@@ -11121,7 +11086,7 @@ aggregateDefinition() throws StandardException :
 }
 
 StatementNode
-viewDefinition(Token beginToken) throws StandardException :
+viewDefinition(Token beginToken)   :
 {
 	int					checkOptionType;
 	ResultColumnList	resultColumns = null;
@@ -11167,7 +11132,7 @@ viewDefinition(Token beginToken) throws StandardException :
 }
 
 ResultColumnList
-viewColumnList() throws StandardException :
+viewColumnList()   :
 {
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
 }
@@ -11180,7 +11145,7 @@ viewColumnList() throws StandardException :
 }
 
 StatementNode
-triggerDefinition() throws StandardException :
+triggerDefinition()   :
 {
 	Boolean				isBefore;
 	Boolean				isRow = Boolean.FALSE;  // STATEMENT implicit by default
@@ -11272,7 +11237,7 @@ triggerDefinition() throws StandardException :
 }
 
 StatementNode
-synonymDefinition() throws StandardException :
+synonymDefinition()   :
 {
 	TableName synonymName;
 	TableName targetName;
@@ -11310,7 +11275,7 @@ beforeOrAfter() :
 }
 
 int
-triggerEvent(ResultColumnList rcl) throws StandardException :
+triggerEvent(ResultColumnList rcl)   :
 {}
 {
 	<INSERT> 
@@ -11343,7 +11308,7 @@ rowOrStatement() :
 }
 
 List<TriggerReferencingStruct>
-triggerReferencingClause() throws StandardException :
+triggerReferencingClause()   :
 {
 	ArrayList<TriggerReferencingStruct> expressions = new ArrayList<TriggerReferencingStruct>();
 }
@@ -11355,7 +11320,7 @@ triggerReferencingClause() throws StandardException :
 }
 
 void
-triggerReferencingExpression(List<TriggerReferencingStruct> expressions) throws StandardException :
+triggerReferencingExpression(List<TriggerReferencingStruct> expressions)   :
 {
 	String	identifier;
 	boolean isNew = true;
@@ -11383,7 +11348,7 @@ triggerReferencingExpression(List<TriggerReferencingStruct> expressions) throws 
  * <A NAME="defaultClause">defaultClause</A>
  */
 ValueNode
-defaultClause(long[] autoIncrementInfo, String columnName) throws StandardException :
+defaultClause(long[] autoIncrementInfo, String columnName)   :
 {
 	ValueNode	value;
 	Token		beginToken;
@@ -11406,7 +11371,7 @@ defaultClause(long[] autoIncrementInfo, String columnName) throws StandardExcept
  * <A NAME="defaultNullOnlyClause">defaultNullOnlyClause</A>
  */
 ValueNode
-defaultNullOnlyClause() throws StandardException :
+defaultNullOnlyClause()   :
 {
 }
 
@@ -11425,7 +11390,7 @@ defaultNullOnlyClause() throws StandardException :
 //A specific class not such long[] should exists for autoIncrementInfo ...
 
 ValueNode
-generatedColumnOption(long[] autoIncrementInfo) throws StandardException :
+generatedColumnOption(long[] autoIncrementInfo)   :
 {
 	ValueNode	value = null;
 }
@@ -11456,7 +11421,7 @@ generatedColumnOption(long[] autoIncrementInfo) throws StandardException :
  * <A NAME="generatedAlways">generatedAlways</A>
  */
 ValueNode
-generatedAlways(long[] autoIncrementInfo) throws StandardException :
+generatedAlways(long[] autoIncrementInfo)   :
 {
 	ValueNode	value = null;
 }
@@ -11482,7 +11447,7 @@ generatedAlways(long[] autoIncrementInfo) throws StandardException :
  */
 
 ValueNode
-generatedByDefault(long[] autoIncrementInfo) throws StandardException :
+generatedByDefault(long[] autoIncrementInfo)   :
 {
 	ValueNode	value = null;
 }
@@ -11504,7 +11469,7 @@ generatedByDefault(long[] autoIncrementInfo) throws StandardException :
  */
 
 void
-asIdentity( long[] autoIncrementInfo) throws StandardException :
+asIdentity( long[] autoIncrementInfo)   :
 {
 	 Object[] optionalClauses = new Object[ 3 ];
 }
@@ -11525,7 +11490,7 @@ asIdentity( long[] autoIncrementInfo) throws StandardException :
  * <A NAME="generationClause">generationClause</A>
  */
 ValueNode
-generationClause() throws StandardException :
+generationClause()   :
 {
 	ValueNode	value = null;
 	Token beginToken = null;
@@ -11553,7 +11518,7 @@ generationClause() throws StandardException :
  * <A NAME="identityColumnOption">identityColumnOption</A>
  */
 void 
-identityColumnOption(long[] autoIncrementInfo,Object[] optionalClauses) throws StandardException :
+identityColumnOption(long[] autoIncrementInfo,Object[] optionalClauses)   :
 {
 	int  optionIndex = -1;
 	long		autoIncrementInitial = 1;
@@ -11615,7 +11580,7 @@ identityColumnOption(long[] autoIncrementInfo,Object[] optionalClauses) throws S
  * <A NAME="whetherCycle">whetherCycle</A>
  */
 long
-whetherCycle() throws StandardException :
+whetherCycle()   :
 {
     
 }
@@ -11632,7 +11597,7 @@ whetherCycle() throws StandardException :
  */
 ValueNode
 defaultOption(Token beginToken, long[] autoIncrementInfo,
-	String columnName) throws StandardException :
+	String columnName)   :
 {
 	Token		endToken;
 	Token		errorTok = null;
@@ -11667,7 +11632,7 @@ defaultOption(Token beginToken, long[] autoIncrementInfo,
  * <A NAME="DB2DefaultOption">DB2DefaultOption</A>
  */
 ValueNode
-DB2DefaultOption(String columnName) throws StandardException :
+DB2DefaultOption(String columnName)   :
 {
 	ValueNode	value;
 }
@@ -11749,7 +11714,7 @@ DB2DefaultOption(String columnName) throws StandardException :
  * <A NAME="literal">literal</A>
  */
 ValueNode
-literal() throws StandardException :
+literal()   :
 {
 	String	sign = "";
 	Token	tok;
@@ -11802,7 +11767,7 @@ literal() throws StandardException :
  * <A NAME="int">intLiteral</A>
  */
 NumericConstantNode
-intLiteral() throws StandardException :
+intLiteral()   :
 {
 	Token	tok;
 	String sign = null;
@@ -11837,7 +11802,7 @@ intLiteral() throws StandardException :
  * <A NAME="numericLiteral">numericLiteral</A>
  */
 ValueNode
-numericLiteral(String sign) throws StandardException :
+numericLiteral(String sign)   :
 {
 	Token	tok;
 }
@@ -11920,7 +11885,7 @@ numericLiteral(String sign) throws StandardException :
  * <A NAME="dateTimeLiteral">dateTimeLiteral</A>
  */
 ValueNode
-dateTimeLiteral() throws StandardException :
+dateTimeLiteral()   :
 {
 	ValueNode	constantNode;
 }
@@ -11942,7 +11907,7 @@ dateTimeLiteral() throws StandardException :
  * <A NAME="escapedDateTimeLiteral">escapedDateTimeLiteral</A>
  */
 ValueNode
-escapedDateTimeLiteral() throws StandardException :
+escapedDateTimeLiteral()   :
 {
 	ValueNode constantNode;
 }
@@ -11967,7 +11932,7 @@ escapedDateTimeLiteral() throws StandardException :
  * <A NAME="bareDateLiteral">bareDateLiteral</A>
  */
 ValueNode
-bareDateLiteral() throws StandardException :
+bareDateLiteral()   :
 {
 	String dateString;
 }
@@ -11985,7 +11950,7 @@ bareDateLiteral() throws StandardException :
  * <A NAME="bareTimeLiteral">bareTimeLiteral</A>
  */
 ValueNode
-bareTimeLiteral() throws StandardException :
+bareTimeLiteral()   :
 {
 	String timeString;
 }
@@ -12003,7 +11968,7 @@ bareTimeLiteral() throws StandardException :
  * <A NAME="bareTimestampLiteral">bareTimestampLiteral</A>
  */
 ValueNode
-bareTimestampLiteral() throws StandardException :
+bareTimestampLiteral()   :
 {
 	String timestampString;
 }
@@ -12021,7 +11986,7 @@ bareTimestampLiteral() throws StandardException :
  * <A NAME="string">string</A>
  */
 String
-string() throws StandardException :
+string()   :
 {
 	Token	tok;
 }
@@ -12039,7 +12004,7 @@ string() throws StandardException :
  * <A NAME="stringLiteral">stringLiteral</A>
  */
 CharConstantNode
-stringLiteral() throws StandardException :
+stringLiteral()   :
 {
 	Token	tok;
 	String	string;
@@ -12060,7 +12025,7 @@ stringLiteral() throws StandardException :
  * <A NAME="hexLiteral">hexLiteral</A>
  */
 ValueNode
-hexLiteral() throws StandardException :
+hexLiteral()   :
 {
 	Token	tok;
 }
@@ -12085,7 +12050,7 @@ hexLiteral() throws StandardException :
 
 
 TableName
-constraintNameDefinition() throws StandardException :
+constraintNameDefinition()   :
 {
 	TableName constraintName;
 }
@@ -12104,7 +12069,7 @@ constraintNameDefinition() throws StandardException :
  */
 ConstraintDefinitionNode
 checkConstraintDefinition(TableName constraintName, String columnName)
-							throws StandardException :
+							  :
 {  
 	Token		beginToken;
 	Token		endToken;
@@ -12148,7 +12113,7 @@ checkConstraintDefinition(TableName constraintName, String columnName)
  * <A NAME="spsRenameStatement">spsRenameStatement</A>
  */
 StatementNode
-spsRenameStatement() throws StandardException :
+spsRenameStatement()   :
 {
 	StatementNode qtn;
 }
@@ -12167,7 +12132,7 @@ spsRenameStatement() throws StandardException :
  * <A NAME="renameTableStatement">renameTableStatement</A>
  */
 StatementNode
-renameTableStatement() throws StandardException :
+renameTableStatement()   :
 {
 	StatementNode qtn;
 	TableName tableName;
@@ -12189,7 +12154,7 @@ renameTableStatement() throws StandardException :
  * <A NAME="renameIndexStatement">renameIndexStatement</A>
  */
 StatementNode
-renameIndexStatement() throws StandardException :
+renameIndexStatement()   :
 {
 	String oldIndexName;
 	String newIndexName;
@@ -12206,7 +12171,7 @@ renameIndexStatement() throws StandardException :
 	}
 }
 StatementNode
-renameColumnStatement() throws StandardException :
+renameColumnStatement()   :
 {
 	String newColumnName;
         ColumnReference oldColumnReference;
@@ -12234,7 +12199,7 @@ renameColumnStatement() throws StandardException :
 
 
 StatementNode
-lockStatement() throws StandardException :
+lockStatement()   :
 {
     boolean                     exclusiveMode;
 	TableName					tableName;
@@ -12263,7 +12228,7 @@ lockMode() :
 }
 
 StatementNode
-execStatement() throws StandardException :
+execStatement()   :
 {
 	TableName	stmtName;
 }
@@ -12275,7 +12240,7 @@ execStatement() throws StandardException :
 }
 
 TransactionStatementNode
-setIsolationStatement() throws StandardException :
+setIsolationStatement()   :
 {
 	TransactionStatementNode tranNode;
 }
@@ -12287,7 +12252,7 @@ setIsolationStatement() throws StandardException :
 }
 
 void
-setIsolationHeader() throws StandardException :
+setIsolationHeader()   :
 {}
 {
 	<ISOLATION>
@@ -12298,7 +12263,7 @@ setIsolationHeader() throws StandardException :
 
 
 TransactionStatementNode
-transactionMode() throws StandardException :
+transactionMode()   :
 {
 	int isolationLevel;
 }
@@ -12424,7 +12389,7 @@ levelOfIsolationRead() :
  * <A NAME="simpleValueSpecification">simpleValueSpecification</A>
  */
 ValueNode
-simpleValueSpecification() throws StandardException :
+simpleValueSpecification()   :
 {
 	ValueNode	value;
 }
@@ -12440,7 +12405,7 @@ simpleValueSpecification() throws StandardException :
  * <A NAME="setRoleStatement">setRoleStatement</A>
  */
 StatementNode
-setRoleStatement() throws StandardException :
+setRoleStatement()   :
 {
 	StatementNode role;
 }
@@ -12472,7 +12437,7 @@ setRoleStatement() throws StandardException :
  * <A NAME="setRoleSpecification">setRoleSpecification</A>
  */
 StatementNode
-setRoleSpecification() throws StandardException :
+setRoleSpecification()   :
 {
 	String roleName = null;
         checkVersion( DataDictionary.DD_VERSION_DERBY_10_5, "ROLES");
@@ -12516,7 +12481,7 @@ setRoleSpecification() throws StandardException :
 
 
 StatementNode
-setSchemaStatement() throws StandardException :
+setSchemaStatement()   :
 {
 	StatementNode setSchema;
 }
@@ -12535,7 +12500,7 @@ setSchemaStatement() throws StandardException :
 }
 
 void 
-setSchemaHeader() throws StandardException :
+setSchemaHeader()   :
 {}
 {
 	<SCHEMA>
@@ -12545,7 +12510,7 @@ setSchemaHeader() throws StandardException :
 }
 
 StatementNode
-setSchemaValues() throws StandardException :
+setSchemaValues()   :
 {
 	String schemaName;
 }
@@ -12582,7 +12547,7 @@ setSchemaValues() throws StandardException :
 // (usually English). I didn't want to create all the execution wiring
 // to do this, so this command executes in the parser
 StatementNode
-setMessageLocaleStatement() throws StandardException :
+setMessageLocaleStatement()   :
 {
 	String messageLocale;
 }
@@ -12599,7 +12564,7 @@ setMessageLocaleStatement() throws StandardException :
  * <A NAME="valueSpecification">valueSpecification</A>
  */
 ValueNode
-valueSpecification() throws StandardException :
+valueSpecification()   :
 {
 	ValueNode	   value;
 	ValueNode	   leftExpression;
@@ -12667,7 +12632,7 @@ valueSpecification() throws StandardException :
     }
 }
 
-ConditionalNode searchedCaseExpression() throws StandardException :
+ConditionalNode searchedCaseExpression()   :
 {
     ContextManager cm = getContextManager();
     ValueNodeList whenList = new ValueNodeList(cm);
@@ -12694,7 +12659,7 @@ ConditionalNode searchedCaseExpression() throws StandardException :
  */
 void
 whenThenExpression(ValueNodeList whenList, ValueNodeList thenElseList)
-throws StandardException :
+  :
 {
 	ValueNode	   expr;
 	ValueNode	   thenExpr;
@@ -12712,7 +12677,7 @@ throws StandardException :
  * <A NAME="thenElseExpression">thenElseExpression</A>
  */
 ValueNode
-thenElseExpression() throws StandardException :
+thenElseExpression()   :
 {
 	ValueNode	   expr;
 }
@@ -12730,7 +12695,7 @@ thenElseExpression() throws StandardException :
 }
 
 ConditionalNode simpleCaseExpression(CachedValueNode caseOperand)
-throws StandardException :
+  :
 {
     ContextManager cm = getContextManager();
     ValueNodeList whenList = new ValueNodeList(cm);
@@ -12755,7 +12720,7 @@ throws StandardException :
 void
 simpleWhenClause(ValueNode caseOperand,
                  ValueNodeList whenList, ValueNodeList thenElseList)
-throws StandardException :
+  :
 {
     ValueNode expr;
     ValueNode thenExpr;
@@ -12769,7 +12734,7 @@ throws StandardException :
     }
 }
 
-ValueNode whenOperandList(ValueNode caseOperand) throws StandardException :
+ValueNode whenOperandList(ValueNode caseOperand)   :
 {
     ValueNode first;
     ValueNode rest = null;
@@ -12786,7 +12751,7 @@ ValueNode whenOperandList(ValueNode caseOperand) throws StandardException :
     }
 }
 
-ValueNode whenOperand(ValueNode caseOperand) throws StandardException :
+ValueNode whenOperand(ValueNode caseOperand)   :
 {
     ContextManager cm = getContextManager();
     ValueNode expr;
@@ -12809,7 +12774,7 @@ ValueNode whenOperand(ValueNode caseOperand) throws StandardException :
 }
 
 TableElementNode
-tableConstraintDefinition() throws StandardException :
+tableConstraintDefinition()   :
 {
 	Properties properties = null;
 	ConstraintDefinitionNode tcdn;
@@ -12829,7 +12794,7 @@ tableConstraintDefinition() throws StandardException :
 }
 
 ConstraintDefinitionNode
-tableConstraint(TableName constraintName) throws StandardException :
+tableConstraint(TableName constraintName)   :
 {
 	ConstraintDefinitionNode tcdn;
     boolean[] cc = null;
@@ -12855,7 +12820,7 @@ tableConstraint(TableName constraintName) throws StandardException :
 }
 
 ConstraintDefinitionNode
-uniqueConstraintDefinition(TableName constraintName) throws StandardException :
+uniqueConstraintDefinition(TableName constraintName)   :
 {
 	int constraintType;
 	ResultColumnList uniqueColumnList;
@@ -12882,7 +12847,7 @@ uniqueConstraintDefinition(TableName constraintName) throws StandardException :
 //the second parameter to the following method will always be null for a table level
 //constraint but not for a column level constraint
 int
-uniqueSpecification(String columnName) throws StandardException :
+uniqueSpecification(String columnName)   :
 {
 }
 {
@@ -12898,7 +12863,7 @@ uniqueSpecification(String columnName) throws StandardException :
 }
 
 ResultColumnList
-uniqueColumnList() throws StandardException :
+uniqueColumnList()   :
 {
     ResultColumnList resultColumns = new ResultColumnList(getContextManager());
 }
@@ -12910,7 +12875,7 @@ uniqueColumnList() throws StandardException :
 }
 
 ConstraintDefinitionNode
-referentialConstraintDefinition(TableName constraintName) throws StandardException :
+referentialConstraintDefinition(TableName constraintName)   :
 {
     ResultColumnList fkRcl = new ResultColumnList(getContextManager());
     ResultColumnList refRcl = new ResultColumnList(getContextManager());
@@ -12933,7 +12898,7 @@ referentialConstraintDefinition(TableName constraintName) throws StandardExcepti
 }
 
 TableName
-referencesSpecification(ResultColumnList rcl, int[] refActions) throws StandardException :
+referencesSpecification(ResultColumnList rcl, int[] refActions)   :
 {
 	TableName tableName = null;
 }
@@ -12947,7 +12912,7 @@ referencesSpecification(ResultColumnList rcl, int[] refActions) throws StandardE
 }
 
 TableName
-referencedTableAndColumns(ResultColumnList rcl) throws StandardException :
+referencedTableAndColumns(ResultColumnList rcl)   :
 {
 	TableName	tableName = null;
 }
@@ -12959,7 +12924,7 @@ referencedTableAndColumns(ResultColumnList rcl) throws StandardException :
 }
 
 void
-referentialTriggeredAction(int [] refActions) throws StandardException :
+referentialTriggeredAction(int [] refActions)   :
 {}
 {
 	( refActions[1] = updateRule() [<ON> refActions[0] = deleteRule() ] |
@@ -13019,7 +12984,7 @@ deleteReferentialAction() :
  * <A NAME="constraintCharacteristics">constraintCharacteristics</A>
  */
 boolean[]
-constraintCharacteristics() throws StandardException :
+constraintCharacteristics()   :
 {
     boolean deferrable =
         ConstraintDefinitionNode.DEFERRABLE_DEFAULT;
@@ -13149,7 +13114,7 @@ constraintEnforcement() :
 void
 columnConstraintDefinition(DataTypeDescriptor[] dataTypeDescriptor,
 						   TableElementList tableElementList,
-						   String columnName) throws StandardException :
+						   String columnName)   :
 {
 	int constraintType;
     ConstraintDefinitionNode tcdn;
@@ -13192,7 +13157,7 @@ columnConstraintDefinition(DataTypeDescriptor[] dataTypeDescriptor,
 ConstraintDefinitionNode
 columnConstraint(TableName constraintName,
 				 DataTypeDescriptor[] dataTypeDescriptor,
-				 String columnName) throws StandardException :
+				 String columnName)   :
 {
 	int constraintType;
 	Properties properties = null;
@@ -13269,7 +13234,7 @@ columnConstraint(TableName constraintName,
  * <A NAME="dropRoleStatement">dropRoleStatement</A>
  */
 StatementNode
-dropRoleStatement() throws StandardException :
+dropRoleStatement()   :
 {
 	String roleName;
 }
@@ -13288,7 +13253,7 @@ dropRoleStatement() throws StandardException :
 
 
 StatementNode
-dropSchemaStatement() throws StandardException :
+dropSchemaStatement()   :
 {
 	String schemaName;
 }
@@ -13305,7 +13270,7 @@ dropSchemaStatement() throws StandardException :
 }
 
 StatementNode
-alterTableStatement() throws StandardException :
+alterTableStatement()   :
 {
 	StatementNode		node;
 	TableName			tableName;
@@ -13318,7 +13283,7 @@ alterTableStatement() throws StandardException :
 }
 
 StatementNode
-alterTableBody(TableName tableName) throws StandardException :
+alterTableBody(TableName tableName)   :
 {
 	StatementNode sn;
 	char				lockGranularity = '\0';
@@ -13421,7 +13386,7 @@ alterTableBody(TableName tableName) throws StandardException :
  * and here we parse DROP STATISTICS clause
  */
 StatementNode
-dropStatistics(TableName tableName) throws StandardException :
+dropStatistics(TableName tableName)   :
 {
 }
 {
@@ -13451,7 +13416,7 @@ dropStatistics(TableName tableName) throws StandardException :
  * and here we parse UPDATE STATISTICS clause
  */
 StatementNode
-updateStatistics(TableName tableName) throws StandardException :
+updateStatistics(TableName tableName)   :
 {
 }
 {
@@ -13473,7 +13438,7 @@ updateStatistics(TableName tableName) throws StandardException :
 }
 
 StatementNode
-inplaceCompress(TableName tableName) throws StandardException :
+inplaceCompress(TableName tableName)   :
 {
         Token purge = null;
         Token defragment = null;
@@ -13500,7 +13465,7 @@ inplaceCompress(TableName tableName) throws StandardException :
 
 
 StatementNode
-sequentialCompress(TableName tableName) throws StandardException :
+sequentialCompress(TableName tableName)   :
 {
 	Token				tok = null;
 }
@@ -13521,7 +13486,7 @@ sequentialCompress(TableName tableName) throws StandardException :
  */
 /*
 StatementNode
-alterTableRenameTableStatement(TableName tableName) throws StandardException :
+alterTableRenameTableStatement(TableName tableName)   :
 {
 	String newTableName;
 }
@@ -13543,7 +13508,7 @@ alterTableRenameTableStatement(TableName tableName) throws StandardException :
  */
 /*
 StatementNode
-alterTableRenameColumnStatement(TableName tableName) throws StandardException :
+alterTableRenameColumnStatement(TableName tableName)   :
 {
 	String oldColumnName;
 	String newColumnName;
@@ -13562,7 +13527,7 @@ alterTableRenameColumnStatement(TableName tableName) throws StandardException :
 }
 */
 char
-alterTableAction(TableElementList tableElementList, int[] changeType, int[] behavior) throws StandardException :
+alterTableAction(TableElementList tableElementList, int[] changeType, int[] behavior)   :
 {
 	char				lockGranularity = '\0';
 	TableElementNode	tableElement;
@@ -13643,7 +13608,7 @@ alterTableAction(TableElementList tableElementList, int[] changeType, int[] beha
  *    ALTER TABLE tablename DROP [ COLUMN ] columnname [ CASCADE | RESTRICT ]
  */
 StatementNode
-dropColumnDefinition(TableName tableName, TableElementList tableElementList, int[] changeType, int[] behavior) throws StandardException :
+dropColumnDefinition(TableName tableName, TableElementList tableElementList, int[] changeType, int[] behavior)   :
 {
 	String columnName;
 	TableElementNode tableElement;
@@ -13685,7 +13650,7 @@ dropColumnReferentialAction(int []behavior) :
 }
 
 TableElementNode
-addColumnDefinition(TableElementList tableElementList) throws StandardException :
+addColumnDefinition(TableElementList tableElementList)   :
 {
 	TableElementNode	tableElement;
 }
@@ -13712,7 +13677,7 @@ addColumnDefinition(TableElementList tableElementList) throws StandardException 
  *      [NOT] NULL
  */
 TableElementNode
-columnAlterClause(String columnName) throws StandardException :
+columnAlterClause(String columnName)   :
 {
 	ValueNode	defaultNode;
 	long[]				autoIncrementInfo = new long[5];
@@ -13838,7 +13803,7 @@ columnAlterClause(String columnName) throws StandardException :
  *      [NO] CYCLE
  */
 TableElementNode
-columnAlterIdentityClause(String columnName) throws StandardException :
+columnAlterIdentityClause(String columnName)   :
 {
 	ValueNode	defaultNode;
 	long[]				autoIncrementInfo = new long[5];
@@ -13896,7 +13861,7 @@ columnAlterIdentityClause(String columnName) throws StandardException :
  *    ALTER TABLE ALTER COLUMN SET GENERATED
  */
 int
-alterGeneratedColumn() throws StandardException :
+alterGeneratedColumn()   :
 {}
 {
 	<BY> <_DEFAULT>
@@ -13912,7 +13877,7 @@ alterGeneratedColumn() throws StandardException :
 
 
 StatementNode
-dropTableConstraintDefinitionCore(TableName tableName, TableElementList tableElementList, int[] changeType, int[] behavior) throws StandardException :
+dropTableConstraintDefinitionCore(TableName tableName, TableElementList tableElementList, int[] changeType, int[] behavior)   :
 {
 	TableElementNode tableElement;
 }
@@ -13931,7 +13896,7 @@ dropTableConstraintDefinitionCore(TableName tableName, TableElementList tableEle
 }
 
 TableElementNode
-dropTableConstraintDefinition() throws StandardException :
+dropTableConstraintDefinition()   :
 {
 	TableName		 constraintName;
 }
@@ -14021,7 +13986,7 @@ dropTableConstraintDefinition() throws StandardException :
  * <A NAME="dropTableStatement">dropTableStatement</A>
  */
 StatementNode
-dropTableStatement() throws StandardException :
+dropTableStatement()   :
 {
 	TableName tableName;
 }
@@ -14039,7 +14004,7 @@ dropTableStatement() throws StandardException :
  * <A NAME="dropIndexStatement">dropIndexStatement</A>
  */
 StatementNode
-dropIndexStatement() throws StandardException :
+dropIndexStatement()   :
 {
 	TableName indexName;
 }
@@ -14054,7 +14019,7 @@ dropIndexStatement() throws StandardException :
  * <A NAME="dropAliasStatement">dropAliasStatement</A>
  */
 StatementNode
-dropAliasStatement() throws StandardException :
+dropAliasStatement()   :
 {
     TableName aliasName;
 }
@@ -14088,7 +14053,7 @@ dropAliasStatement() throws StandardException :
 }
 
 StatementNode
-dropViewStatement() throws StandardException :
+dropViewStatement()   :
 {
 	TableName viewName;
 }
@@ -14100,7 +14065,7 @@ dropViewStatement() throws StandardException :
 }
 
 StatementNode
-dropTriggerStatement() throws StandardException :
+dropTriggerStatement()   :
 {
 	TableName triggerName;
 }
@@ -14113,7 +14078,7 @@ dropTriggerStatement() throws StandardException :
 
 
 StatementNode
-truncateTableStatement() throws StandardException :
+truncateTableStatement()   :
 {
 	TableName tableName;
 }
@@ -14128,7 +14093,7 @@ truncateTableStatement() throws StandardException :
  * <A NAME="grantStatement">grantStatement</A>
  */
 StatementNode
-grantStatement() throws StandardException :
+grantStatement()   :
 {
 	StatementNode node;
 }
@@ -14188,7 +14153,7 @@ grantStatement() throws StandardException :
  * <A NAME="tableGrantStatement">tableGrantStatement</A>
  */
 StatementNode
-tableGrantStatement() throws StandardException :
+tableGrantStatement()   :
 {
     PrivilegeNode privileges;
     List<String> grantees;
@@ -14204,7 +14169,7 @@ tableGrantStatement() throws StandardException :
 /*
  * <A NAME="tablePrivileges">tablePrivileges</A>
  */
-PrivilegeNode tablePrivileges() throws StandardException :
+PrivilegeNode tablePrivileges()   :
 {
     TablePrivilegesNode tablePrivilegesNode = null;
     TableName objectName = null;
@@ -14223,7 +14188,7 @@ PrivilegeNode tablePrivileges() throws StandardException :
 /*
  * <A NAME="tableActions">tableActions</A>
  */
-TablePrivilegesNode tableActions() throws StandardException :
+TablePrivilegesNode tableActions()   :
 {
     TablePrivilegesNode tableActionsNode =
         new TablePrivilegesNode(getContextManager());
@@ -14245,7 +14210,7 @@ TablePrivilegesNode tableActions() throws StandardException :
  * <A NAME="routineGrantStatement">routineGrantStatement</A>
  */
 StatementNode
-routineGrantStatement() throws StandardException :
+routineGrantStatement()   :
 {
     List<String> grantees;
     RoutineDesignator routine;
@@ -14268,7 +14233,7 @@ routineGrantStatement() throws StandardException :
  * <A NAME="usageGrantStatement">usageGrantStatement</A>
  */
 StatementNode
-usageGrantStatement() throws StandardException :
+usageGrantStatement()   :
 {
     List<String> grantees;
     TableName name;
@@ -14296,7 +14261,7 @@ usageGrantStatement() throws StandardException :
  * <A NAME="usableObjects">usableObjects</A>
  */
 Integer
-usableObjects() throws StandardException :
+usableObjects()   :
 {
 }
 {
@@ -14319,7 +14284,7 @@ usableObjects() throws StandardException :
 /*
  * <A NAME="routineAlias">routineAlias</A>
  */
-RoutineDesignator routineDesignator() throws StandardException :
+RoutineDesignator routineDesignator()   :
 {
     Token procOrFunction;
     TableName name;
@@ -14340,7 +14305,7 @@ RoutineDesignator routineDesignator() throws StandardException :
 /*
  * <A NAME="parameterTypeList">parameterTypeList</A>
  */
-List<TypeDescriptor> parameterTypeList( ) throws StandardException :
+List<TypeDescriptor> parameterTypeList( )   :
 {
     ArrayList<TypeDescriptor> list = new ArrayList<TypeDescriptor>();
     TypeDescriptor type;
@@ -14364,7 +14329,7 @@ List<TypeDescriptor> parameterTypeList( ) throws StandardException :
 /*
  * <A NAME="tableAction">tableAction</A>
  */
-void tableAction( TablePrivilegesNode tablePrivilegesNode)  throws StandardException :
+void tableAction( TablePrivilegesNode tablePrivilegesNode)    :
 {
     ResultColumnList columnList = null;
 }
@@ -14403,7 +14368,7 @@ void tableAction( TablePrivilegesNode tablePrivilegesNode)  throws StandardExcep
 /*
  * <A NAME="privilegeColumnList">privilegeColumnList</A>
  */
-ResultColumnList privilegeColumnList() throws StandardException :
+ResultColumnList privilegeColumnList()   :
 {
     ResultColumnList cl = new ResultColumnList(getContextManager());
 }
@@ -14417,7 +14382,7 @@ ResultColumnList privilegeColumnList() throws StandardException :
 /*
  * <A NAME="granteeList">granteeList</A>
  */
-List<String> granteeList() throws StandardException :
+List<String> granteeList()   :
 {
     ArrayList<String> list = new ArrayList<String>();
 }
@@ -14429,7 +14394,7 @@ List<String> granteeList() throws StandardException :
 }
 
 void
-grantee( List<String> list)  throws StandardException :
+grantee( List<String> list)    :
 {
     String str;
 }
@@ -14450,7 +14415,7 @@ grantee( List<String> list)  throws StandardException :
  * <A NAME="roleGrantStatement">roleGrantStatement</A>
  */
 StatementNode
-roleGrantStatement() throws StandardException :
+roleGrantStatement()   :
 {
     List<String> rolesGranted;
     List<String> grantees;
@@ -14477,7 +14442,7 @@ roleGrantStatement() throws StandardException :
 /*
  * <A NAME="roleList">roleList</A>
  */
-List<String> roleList() throws StandardException :
+List<String> roleList()   :
 {
     ArrayList<String> list = new ArrayList<String>();
 }
@@ -14493,7 +14458,7 @@ List<String> roleList() throws StandardException :
  * <A NAME="roleElement">roleElement</A>
  */
 void
-roleElement( List<String> list)  throws StandardException :
+roleElement( List<String> list)    :
 {
     String str;
 }
@@ -14509,7 +14474,7 @@ roleElement( List<String> list)  throws StandardException :
  * <A NAME="revokeStatement">revokeStatement</A>
  */
 StatementNode
-revokeStatement() throws StandardException :
+revokeStatement()   :
 {
     StatementNode node;
 }
@@ -14566,7 +14531,7 @@ revokeStatement() throws StandardException :
  * <A NAME="tableRevokeStatement">tableRevokeStatement</A>
  */
 StatementNode
-tableRevokeStatement() throws StandardException :
+tableRevokeStatement()   :
 {
     PrivilegeNode privileges = null;
     List<String> grantees;
@@ -14583,7 +14548,7 @@ tableRevokeStatement() throws StandardException :
  * <A NAME="routineRevokeStatement">routineRevokeStatement</A>
  */
 StatementNode
-routineRevokeStatement() throws StandardException :
+routineRevokeStatement()   :
 {
     List<String> grantees;
     RoutineDesignator routine = null;
@@ -14606,7 +14571,7 @@ routineRevokeStatement() throws StandardException :
  * <A NAME="usageRevokeStatement">usageRevokeStatement</A>
  */
 StatementNode
-usageRevokeStatement() throws StandardException :
+usageRevokeStatement()   :
 {
     List<String> grantees;
     TableName name;
@@ -14635,7 +14600,7 @@ usageRevokeStatement() throws StandardException :
  * <A NAME="roleRevokeStatement">roleRevokeStatement</A>
  */
 StatementNode
-roleRevokeStatement() throws StandardException :
+roleRevokeStatement()   :
 {
     List<String> rolesRevoked;
     List<String> grantees;
@@ -14653,7 +14618,7 @@ roleRevokeStatement() throws StandardException :
  * <A NAME="identifier">identifier</A>
  */
 String
-internalIdentifier( int id_length_limit, boolean checkLength) throws StandardException :
+internalIdentifier( int id_length_limit, boolean checkLength)   :
 {
 	String	str;
 	Token 	tok;
@@ -14692,7 +14657,7 @@ internalIdentifier( int id_length_limit, boolean checkLength) throws StandardExc
 }
 
 String
-identifier(int id_length_limit, boolean checkLength) throws StandardException :
+identifier(int id_length_limit, boolean checkLength)   :
 {
 	String	id;
 }
@@ -15198,7 +15163,7 @@ caseSensitiveIdentifierPlusReservedWords() :
  * <A NAME="caseInsensitiveIdentifierPlusReservedWords">caseInsensitiveIdentifierPlusReservedWords</A>
  */
 String
-caseInsensitiveIdentifierPlusReservedWords() throws StandardException :
+caseInsensitiveIdentifierPlusReservedWords()   :
 {
 	String str;
 }

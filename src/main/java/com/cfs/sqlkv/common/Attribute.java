@@ -14,4 +14,6 @@ public interface Attribute {
 
     String DBNAME_ATTR = "databaseName";
 
+    String CREATE_ATTR = "create";
+
 }

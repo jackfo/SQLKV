@@ -3,6 +3,8 @@ package com.cfs.sqlkv.io.storage;
 import com.cfs.sqlkv.io.BaseStorageFactory;
 import com.cfs.sqlkv.io.file.DirFile;
 
+import java.io.File;
+
 /**
  * @author zhengxiaokang
  * @Description
@@ -10,6 +12,11 @@ import com.cfs.sqlkv.io.file.DirFile;
  * @create 2019-01-25 09:34
  */
 public class DirStorageFactory extends BaseStorageFactory{
+
+    public DirStorageFactory(String dataDirectory) {
+        super(dataDirectory);
+    }
+
     @Override
     public boolean isReadOnlyDatabase() {
         return false;
@@ -25,7 +32,17 @@ public class DirStorageFactory extends BaseStorageFactory{
 
     @Override
     public char getSeparator() {
-        return 0;
+        return File.separatorChar;
+    }
+
+    @Override
+    public StorageFile newStorageFile(String directoryName, String fileName) {
+        return null;
+    }
+
+    @Override
+    public StorageFile newStorageFile(StorageFile directoryName, String fileName) {
+        return null;
     }
 
     @Override

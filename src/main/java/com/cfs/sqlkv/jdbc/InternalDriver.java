@@ -22,27 +22,23 @@ import java.util.logging.Logger;
  */
 public class InternalDriver implements Driver{
 
-    private static final Object syncMe = new Object();
-
     private ContextService contextServiceFactory;
-
-    public InternalDriver(){
-        contextServiceFactory = ContextService.getInstance();
-        InternalDriver.activeDriver = this;
-        active = true;
+    private static InternalDriver activeDriver;
+    static {
         try {
-            DriverManager.registerDriver(this);
+            activeDriver = new InternalDriver();
+            DriverManager.registerDriver(activeDriver);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    static {
-        System.out.println("加载InternalDriver");
-
+    public InternalDriver(){
+        contextServiceFactory = ContextService.getInstance();
+        active =true;
     }
 
-    private static InternalDriver activeDriver;
+
 
     public static final InternalDriver activeDriver() {
         return activeDriver;
@@ -51,6 +47,7 @@ public class InternalDriver implements Driver{
 
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
+        System.out.println("进行网络连接");
         return connect(url, info, DriverManager.getLoginTimeout());
     }
 
@@ -77,8 +74,6 @@ public class InternalDriver implements Driver{
             if (InternalDriver.getDatabaseName(url, finfo).length() == 0) {
 
             }
-
-
             EmbedConnection conn;
             if ( loginTimeoutSeconds <= 0 ) {
                 conn = getNewEmbedConnection( url, finfo );

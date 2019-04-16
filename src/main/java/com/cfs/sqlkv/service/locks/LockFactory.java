@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.service.locks;
 
-import com.cfs.sqlkv.exception.StandardException;
+
 
 /**
  * @author zhengxiaokang
@@ -22,7 +22,7 @@ public class LockFactory {
      * 通过锁工厂来锁住对应的对象
      *
      * */
-    public boolean lockObject(LockSpace lockSpace, Object group, Lockable ref, Object qualifier, int timeout) throws StandardException {
+    public boolean lockObject(LockSpace lockSpace, Object group, Lockable ref, Object qualifier, int timeout)   {
 
         Lock lock = lockTable.lockObject(lockSpace, ref, qualifier, timeout);
         return false;

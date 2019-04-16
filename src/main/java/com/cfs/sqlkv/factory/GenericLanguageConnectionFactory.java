@@ -4,14 +4,15 @@ import com.cfs.sqlkv.catalog.Database;
 import com.cfs.sqlkv.catalog.SchemaDescriptor;
 import com.cfs.sqlkv.common.context.ContextManager;
 import com.cfs.sqlkv.compile.CompilerContext;
-import com.cfs.sqlkv.compile.factory.ClassFactory;
 import com.cfs.sqlkv.compile.parse.ParserImpl;
 import com.cfs.sqlkv.compile.sql.GenericStatement;
 import com.cfs.sqlkv.compile.sql.Statement;
 import com.cfs.sqlkv.context.GenericLanguageConnectionContext;
 import com.cfs.sqlkv.context.LanguageConnectionContext;
-import com.cfs.sqlkv.exception.StandardException;
-import com.cfs.sqlkv.store.TransactionController;
+
+import com.cfs.sqlkv.service.loader.ClassFactory;
+import com.cfs.sqlkv.service.reflect.ReflectClasses;
+import com.cfs.sqlkv.store.TransactionManager;
 
 /**
  * @author zhengxiaokang
@@ -21,11 +22,9 @@ import com.cfs.sqlkv.store.TransactionController;
  */
 public class GenericLanguageConnectionFactory implements LanguageConnectionFactory{
 
-    private  ClassFactory classFactory;
+    private ClassFactory classFactory = new ReflectClasses();
 
     public GenericLanguageConnectionFactory(){
-        classFactory = new ClassFactory();
-        ef = new GenericExecutionFactory();
     }
 
     /**
@@ -42,7 +41,7 @@ public class GenericLanguageConnectionFactory implements LanguageConnectionFacto
     }
 
     @Override
-    public LanguageConnectionContext newLanguageConnectionContext(ContextManager cm, TransactionController tc, GenericLanguageFactory lf, Database db, String userName, String drdaID, String dbname) throws StandardException {
+    public LanguageConnectionContext newLanguageConnectionContext(ContextManager cm, TransactionManager tc, GenericLanguageFactory lf, Database db, String userName, String drdaID, String dbname)   {
         return new GenericLanguageConnectionContext(cm,
                 tc,
                 lf,
@@ -59,7 +58,7 @@ public class GenericLanguageConnectionFactory implements LanguageConnectionFacto
         return classFactory;
     }
 
-    private GenericExecutionFactory	ef;
+    private GenericExecutionFactory	ef = new GenericExecutionFactory();
     @Override
     public GenericExecutionFactory getExecutionFactory() {
         return ef;

@@ -1,33 +1,25 @@
 package com.cfs.sqlkv.service.cache;
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * @author zhengxiaokang
- * @Description
+ * @Description 缓存条目
  * @Email zheng.xiaokang@qq.com
- * @create 2019-01-17 19:24
+ * @create 2019-03-27 23:00
  */
-public final class CacheEntry {
+public class CacheEntry {
 
-    /**重入锁*/
-    private final ReentrantLock mutex = new ReentrantLock();
-
+    //实际缓存对象
     private Cacheable cacheable;
 
-    /**多少个线程持有这个CacheEntry*/
-    private int keepCount;
-
-    private Condition forRemove;
-
-    public void lock() {
-        mutex.lock();
+    public Cacheable getCacheable() {
+        return cacheable;
+    }
+    /**缓存对象是否有效*/
+    public boolean isValid(){
+        return cacheable!=null;
     }
 
-    public void unlock() {
-        mutex.unlock();
+    public void setCacheable(Cacheable cacheable) {
+        this.cacheable = cacheable;
     }
-
-
 }
