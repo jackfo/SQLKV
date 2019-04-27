@@ -193,9 +193,7 @@ public class BTreeController extends OpenBTree implements ConglomerateController
 
     @Override
     public void close() {
-
     }
-
 
     @Override
     public boolean fetch(TableRowLocation loc, DataValueDescriptor[] destRow, FormatableBitSet validColumns) {

@@ -535,8 +535,7 @@ public class DataDictionaryImpl implements DataDictionary, CacheableFactory {
         }
     }
 
-    private ConglomerateDescriptor bootstrapOneIndex(SchemaDescriptor sd, TransactionManager tc,
-                                                     DataDescriptorGenerator ddg, TabInfoImpl indexTableInfo, int indexNumber, long heapConglomerateNumber)   {
+    private ConglomerateDescriptor bootstrapOneIndex(SchemaDescriptor sd, TransactionManager tc, DataDescriptorGenerator ddg, TabInfoImpl indexTableInfo, int indexNumber, long heapConglomerateNumber)   {
         boolean isUnique;
         ConglomerateController conglomerateController;
         ExecRow baseRow;
@@ -554,23 +553,17 @@ public class DataDictionaryImpl implements DataDictionary, CacheableFactory {
         //获取当前索引的列数
         numColumns = indexTableInfo.getIndexColumnCount(indexNumber);
         isUnique = indexTableInfo.isIndexUnique(indexNumber);
-
         indexableRow = irg.getIndexRowTemplate();
-
-
         baseRow = catalogRowFactory.makeEmptyRow();
         conglomerateController = tc.openConglomerate(heapConglomerateNumber, false);
         tableRowLocation = conglomerateController.newRowLocationTemplate();
         conglomerateController.close();
         irg.getIndexRow(baseRow, tableRowLocation, indexableRow, null);
-
-
         Properties indexProperties = new Properties();
         indexProperties.put("baseConglomerateId", Long.toString(heapConglomerateNumber));
         indexProperties.put("nUniqueColumns", Integer.toString(isUnique ? numColumns : numColumns + 1));
         indexProperties.put("rowLocationColumn", Integer.toString(numColumns));
         indexProperties.put("nKeyFields", Integer.toString(numColumns + 1));
-
         //创建索引对应的Conglomerate
         conglomId = tc.createConglomerate("BTREE", indexableRow.getRowArray(), null, indexProperties);
 
@@ -601,17 +594,13 @@ public class DataDictionaryImpl implements DataDictionary, CacheableFactory {
         for (int i = 0; i < baseColumnPositions.length; i++) {
             isAscending[i] = true;
         }
-
         IndexRowGenerator irg = null;
         //创建索引增长器
-        irg = new IndexRowGenerator(
-                "BTREE", ti.isIndexUnique(indexNumber),
+        irg = new IndexRowGenerator("BTREE", ti.isIndexUnique(indexNumber),
                 false,
                 false,
-                false,
-                baseColumnPositions,
-                isAscending,
-                baseColumnPositions.length);
+                false, baseColumnPositions,
+                isAscending, baseColumnPositions.length);
 
         // For now, assume that all index columns are ordered columns
         ti.setIndexRowGenerator(indexNumber, irg);

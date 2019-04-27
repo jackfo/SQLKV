@@ -31,35 +31,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AccessManager implements CacheableFactory {
 
     public static final String RAMXACT_CONTEXT_ID = "RAMTransactionContext";
-
     public static final String USER_TRANS_NAME = "UserTransaction";
     private ConcurrentHashMap<String, MethodFactory> implmap = new ConcurrentHashMap<>();
-    protected ConglomerateFactory conglom_map[]  = new ConglomerateFactory[2];;
+    protected ConglomerateFactory conglom_map[] = new ConglomerateFactory[2];
     private CacheManager conglom_cache = new CacheManager(this, AccessFactoryGlobals.CFG_CONGLOMDIR_CACHE, 200, 300);
     private RawStoreFactory rawStoreFactory = new RawStoreFactory();
     private long conglom_nextid = 0;
 
-    public AccessManager(){
-        conglom_map[ConglomerateFactory.HEAP_FACTORY_ID]=new TableConglomerateFactory();
-        conglom_map[ConglomerateFactory.BTREE_FACTORY_ID]=new BTreeFactory();
+    public AccessManager() {
+        conglom_map[ConglomerateFactory.HEAP_FACTORY_ID] = new TableConglomerateFactory();
+        conglom_map[ConglomerateFactory.BTREE_FACTORY_ID] = new BTreeFactory();
     }
 
 
-    public MethodFactory findMethodFactoryByImpl(String impltype)  {
+    public MethodFactory findMethodFactoryByImpl(String impltype) {
         MethodFactory factory = implmap.get(impltype);
-        if (factory != null){
+        if (factory != null) {
             return factory;
         }
-
-        switch (impltype){
-
+        switch (impltype) {
             case BTreeFactory.IMPLEMENTATIONID:
                 factory = new BTreeFactory();
-                implmap.put(impltype,factory);
+                implmap.put(impltype, factory);
                 break;
             case TableConglomerateFactory.IMPLEMENTATIONID:
                 factory = new TableConglomerateFactory();
-                implmap.put(impltype,factory);
+                implmap.put(impltype, factory);
                 break;
             default:
                 throw new RuntimeException("");
@@ -67,39 +64,39 @@ public class AccessManager implements CacheableFactory {
         return factory;
     }
 
-    public TransactionManager getTransaction(ContextManager cm)  {
+    public TransactionManager getTransaction(ContextManager cm) {
         return getAndNameTransaction(cm, USER_TRANS_NAME);
     }
 
-    public void conglomCacheAddEntry(long conglomid, Conglomerate conglom)   {
+    public void conglomCacheAddEntry(long conglomid, Conglomerate conglom) {
         conglom_cache.create(conglomid, conglom);
     }
 
-    public ConglomerateFactory getFactoryFromConglomId(long    conglom_id)   {
-        return(conglom_map[((int) (0x0f & conglom_id))]);
+    public ConglomerateFactory getFactoryFromConglomId(long conglom_id) {
+        return (conglom_map[((int) (0x0f & conglom_id))]);
     }
 
     /**
      * 获取对应ConglomId
      * 由于文件存储采用的是16进制
      * ConglomId的高位是文件对应的编号,低四位是对应的工厂类型
-     * */
-    public long getNextConglomId(int factory_type){
+     */
+    public long getNextConglomId(int factory_type) {
         long conglomid;
-        synchronized (conglom_cache){
-            if (conglom_nextid == 0){
+        synchronized (conglom_cache) {
+            if (conglom_nextid == 0) {
                 conglom_nextid = (rawStoreFactory.getMaxContainerId() >> 4) + 1;
             }
             conglomid = conglom_nextid++;
         }
-        return((conglomid << 4) | factory_type);
+        return ((conglomid << 4) | factory_type);
     }
 
     /**
      * 获取事务上下文
-     * */
+     */
     public RAMTransactionContext getCurrentTransactionContext() {
-        RAMTransactionContext ramTransactionContext =  (RAMTransactionContext) ContextService.getContext(AccessFactoryGlobals.RAMXACT_CONTEXT_ID );
+        RAMTransactionContext ramTransactionContext = (RAMTransactionContext) ContextService.getContext(AccessFactoryGlobals.RAMXACT_CONTEXT_ID);
         return ramTransactionContext;
     }
 
@@ -107,23 +104,23 @@ public class AccessManager implements CacheableFactory {
     /**
      * 通过事务名称获取对应事务控制器
      * TODO:
-     * */
+     */
     public TransactionManager getAndNameTransaction(ContextManager cm, String transName) {
         RAMTransactionContext ramTransactionContext = (RAMTransactionContext) cm.getContext(AccessFactoryGlobals.RAMXACT_CONTEXT_ID);
-        if(ramTransactionContext==null){
+        if (ramTransactionContext == null) {
             Transaction rawtran = rawStoreFactory.findUserTransaction(cm, transName);
-            JuniorTransaction transaction = new JuniorTransaction(this,rawtran,null);
-            ramTransactionContext = new RAMTransactionContext(cm,AccessFactoryGlobals.RAMXACT_CONTEXT_ID,transaction,false);
+            JuniorTransaction transaction = new JuniorTransaction(this, rawtran, null);
+            ramTransactionContext = new RAMTransactionContext(cm, AccessFactoryGlobals.RAMXACT_CONTEXT_ID, transaction, false);
         }
         return ramTransactionContext.getTransaction();
     }
 
     /**
      * 通过缓存管理器找到对应的Conglomerate
-     * */
-    public Conglomerate conglomCacheFind(long conglomid)   {
-        Conglomerate conglom       = null;
-        Long         conglomid_obj = conglomid;
+     */
+    public Conglomerate conglomCacheFind(long conglomid) {
+        Conglomerate conglom = null;
+        Long conglomid_obj = conglomid;
 
         CacheableConglomerate cache_entry = (CacheableConglomerate) conglom_cache.find(conglomid_obj);
         if (cache_entry != null) {
@@ -138,7 +135,7 @@ public class AccessManager implements CacheableFactory {
         return new CacheableConglomerate(this);
     }
 
-    public RawStoreFactory getRawStoreFactory(){
+    public RawStoreFactory getRawStoreFactory() {
         return rawStoreFactory;
     }
 }

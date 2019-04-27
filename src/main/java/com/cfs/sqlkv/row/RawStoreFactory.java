@@ -17,7 +17,6 @@ public class RawStoreFactory {
     public static final int PAGE_SIZE_MINIMUM = 1024;
 
 
-
     protected BaseDataFileFactory dataFactory;
     {
         String dataDirectory = System.getProperty(PersistentService.ROOT);
@@ -27,14 +26,15 @@ public class RawStoreFactory {
     protected TransactionFactory transactionFactory = new TransactionFactory(this);
 
 
-    public long getMaxContainerId(){
+    public long getMaxContainerId() {
         return dataFactory.getMaxContainerId();
     }
-    public Transaction findUserTransaction(ContextManager contextMgr, String transName)   {
+
+    public Transaction findUserTransaction(ContextManager contextMgr, String transName) {
         return transactionFactory.findUserTransaction(this, contextMgr, transName);
     }
 
-    public BaseDataFileFactory getDataFactory(){
+    public BaseDataFileFactory getDataFactory() {
         return dataFactory;
     }
 }

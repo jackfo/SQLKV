@@ -78,11 +78,8 @@ public class CacheManager {
         if (item != null) {
             return item;
         } else {
-
             item = insertIntoFreeSlot(key, entry);
-
         }
-
         item = item.setIdentity(key);
 
         settingIdentityComplete(key, entry, item);

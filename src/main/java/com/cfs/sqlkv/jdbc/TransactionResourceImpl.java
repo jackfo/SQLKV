@@ -123,11 +123,13 @@ public final class TransactionResourceImpl {
         cleanData(accessManager);
     }
 
+    /**
+     * 获取行存储工厂,基于行存储工厂获取数据工厂,之后通过检查机值
+     * 将缓存管理器中脏页的数据都刷新到磁盘
+     */
     public static void cleanData(AccessManager accessManager) {
         RawStoreFactory rawStoreFactory = accessManager.getRawStoreFactory();
         BaseDataFileFactory dataFileFactory = rawStoreFactory.getDataFactory();
-
         dataFileFactory.checkpoint();
-
     }
 }
