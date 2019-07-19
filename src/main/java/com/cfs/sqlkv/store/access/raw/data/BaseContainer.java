@@ -104,7 +104,6 @@ public abstract class BaseContainer extends Lockable {
         int mode = handle.getMode();
         //根据identity打开对应的容器
         BaseContainerHandle allocHandle = transaction.openContainer(identity);
-
         if (allocHandle == null) {
             throw new RuntimeException("The allocation nested top transaction cannot open the container.");
         }

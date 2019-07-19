@@ -1,6 +1,6 @@
 /*
 
-   Derby - Class org.apache.derby.impl.services.bytecode.CodeChunk
+   Derby - Class com.cfs.sqlkv.impl.services.bytecode.CodeChunk
 
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with

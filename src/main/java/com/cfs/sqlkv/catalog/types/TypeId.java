@@ -426,7 +426,7 @@ public final class TypeId {
         } else if (javaTypeName.equals("java.sql.Clob")) {
             return CLOB_ID;
 
-        } else if (javaTypeName.equals("org.apache.derby.iapi.types.XML")) {
+        } else if (javaTypeName.equals("com.cfs.sqlkv.iapi.types.XML")) {
             return XML_ID;
         } else {
             /*
@@ -774,7 +774,7 @@ public final class TypeId {
             case StoredFormatIds.XML_TYPE_ID:
 
                 typePrecedence = XML_PRECEDENCE;
-                javaTypeName = "org.apache.derby.iapi.types.XML";
+                javaTypeName = "com.cfs.sqlkv.iapi.types.XML";
                 maxMaxWidth = TypeId.XML_MAXWIDTH;
 
                 // We set this to true in order to disallow use

@@ -1251,8 +1251,7 @@ public class EmbedResultSet extends ConnectionChild implements EngineResultSet {
         }
     }
 
-    protected final DataValueDescriptor getColumn(int columnIndex)
-            throws SQLException {
+    protected final DataValueDescriptor getColumn(int columnIndex) throws SQLException {
 
         closeCurrentStream();
         if (columnIndex < 1 || columnIndex > resultDescription.getColumnCount()) {

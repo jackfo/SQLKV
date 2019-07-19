@@ -233,8 +233,6 @@ public class BTreeScan extends OpenBTree implements ScanManager {
     }
 
     protected boolean process_qualifier(DataValueDescriptor[] row) {
-        boolean row_qualifies = true;
-        Qualifier q;
         throw new RuntimeException("..");
     }
 

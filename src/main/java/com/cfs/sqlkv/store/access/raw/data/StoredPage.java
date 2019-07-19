@@ -953,8 +953,7 @@ public class StoredPage extends CachedPage {
         // The size of the old field is also available for the new field
         rawDataIn.setPosition(getFieldOffset(slot, fieldId));
 
-        int fieldStatus =
-                StoredFieldHeader.readStatus(rawDataIn);
+        int fieldStatus = StoredFieldHeader.readStatus(rawDataIn);
         int fieldDataLength = StoredFieldHeader.readFieldDataLength(rawDataIn, fieldStatus, SLOT_SIZE);
 
         bytesAvailable += StoredFieldHeader.size(fieldStatus, fieldDataLength, SLOT_SIZE) + fieldDataLength;

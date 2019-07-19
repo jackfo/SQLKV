@@ -107,60 +107,17 @@ public class BCJava implements CacheableFactory, JavaFactory {
 
 	public void stop() { }
 
-	//
-	// JavaFactory interface
-	//
-
-	/**
-	 * a class.  Once it is created, fields, methods,
-	 * interfaces, static initialization code, 
-	 * and constructors can be added to it.
-	 * <verbatim>
-	   Java: package #packageName;
-	  	 #modifiers #className extends #superClass { }
-	  		// modifiers is the | of the JVM constants for
-	  		// the modifiers such as static, public, etc.
-	   </verbatim>
-	 *
-	 * See java.lang.reflect.Modifiers
-	 * @param packageName the name of the package the class is in.
-	 *	null if it is in the default package.
-	 * @param modifiers the | of the Modifiers
-	 *	constants representing the visibility and control of this
-	 *	method.
-	 * @param className the name of the class or interface
-	 * @param superClass the name of the superclass or superinterface
-	 *
-	 * @return the class builder.
-	 */
-	public ClassBuilder newClassBuilder(ClassFactory cf, String packageName,
-										int modifiers, String className, String superClass) {
+	public ClassBuilder newClassBuilder(ClassFactory cf, String packageName, int modifiers, String className, String superClass) {
 		
 		return new BCClass(cf, packageName, modifiers, className, superClass, this);
 	}
 
-	/*
-	** CacheableFactory interface
-	*/
+
 	public Cacheable newCacheable(CacheManager cm) {
 		return new VMTypeIdCacheable();
 	}
 
-	///////////////////////////////////////////
-	//
-	// UTILITIES specific to this implementation
-	//
-	////////////////////////////////////////////
-
-	/**
-	 * Get the VM Type ID that corresponds with the given java type name.
-	 * This uses the cache of VM type ids.
-	 *
-	 * @param javaType	The java type name to translate to a java VM type id
-	 *
-	 * @return		The java VM type ID
-	 */
-	Type type(String javaType) {
+	public Type type(String javaType) {
 
 		Type retval;
 

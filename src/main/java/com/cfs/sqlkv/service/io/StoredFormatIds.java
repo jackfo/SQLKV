@@ -132,144 +132,144 @@ public interface StoredFormatIds {
     **
     ******************************************************************/
     /**
-        class org.apache.derby.iapi.types.BooleanTypeId
+        class com.cfs.sqlkv.iapi.types.BooleanTypeId
      */
     static public final int BOOLEAN_TYPE_ID =
             (MIN_ID_2 + 4);
     
     /**
-        class org.apache.derby.iapi.types.BooleanTypeId
+        class com.cfs.sqlkv.iapi.types.BooleanTypeId
      */
     static public final int BOOLEAN_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 260);
     
     /**
-        class org.apache.derby.iapi.types.CharTypeId
+        class com.cfs.sqlkv.iapi.types.CharTypeId
      */
     static public final int CHAR_TYPE_ID =
             (MIN_ID_2 + 5);
 
     /**
-        class org.apache.derby.iapi.types.CharTypeId
+        class com.cfs.sqlkv.iapi.types.CharTypeId
      */
     static public final int CHAR_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 244);
 
     /**
-        class org.apache.derby.iapi.types.DoubleTypeId
+        class com.cfs.sqlkv.iapi.types.DoubleTypeId
      */
     static public final int DOUBLE_TYPE_ID =
             (MIN_ID_2 + 6);
     
     /**
-        class org.apache.derby.iapi.types.DoubleTypeId
+        class com.cfs.sqlkv.iapi.types.DoubleTypeId
      */
     static public final int DOUBLE_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 245);
     
     /**
-        class org.apache.derby.iapi.types.IntTypeId
+        class com.cfs.sqlkv.iapi.types.IntTypeId
      */
     static public final int INT_TYPE_ID =                            
             (MIN_ID_2 + 7);
 
     /**
-        class org.apache.derby.iapi.types.IntTypeId
+        class com.cfs.sqlkv.iapi.types.IntTypeId
      */
     static public final int INT_COMPILATION_TYPE_ID =                                
             (MIN_ID_2 + 246);
 
     /**
-        class org.apache.derby.iapi.types.RealTypeId
+        class com.cfs.sqlkv.iapi.types.RealTypeId
      */
     static public final int REAL_TYPE_ID =
             (MIN_ID_2 + 8);
 
     /**
-        class org.apache.derby.iapi.types.RealTypeId
+        class com.cfs.sqlkv.iapi.types.RealTypeId
      */
     static public final int REAL_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 247);
 
     /**
-        class org.apache.derby.iapi.types.RefTypeId
+        class com.cfs.sqlkv.iapi.types.RefTypeId
      */
     static public final int REF_TYPE_ID =
             (MIN_ID_2 + 9);
 
     /**
-        class org.apache.derby.iapi.types.RefTypeId
+        class com.cfs.sqlkv.iapi.types.RefTypeId
      */
     static public final int REF_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 248);
     
     /**
-        class org.apache.derby.iapi.types.SmallintTypeId
+        class com.cfs.sqlkv.iapi.types.SmallintTypeId
      */
     static public final int SMALLINT_TYPE_ID =
             (MIN_ID_2 + 10);
     
     /**
-        class org.apache.derby.iapi.types.SmallintTypeId
+        class com.cfs.sqlkv.iapi.types.SmallintTypeId
      */
     static public final int SMALLINT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 249);
     
     /**
-        class org.apache.derby.iapi.types.LongintTypeId
+        class com.cfs.sqlkv.iapi.types.LongintTypeId
      */
     static public final int BIGINT_TYPE_ID =
             (MIN_ID_2 + 11);
     
     /**
-        class org.apache.derby.iapi.types.LongintTypeId
+        class com.cfs.sqlkv.iapi.types.LongintTypeId
      */
     static public final int LONGINT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 250);
     
     /**
-        class org.apache.derby.iapi.types.UserDefinedTypeId
+        class com.cfs.sqlkv.iapi.types.UserDefinedTypeId
      */
     //static public final int USERDEFINED_TYPE_ID =
     //      (MIN_ID_2 + 12);
     
     /**
-        class org.apache.derby.iapi.types.UserDefinedTypeIdV2
+        class com.cfs.sqlkv.iapi.types.UserDefinedTypeIdV2
      */
     //static public final int USERDEFINED_TYPE_ID_V2 =
     //      (MIN_ID_2 + 267);
     /**
-        class org.apache.derby.iapi.types.UserDefinedTypeIdV3
+        class com.cfs.sqlkv.iapi.types.UserDefinedTypeIdV3
      */
     static public final int USERDEFINED_TYPE_ID_V3 =
             (MIN_ID_2 + 267);
     
     /**
-        class org.apache.derby.iapi.types.UserDefinedTypeId
+        class com.cfs.sqlkv.iapi.types.UserDefinedTypeId
      */
     static public final int USERDEFINED_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 251);
     
     /**
-        class org.apache.derby.iapi.types.UserDefinedTypeIdV2
+        class com.cfs.sqlkv.iapi.types.UserDefinedTypeIdV2
      */
     static public final int USERDEFINED_COMPILATION_TYPE_ID_V2 =
             (MIN_ID_2 + 265);
     
     /**
-        class org.apache.derby.iapi.types.VarcharTypeId
+        class com.cfs.sqlkv.iapi.types.VarcharTypeId
      */
     static public final int VARCHAR_TYPE_ID =
             (MIN_ID_2 + 13);
     
     /**
-        class org.apache.derby.iapi.types.VarcharTypeId
+        class com.cfs.sqlkv.iapi.types.VarcharTypeId
      */
     static public final int VARCHAR_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 252);
     
     /**
-    class org.apache.derby.catalog.types.TypeDescriptorImpl
+    class com.cfs.sqlkv.catalog.types.TypeDescriptorImpl
     */
     static public final int DATA_TYPE_IMPL_DESCRIPTOR_V01_ID =
             (MIN_ID_2 + 14);
@@ -290,145 +290,145 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 259);
 
     /**
-    class org.apache.derby.impl.sql.catalog.ConglomerateDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.ConglomerateDescriptorFinder
      */
     static public final int CONGLOMERATE_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 135);
     
     /**
-    class org.apache.derby.impl.sql.catalog.ConstraintDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.ConstraintDescriptorFinder
      */
     static public final int CONSTRAINT_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 208);
     
     /**
-    class org.apache.derby.impl.sql.catalog.DefaultDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.DefaultDescriptorFinder
      */
     static public final int DEFAULT_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 325);
     
     /**
-    class org.apache.derby.impl.sql.catalog.AliasDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.AliasDescriptorFinder
      */
     static public final int ALIAS_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 136);
 
     /**
-    class org.apache.derby.impl.sql.catalog.TableDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.TableDescriptorFinder
      */
     static public final int TABLE_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 137);
 
     /**
-    class org.apache.derby.impl.sql.catalog.CoreDDFinderClassInfo
+    class com.cfs.sqlkv.impl.sql.catalog.CoreDDFinderClassInfo
      */
     static public final int ROUTINE_PERMISSION_FINDER_V01_ID =
             (MIN_ID_2 + 461);
 
     /**
-    class org.apache.derby.impl.sql.catalog.CoreDDFinderClassInfo
+    class com.cfs.sqlkv.impl.sql.catalog.CoreDDFinderClassInfo
      */
     static public final int TABLE_PERMISSION_FINDER_V01_ID =
             (MIN_ID_2 + 462);
 
     /**
-    class org.apache.derby.impl.sql.catalog.CoreDDFinderClassInfo
+    class com.cfs.sqlkv.impl.sql.catalog.CoreDDFinderClassInfo
      */
     static public final int COLUMNS_PERMISSION_FINDER_V01_ID =
             (MIN_ID_2 + 463);
 
     /**
-    class org.apache.derby.impl.sql.catalog.CoreDDFinderClassInfo
+    class com.cfs.sqlkv.impl.sql.catalog.CoreDDFinderClassInfo
      */
     static public final int ROLE_GRANT_FINDER_V01_ID =
             (MIN_ID_2 + 471);
     
     /**
-    class org.apache.derby.impl.sql.catalog.DataDictionaryDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.DataDictionaryDescriptorFinder
      */
     static public final int DATA_DICTIONARY_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 138);
     
     /**
-    class org.apache.derby.impl.sql.catalog.ViewDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.ViewDescriptorFinder
      */
     static public final int VIEW_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 145);
     
     /**
-    class org.apache.derby.impl.sql.catalog.SPSDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.SPSDescriptorFinder
      */
     static public final int SPS_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 226);
 
     /**
-    class org.apache.derby.impl.sql.catalog.FileInfoFinder
+    class com.cfs.sqlkv.impl.sql.catalog.FileInfoFinder
      */
     static public final int FILE_INFO_FINDER_V01_ID =
             (MIN_ID_2 + 273);
 
     /**
-    class org.apache.derby.impl.sql.catalog.TriggerDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.TriggerDescriptorFinder
      */
     static public final int TRIGGER_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 320);
 
     /**
-     * Class org.apache.derby.impl.sql.catalog.TriggerDescriptor.
+     * Class com.cfs.sqlkv.impl.sql.catalog.TriggerDescriptor.
      */
     static public final int TRIGGER_DESCRIPTOR_V01_ID =
             (MIN_ID_2 + 316);
 
     /**
-    class org.apache.derby.impl.sql.catalog.DD_SocratesVersion
+    class com.cfs.sqlkv.impl.sql.catalog.DD_SocratesVersion
      */
     static public final int DD_SOCRATES_VERSION_ID =
             (MIN_ID_2 + 174);
     
     /**
-    class org.apache.derby.catalog.types.ReferencedColumnsDescriptorImpl
+    class com.cfs.sqlkv.catalog.types.ReferencedColumnsDescriptorImpl
      */
     static public final int REFERENCED_COLUMNS_DESCRIPTOR_IMPL_V01_ID =
             (MIN_ID_2 + 205);
     
     /**
-    class org.apache.derby.impl.sql.catalog.DD_PlatoVersion
+    class com.cfs.sqlkv.impl.sql.catalog.DD_PlatoVersion
      */
     static public final int DD_PLATO_VERSION_ID =
             (MIN_ID_2 + 206);
 
     /**
-    class org.apache.derby.impl.sql.catalog.DD_AristotleVersion
+    class com.cfs.sqlkv.impl.sql.catalog.DD_AristotleVersion
      */
     static public final int DD_ARISTOTLE_VERSION_ID =
             (MIN_ID_2 + 272);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_XenaVersion
+      class com.cfs.sqlkv.impl.sql.catalog.DD_XenaVersion
      */
     static public final int DD_XENA_VERSION_ID =
             (MIN_ID_2 + 302);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_BuffyVersion
+      class com.cfs.sqlkv.impl.sql.catalog.DD_BuffyVersion
      */
     static public final int DD_BUFFY_VERSION_ID =
             (MIN_ID_2 + 373);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_MulanVersion
+      class com.cfs.sqlkv.impl.sql.catalog.DD_MulanVersion
      */
     static public final int DD_MULAN_VERSION_ID =
             (MIN_ID_2 + 376);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_IvanovaVersion
+      class com.cfs.sqlkv.impl.sql.catalog.DD_IvanovaVersion
      */
     static public final int DD_IVANOVA_VERSION_ID =
             (MIN_ID_2 + 396);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_DB2J72
+      class com.cfs.sqlkv.impl.sql.catalog.DD_DB2J72
       now mapped to a single class DD_Version.
       5.0 databases will have this as the format identifier for their
       catalog version number.
@@ -437,7 +437,7 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 401);
 
     /**
-      class org.apache.derby.impl.sql.catalog.DD_Version
+      class com.cfs.sqlkv.impl.sql.catalog.DD_Version
       now mapped to a single class DD_Version.
       5.1 and later databases will have this as the format identifier for their
       catalog version number.
@@ -446,45 +446,45 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 402);
     
     /**
-            class org.apache.derby.iapi.types.LongvarcharTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarcharTypeId
      */
     static public final int LONGVARCHAR_TYPE_ID =
             (MIN_ID_2 + 230);
     
     /**
-            class org.apache.derby.iapi.types.LongvarcharTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarcharTypeId
      */
     static public final int LONGVARCHAR_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 256);
 
     /**
-            class org.apache.derby.iapi.types.LongvarcharTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarcharTypeId
      */
     static public final int CLOB_TYPE_ID =
             (MIN_ID_2 + 444);
     
     /**
-            class org.apache.derby.iapi.types.LongvarcharTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarcharTypeId
      */
     static public final int CLOB_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 445);
 
     /**
-            class org.apache.derby.iapi.types.LongvarbitTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarbitTypeId
             - XXXX does not exist!!!
      */
     static public final int LONGVARBIT_TYPE_ID =
             (MIN_ID_2 + 232);
 
     /**
-            class org.apache.derby.iapi.types.LongvarbitTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarbitTypeId
             - XXXX does not exist!!!
      */
     static public final int LONGVARBIT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 255);
 
     /**
-            class org.apache.derby.iapi.types.LongvarbitTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarbitTypeId
             - XXXX does not exist!!!
     But for BLOB we do the same as for LONGVARBIT, only need different ids
      */
@@ -492,7 +492,7 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 440);
 
     /**
-            class org.apache.derby.iapi.types.LongvarbitTypeId
+            class com.cfs.sqlkv.iapi.types.LongvarbitTypeId
             - XXXX does not exist!!!
     But for BLOB we do the same as for LONGVARBIT, only need different ids
      */
@@ -506,13 +506,13 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 456);
     
     /**
-        class org.apache.derby.iapi.types.JSQLType
+        class com.cfs.sqlkv.iapi.types.JSQLType
      */
     static public final int JSQLTYPEIMPL_ID =
             (MIN_ID_2 + 307);
 
     /**
-    class org.apache.derby.impl.sql.catalog.RowListImpl
+    class com.cfs.sqlkv.impl.sql.catalog.RowListImpl
      */
     static public final int ROW_LIST_V01_ID =
             (MIN_ID_2 + 239);
@@ -528,7 +528,7 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 240);
 
     /**
-    class org.apache.derby.impl.sql.catalog.IndexRowGeneratorImpl
+    class com.cfs.sqlkv.impl.sql.catalog.IndexRowGeneratorImpl
      */
     static public final int INDEX_ROW_GENERATOR_V01_ID =
             (MIN_ID_2 + 268);
@@ -570,43 +570,43 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 313);
     
     /**
-        class org.apache.derby.iapi.types.NationalCharTypeId
+        class com.cfs.sqlkv.iapi.types.NationalCharTypeId
      */
     //static public final int NATIONAL_CHAR_TYPE_ID =
             //(MIN_ID_2 + 370);
     
     /**
-        class org.apache.derby.iapi.types.NationalLongvarcharTypeId
+        class com.cfs.sqlkv.iapi.types.NationalLongvarcharTypeId
      */
     //static public final int NATIONAL_LONGVARCHAR_TYPE_ID =
             //(MIN_ID_2 + 362);
     
     /**
-        class org.apache.derby.iapi.types.NationalLongvarcharTypeId
+        class com.cfs.sqlkv.iapi.types.NationalLongvarcharTypeId
      */
     //static public final int NCLOB_TYPE_ID = 
             //(MIN_ID_2 + 448);
     
     /**
-        class org.apache.derby.iapi.types.NationalVarcharTypeId
+        class com.cfs.sqlkv.iapi.types.NationalVarcharTypeId
      */
     //static public final int NATIONAL_VARCHAR_TYPE_ID =
             //(MIN_ID_2 + 369);
 
     /**
-    class org.apache.derby.impl.sql.catalog.SchemaDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.SchemaDescriptorFinder
      */
     static public final int SCHEMA_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 371);
     
     /**
-    class org.apache.derby.impl.sql.catalog.ColumnDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.ColumnDescriptorFinder
      */
     static public final int COLUMN_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 393);
 
     /**
-    class org.apache.derby.impl.sql.catalog.SequenceDescriptorFinder
+    class com.cfs.sqlkv.impl.sql.catalog.SequenceDescriptorFinder
      */
     static public final int SEQUENCE_DESCRIPTOR_FINDER_V01_ID =
             (MIN_ID_2 + 472);
@@ -633,219 +633,219 @@ public interface StoredFormatIds {
     ||
     ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-    class org.apache.derby.impl.sql.catalog.OIDImpl
+    class com.cfs.sqlkv.impl.sql.catalog.OIDImpl
      */
     static public final int OIDIMPL_V01_ID =
             (MIN_ID_2 + 15);
     
     /**
-        class org.apache.derby.catalog.types.BooleanTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.BooleanTypeIdImpl
      */
     static public final int BOOLEAN_TYPE_ID_IMPL =
             (MIN_ID_2 + 16);
 
     /**
-        class org.apache.derby.catalog.types.CharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.CharTypeIdImpl
      */
     static public final int CHAR_TYPE_ID_IMPL =
             (MIN_ID_2 + 17);
     
     /**
-        class org.apache.derby.catalog.types.DoubleTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.DoubleTypeIdImpl
      */
     static public final int DOUBLE_TYPE_ID_IMPL =
             (MIN_ID_2 + 18);
     
     /**
-        class org.apache.derby.catalog.types.IntTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.IntTypeIdImpl
      */
     static public final int INT_TYPE_ID_IMPL =
             (MIN_ID_2 + 19);
     
     /**
-        class org.apache.derby.catalog.types.RealTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.RealTypeIdImpl
      */
     static public final int REAL_TYPE_ID_IMPL =
             (MIN_ID_2 + 20);
     
     /**
-        class org.apache.derby.catalog.types.RefTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.RefTypeIdImpl
      */
     static public final int REF_TYPE_ID_IMPL =
             (MIN_ID_2 + 21);
     
     /**
-        class org.apache.derby.catalog.types.SmallintTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.SmallintTypeIdImpl
      */
     static public final int SMALLINT_TYPE_ID_IMPL =
             (MIN_ID_2 + 22);
     
     /**
-        class org.apache.derby.catalog.types.LongintTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.LongintTypeIdImpl
      */
     static public final int BIGINT_TYPE_ID_IMPL =
             (MIN_ID_2 + 23);
         
     /**
-        class org.apache.derby.catalog.types.UserDefinedTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.UserDefinedTypeIdImpl
      */
     //static public final int USERDEFINED_TYPE_ID_IMPL =
     //      (MIN_ID_2 + 24);
 
     /**
-        class org.apache.derby.catalog.types.UserDefinedTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.UserDefinedTypeIdImpl
      */
     //static public final int USERDEFINED_TYPE_ID_IMPL_V2 =
     //      (MIN_ID_2 + 264);
 
     /**
-        class org.apache.derby.catalog.types.UserDefinedTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.UserDefinedTypeIdImpl
      */
     static public final int USERDEFINED_TYPE_ID_IMPL_V3 =
             (MIN_ID_2 + 264);
     /**
-        class org.apache.derby.catalog.types.TypesImplInstanceGetter
+        class com.cfs.sqlkv.catalog.types.TypesImplInstanceGetter
      */
     static public final int DATE_TYPE_ID_IMPL =
             (MIN_ID_2 + 32);
 
     /**
-        class org.apache.derby.catalog.types.TypesImplInstanceGetter
+        class com.cfs.sqlkv.catalog.types.TypesImplInstanceGetter
      */
     static public final int TIME_TYPE_ID_IMPL =
             (MIN_ID_2 + 33);
     /**
-        class org.apache.derby.catalog.types.TypesImplInstanceGetter
+        class com.cfs.sqlkv.catalog.types.TypesImplInstanceGetter
      */
     static public final int TIMESTAMP_TYPE_ID_IMPL =
             (MIN_ID_2 + 34);
 
     /**
-        class org.apache.derby.Database.Language.Execution.MinAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.MinAggregator
      */
     static public final int AGG_MIN_V01_ID =
             (MIN_ID_2 + 153);
 
     /**
-        class org.apache.derby.Database.Language.Execution.CountStarAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.CountStarAggregator
      */
     static public final int AGG_COUNT_STAR_V01_ID =
             (MIN_ID_2 + 150);
 
 
     /**
-        class org.apache.derby.catalog.types.VarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.VarcharTypeIdImpl
      */
     static public final int VARCHAR_TYPE_ID_IMPL =
             (MIN_ID_2 + 25);
 
     /**
-        class org.apache.derby.impl.sql.catalog.ParameterDescriptorImpl
+        class com.cfs.sqlkv.impl.sql.catalog.ParameterDescriptorImpl
      */
     static public final int PARAMETER_DESCRIPTOR_V01_ID =
             (MIN_ID_2 + 26);
 
     /**
-        class org.apache.derby.iapi.types.BitTypeId
+        class com.cfs.sqlkv.iapi.types.BitTypeId
      */
     static public final int BIT_TYPE_ID =
             (MIN_ID_2 + 27);
 
     /**
-        class org.apache.derby.catalog.types.BitTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.BitTypeIdImpl
      */
     static public final int BIT_TYPE_ID_IMPL =
             (MIN_ID_2 + 28);
 
     /**
-        class org.apache.derby.iapi.types.VarbitTypeId
+        class com.cfs.sqlkv.iapi.types.VarbitTypeId
      */
     static public final int VARBIT_TYPE_ID =
             (MIN_ID_2 + 29);
 
     /**
-        class org.apache.derby.iapi.types.VarbitTypeId
+        class com.cfs.sqlkv.iapi.types.VarbitTypeId
      */
     static public final int VARBIT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 258);
     
     /**
-            class org.apache.derby.catalog.types.VarbitTypeIdImpl
+            class com.cfs.sqlkv.catalog.types.VarbitTypeIdImpl
      */
     static public final int VARBIT_TYPE_ID_IMPL =
             (MIN_ID_2 + 30);
 
 
     /**
-            class org.apache.derby.catalog.types.IndexDescriptorImpl
+            class com.cfs.sqlkv.catalog.types.IndexDescriptorImpl
      */
     static public final int INDEX_DESCRIPTOR_IMPL_V02_ID =
             (MIN_ID_2 + 387);
     
 
     /**
-        class org.apache.derby.iapi.types.TinyintTypeId
+        class com.cfs.sqlkv.iapi.types.TinyintTypeId
      */
     static public final int TINYINT_TYPE_ID =
             (MIN_ID_2 + 195);
     
     /**
-            class org.apache.derby.catalog.types.TinyintTypeIdImpl
+            class com.cfs.sqlkv.catalog.types.TinyintTypeIdImpl
      */
     static public final int TINYINT_TYPE_ID_IMPL =
             (MIN_ID_2 + 196);
 
     /**
-        class org.apache.derby.iapi.types.DecimalTypeId
+        class com.cfs.sqlkv.iapi.types.DecimalTypeId
      */
     static public final int DECIMAL_TYPE_ID =
             (MIN_ID_2 + 197);
 
     /**
-        class org.apache.derby.iapi.types.DateTypeId
+        class com.cfs.sqlkv.iapi.types.DateTypeId
      */
     static public final int DATE_TYPE_ID =
             (MIN_ID_2 + 40);
 
     /**
-        class org.apache.derby.iapi.types.TimeTypeId
+        class com.cfs.sqlkv.iapi.types.TimeTypeId
      */
     static public final int TIME_TYPE_ID =
             (MIN_ID_2 + 35);
 
     /**
-        class org.apache.derby.iapi.types.TimestampTypeId
+        class com.cfs.sqlkv.iapi.types.TimestampTypeId
      */
     static public final int TIMESTAMP_TYPE_ID =
                 (MIN_ID_2 + 36);
         
     /**
-        class org.apache.derby.catalog.types.DecimalTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.DecimalTypeIdImpl
      */
     static public final int DECIMAL_TYPE_ID_IMPL =
             (MIN_ID_2 + 198);
 
     /**
-        class org.apache.derby.catalog.types.LongvarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.LongvarcharTypeIdImpl
      */
     static public final int LONGVARCHAR_TYPE_ID_IMPL =
             (MIN_ID_2 + 231);
 
     /**
-        class org.apache.derby.catalog.types.LongvarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.LongvarcharTypeIdImpl
      */
     static public final int CLOB_TYPE_ID_IMPL =
             (MIN_ID_2 + 446);
 
     /**
-        class org.apache.derby.catalog.types.LongvarbitTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.LongvarbitTypeIdImpl
             - does nto exist
      */
     static public final int LONGVARBIT_TYPE_ID_IMPL =
             (MIN_ID_2 + 233);
 
     /**
-        class org.apache.derby.catalog.types.LongvarbitTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.LongvarbitTypeIdImpl
         - does not exist, 
         but we do it the same way for BLOB as for Longvarbit...
      */
@@ -853,50 +853,50 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 442);
 
     /**
-        class org.apache.derby.iapi.types.BitTypeId
+        class com.cfs.sqlkv.iapi.types.BitTypeId
      */
     static public final int BIT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 253);
     
     /**
-        class org.apache.derby.iapi.types.DecimalTypeId
+        class com.cfs.sqlkv.iapi.types.DecimalTypeId
      */
     static public final int DECIMAL_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 254);
     
     /**
-        class org.apache.derby.iapi.types.TinyintTypeId
+        class com.cfs.sqlkv.iapi.types.TinyintTypeId
      */
     static public final int TINYINT_COMPILATION_TYPE_ID =
             (MIN_ID_2 + 257);
 
     /**
-        class org.apache.derby.catalog.types.NationalCharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.NationalCharTypeIdImpl
      */
     //static public final int NATIONAL_CHAR_TYPE_ID_IMPL =
             //(MIN_ID_2 + 366);
 
     /**
-        class org.apache.derby.catalog.types.NationalVarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.NationalVarcharTypeIdImpl
      */
     //static public final int NATIONAL_VARCHAR_TYPE_ID_IMPL =
             //(MIN_ID_2 + 367);
 
     /**
-        class org.apache.derby.catalog.types.NationalLongVarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.NationalLongVarcharTypeIdImpl
      */
     //static public final int NATIONAL_LONGVARCHAR_TYPE_ID_IMPL =
             //(MIN_ID_2 + 368);
     
     /**
-        class org.apache.derby.catalog.types.NationalLongVarcharTypeIdImpl
+        class com.cfs.sqlkv.catalog.types.NationalLongVarcharTypeIdImpl
      */
     //static public final int NCLOB_TYPE_ID_IMPL =
             //(MIN_ID_2 + 449);
     
     /**
-        class org.apache.derby.iapi.types.XML (implementation of
-        org.apache.derby.iapi.types.XMLDataValue).
+        class com.cfs.sqlkv.iapi.types.XML (implementation of
+        com.cfs.sqlkv.iapi.types.XMLDataValue).
      */
     static public final int XML_TYPE_ID_IMPL =
             (MIN_ID_2 + 457);
@@ -914,43 +914,43 @@ public interface StoredFormatIds {
     ******************************************************************/
 
     /**
-    class org.apache.derby.Database.Language.Execution.RenameConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.RenameConstantAction
     */
     static public final int RENAME_CONSTANT_ACTION_V01_ID   =
             (MIN_ID_2 + 390);
 
     /**
-        class org.apache.derby.Database.Language.Execution.DeleteConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.DeleteConstantAction
      */
     static public final int DELETE_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 37);
 
     /**
-        class org.apache.derby.Database.Language.Execution.InsertConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.InsertConstantAction
      */
     static public final int INSERT_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 38);
 
     /**
-        class org.apache.derby.Database.Language.Execution.UpdateConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.UpdateConstantAction
      */
     static public final int UPDATABLE_VTI_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 375);
 
     /**
-        class org.apache.derby.Database.Language.Execution.UpdateConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.UpdateConstantAction
      */
     static public final int UPDATE_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 39);
 
     /**
-        class org.apache.derby.impl.sql.execute.MatchingClauseConstantAction
+        class com.cfs.sqlkv.impl.sql.execute.MatchingClauseConstantAction
      */
     static public final int MATCHING_CLAUSE_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 476);
 
     /**
-        class org.apache.derby.impl.sql.execute.MatchingClauseConstantAction
+        class com.cfs.sqlkv.impl.sql.execute.MatchingClauseConstantAction
      */
     static public final int MERGE_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 477);
@@ -967,13 +967,13 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 41);
     
     /**
-    class org.apache.derby.Database.Language.Execution.DropAliasConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.DropAliasConstantAction
     */
     static public final int UNUSED_2_42 =
             (MIN_ID_2 + 42);
     
     /**
-    class org.apache.derby.Database.Language.Execution.CreateSchemaConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.CreateSchemaConstantAction
     */
     static public final int UNUSED_2_141    =
             (MIN_ID_2 + 141);
@@ -984,7 +984,7 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 142);
     
     /**
-    class org.apache.derby.Database.Language.Execution.CreateViewConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.CreateViewConstantAction
     */
     static public final int UNUSED_2_143    =
             (MIN_ID_2 + 143);
@@ -995,91 +995,91 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 144);
 
     /**
-        class org.apache.derby.Database.Language.Execution.ProviderInfo
+        class com.cfs.sqlkv.Database.Language.Execution.ProviderInfo
      */
     static public final int PROVIDER_INFO_V01_ID =
             (MIN_ID_2 + 148);
 
     /**
-        class org.apache.derby.Database.Language.Execution.AvgAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.AvgAggregator
      */
     static public final int AGG_AVG_V01_ID =
             (MIN_ID_2 + 149);
 
     /**
-        class org.apache.derby.Database.Language.Execution.CountAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.CountAggregator
      */
     static public final int AGG_COUNT_V01_ID =
             (MIN_ID_2 + 151);
 
     /**
-        class org.apache.derby.Database.Language.Execution.MaxMinAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.MaxMinAggregator
      */
     static public final int AGG_MAX_MIN_V01_ID =
             (MIN_ID_2 + 152);
 
     /**
-        class org.apache.derby.Database.Language.Execution.SumAggregator
+        class com.cfs.sqlkv.Database.Language.Execution.SumAggregator
      */
     static public final int AGG_SUM_V01_ID =
             (MIN_ID_2 + 154);
 
     /**
-     class org.apache.derby.Database.Language.Execution.UserAggregatorAggregator
+     class com.cfs.sqlkv.Database.Language.Execution.UserAggregatorAggregator
     */
     static public final int AGG_USER_ADAPTOR_V01_ID =
             (MIN_ID_2 + 323);
 
     /**
-        class org.apache.derby.Database.Language.Execution.StatisticsConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.StatisticsConstantAction
     */
     static public final int STATISTICS_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 155);
 
     /**
-        class org.apache.derby.Database.Language.Execution.LockTableConstantAction
+        class com.cfs.sqlkv.Database.Language.Execution.LockTableConstantAction
     */
     static public final int UNUSED_2_275 =
             (MIN_ID_2 + 275);
 
     /**
-    class org.apache.derby.Database.Language.Execution.CreateSPSConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.CreateSPSConstantAction
     */
     static public final int UNUSED_2_221    =
             (MIN_ID_2 + 221);
     
     /**
-    class org.apache.derby.Database.Language.Execution.CreateSPSConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.CreateSPSConstantAction
     */
     static public final int UNUSED_2_222    =
             (MIN_ID_2 + 222);
 
     /**
-    class org.apache.derby.Database.Language.Execution.AlterSPSConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.AlterSPSConstantAction
     */
     static public final int ALTER_SPS_CONSTANT_ACTION_V01_ID        =
             (MIN_ID_2 + 229);
 
     /**
-    class org.apache.derby.Database.Language.Execution.IndexColumnOrder
+    class com.cfs.sqlkv.Database.Language.Execution.IndexColumnOrder
     */
     static public final int INDEX_COLUMN_ORDER_V01_ID       =
             (MIN_ID_2 + 218);
 
     /**
-    class org.apache.derby.Database.Language.Execution.AggregateInfo
+    class com.cfs.sqlkv.Database.Language.Execution.AggregateInfo
     */
     static public final int AGG_INFO_V01_ID =
             (MIN_ID_2 + 223);
 
     /**
-    class org.apache.derby.Database.Language.Execution.AggregateInfoList
+    class com.cfs.sqlkv.Database.Language.Execution.AggregateInfoList
     */
     static public final int AGG_INFO_LIST_V01_ID    =
             (MIN_ID_2 + 224);
 
     /**
-       class org.apache.derby.Database.Language.Execution.DeleteConstantAction
+       class com.cfs.sqlkv.Database.Language.Execution.DeleteConstantAction
        This class is abstract so it doesn't need a format id!
      */
     static public final int WRITE_CURSOR_CONSTANT_ACTION_V01_ID =
@@ -1098,12 +1098,12 @@ public interface StoredFormatIds {
     //       (MIN_ID_2 + 238);
 
      /**
-    class org.apache.derby.Database.Language.Execution.ConstraintInfo
+    class com.cfs.sqlkv.Database.Language.Execution.ConstraintInfo
      */
     static public final int CONSTRAINT_INFO_V01_ID  =
             (MIN_ID_2 + 278);
 
-    /** Class org.apache.derby.iapi.sql.execute.ExecRowBuilder. */
+    /** Class com.cfs.sqlkv.iapi.sql.execute.ExecRowBuilder. */
     int EXEC_ROW_BUILDER_ID = MIN_ID_2 + 279;
 
     /**
@@ -1112,7 +1112,7 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 280);
 
     /**
-    class org.apache.derby.Database.Language.Execution.FKInfo
+    class com.cfs.sqlkv.Database.Language.Execution.FKInfo
      */
     static public final int FK_INFO_V01_ID  =
             (MIN_ID_2 + 282);
@@ -1123,25 +1123,25 @@ public interface StoredFormatIds {
             (MIN_ID_2 + 289);
     
     /**
-    class org.apache.derby.impl.sql.execute.TriggerInfo
+    class com.cfs.sqlkv.impl.sql.execute.TriggerInfo
      */
     static public final int TRIGGER_INFO_V01_ID     =
             (MIN_ID_2 + 317);
 
     /**
-    class org.apache.derby.impl.sql.execute.TransactionConstantAction
+    class com.cfs.sqlkv.impl.sql.execute.TransactionConstantAction
      */
     static public final int TRANSACTION_CONSTANT_ACTION_V01_ID      =
             (MIN_ID_2 + 318);
 
     /**
-    class org.apache.derby.Database.Language.Execution.SetTriggersConstantAction
+    class com.cfs.sqlkv.Database.Language.Execution.SetTriggersConstantAction
      */
     static public final int SET_TRIGGERS_CONSTANT_ACTION_V01_ID     =
             (MIN_ID_2 + 321);
 
     /**
-        class org.apache.derby.Replication.Database.Language.Execution.RepSetTriggersConstantAction
+        class com.cfs.sqlkv.Replication.Database.Language.Execution.RepSetTriggersConstantAction
      */
     static public final int REP_SET_TRIGGERS_CONSTANT_ACTION_V01_ID =
             (MIN_ID_2 + 322);
@@ -1153,19 +1153,14 @@ public interface StoredFormatIds {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    /** class org.apache.derby.Database.Language.Execution.SetSchemaConstantAction */
     static public final int SET_SCHEMA_CONSTANT_ACTION_V02_ID                       = (MIN_ID_2 + 353);
 
-    /** class org.apache.derby.Database.Language.Execution.SetTransactionIsolationConstantAction */
     static public final int SET_TRANSACTION_ISOLATION_CONSTANT_ACTION_V02_ID = (MIN_ID_2 + 354);
 
-    /** class org.apache.derby.impl.sql.execute.ColumnInfo */
     static public final int COLUMN_INFO_V02_ID                      = (MIN_ID_2 + 358);
 
-    /** class org.apache.derby.Database.Language.DependencySystem.Generic.ProviderInfo */
     static public final int PROVIDER_INFO_V02_ID                    = (MIN_ID_2 + 359);
 
-    /** class org.apache.derby.impl.sql.execute.SavepointConstantAction */
     static public final int SAVEPOINT_V01_ID                      = (MIN_ID_2 + 452);
 
     /******************************************************************
@@ -1173,15 +1168,10 @@ public interface StoredFormatIds {
     **      LanguageInterface MODULE CLASSES
     **
     ******************************************************************/
-    /**
-    class org.apache.derby.impl.sql.GenericStorablePreparedStatement
-     */
+
     static public final int STORABLE_PREPARED_STATEMENT_V01_ID      =
             (MIN_ID_2 + 225);
-    
-    /**
-    class org.apache.derby.impl.sql.GenericResultDescription
-     */
+
     static public final int GENERIC_RESULT_DESCRIPTION_V01_ID       =
             (MIN_ID_2 + 228);
 
@@ -1190,27 +1180,15 @@ public interface StoredFormatIds {
      */
     static public final int UNUSED_2_215    = (MIN_ID_2 + 215);
 
-    /**
-    class org.apache.derby.impl.sql.GenericTypeDescriptor
-     */
     static public final int GENERIC_TYPE_DESCRIPTOR_V01_ID  =
             (MIN_ID_2 + 216);
 
-    /**
-    class org.apache.derby.impl.sql.GenericTypeId
-     */
     static public final int GENERIC_TYPE_ID_V01_ID  =
             (MIN_ID_2 + 217);
 
-    /**
-    class org.apache.derby.impl.sql.CursorTableReference
-     */
     static public final int CURSOR_TABLE_REFERENCE_V01_ID   =
             (MIN_ID_2 + 296);
 
-    /**
-    class org.apache.derby.impl.sql.CursorInfo
-     */
     static public final int CURSOR_INFO_V01_ID      =
             (MIN_ID_2 + 297);
 
@@ -1220,27 +1198,15 @@ public interface StoredFormatIds {
     **
     ******************************************************************/
 
-    /**
-    class org.apache.derby.catalog.types.ClassAliasInfo
-     */
     static public final int CLASS_ALIAS_INFO_V01_ID =
             (MIN_ID_2 + 310);
 
-    /**
-    class org.apache.derby.catalog.types.MethodAliasInfo
-     */
     static public final int METHOD_ALIAS_INFO_V01_ID        =
             (MIN_ID_2 + 312);
 
-    /**
-    class org.apache.derby.catalog.types.WorkUnitAliasInfo
-     */
     static public final int WORK_UNIT_ALIAS_INFO_V01_ID     =
             (MIN_ID_2 + 309);
 
-    /**
-    class org.apache.derby.catalog.types.UserAggregateAliasInfo
-     */
     static public final int USER_AGGREGATE_ALIAS_INFO_V01_ID        =
             (MIN_ID_2 + 311);
 
@@ -1257,19 +1223,10 @@ public interface StoredFormatIds {
     **
     ******************************************************************/
             
-    /**
-    class org.apache.derby.catalog.types.DefaultInfoImpl
-     */
     static public final int DEFAULT_INFO_IMPL_V01_ID =
             (MIN_ID_2 + 326);
 
 
-
-
-
-    /**
-    class org.apache.derby.impl.sql.GenericColumnDescriptor
-     */
     static public final int GENERIC_COLUMN_DESCRIPTOR_V02_ID        =
             (MIN_ID_2 + 383);
 
@@ -1372,7 +1329,7 @@ public interface StoredFormatIds {
     //public static final int SQL_NCLOB_ID = 
             //(MIN_ID_2 + 450);
 
-    // Interface: org.apache.derby.iapi.types.XMLDataValue
+    // Interface: com.cfs.sqlkv.iapi.types.XMLDataValue
     public static final int XML_ID = 
             (MIN_ID_2 + 458);
 
@@ -1472,7 +1429,7 @@ public interface StoredFormatIds {
     ** 
     ** 
     ******************************************************************/
-    /** class org.apache.derby.impl.store.access.PropertyConglomerate */
+    /** class com.cfs.sqlkv.impl.store.access.PropertyConglomerate */
       
     static public final int PC_XENA_VERSION_ID =
             (MIN_ID_2 + 15);
@@ -1486,100 +1443,100 @@ public interface StoredFormatIds {
     **
     ******************************************************************/
 
-    /* org.apache.derby.impl.store.raw.data.ChainAllocPageOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.ChainAllocPageOperation */
     public static final int LOGOP_CHAIN_ALLOC_PAGE = 
             (MIN_ID_2 + 97);
 
-    /* org.apache.derby.impl.store.raw.xact.BeginXact */
+    /* com.cfs.sqlkv.impl.store.raw.xact.BeginXact */
     public static final int LOGOP_BEGIN_XACT = 
             (MIN_ID_2 + 169);
 
-    /* org.apache.derby.impl.store.raw.log.CheckpointOperation */
+    /* com.cfs.sqlkv.impl.store.raw.log.CheckpointOperation */
     public static final int LOGOP_CHECKPOINT =
             (MIN_ID_2 + 263);
 
-    /* org.apache.derby.impl.store.raw.data.ContainerOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.ContainerOperation */
     /* creating, dropping, removing container */
     public static final int LOGOP_CONTAINER = 
             (MIN_ID_2 + 242);
 
-    /* org.apache.derby.impl.store.raw.data.DeleteOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.DeleteOperation */
     public static final int LOGOP_DELETE = 
             (MIN_ID_2 + 101);
 
-    /* org.apache.derby.impl.store.raw.xact.EndXact */
+    /* com.cfs.sqlkv.impl.store.raw.xact.EndXact */
     public static final int LOGOP_END_XACT = 
             (MIN_ID_2 + 102);
 
-    /* org.apache.derby.impl.store.raw.data.InsertOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.InsertOperation */
     public static final int LOGOP_INSERT = 
             (MIN_ID_2 + 103);
 
-    /* org.apache.derby.impl.store.raw.data.LogicalUndoOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.LogicalUndoOperation */
     public static final int LOGOP_PAGE_LOGICAL_UNDO = 
             (MIN_ID_2 + 104);
 
-    /* org.apache.derby.impl.store.raw.data.PhysicalUndoOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.PhysicalUndoOperation */
     public static final int LOGOP_PAGE_PHYSICAL_UNDO = 
             (MIN_ID_2 + 105);
 
-    /* org.apache.derby.impl.store.raw.data.PurgeOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.PurgeOperation */
     public static final int LOGOP_PURGE = 
             (MIN_ID_2 + 106);
 
-    /* org.apache.derby.impl.store.raw.data.ContainerUndoOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.ContainerUndoOperation */
     public static final int LOGOP_CONTAINER_UNDO = 
             (MIN_ID_2 + 107);
 
-    /* org.apache.derby.impl.store.raw.data.UpdateOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.UpdateOperation */
     public static final int LOGOP_UPDATE =
             (MIN_ID_2 + 108);
 
-    /* org.apache.derby.impl.store.raw.data.UpdateFieldOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.UpdateFieldOperation */
     public static final int LOGOP_UPDATE_FIELD =
             (MIN_ID_2 + 109);
 
-    /* org.apache.derby.impl.store.raw.data.CopyRowsOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.CopyRowsOperation */
     public static final int LOGOP_COPY_ROWS = 
             (MIN_ID_2 + 210);
 
-    /* org.apache.derby.impl.store.raw.data.AllocPageOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.AllocPageOperation */
     public static final int LOGOP_ALLOC_PAGE = 
             (MIN_ID_2 + 111);
 
-    /*org.apache.derby.impl.store.raw.data.InitPageOperation */
+    /*com.cfs.sqlkv.impl.store.raw.data.InitPageOperation */
     public static final int LOGOP_INIT_PAGE =
             (MIN_ID_2 + 241);
 
-    /* org.apache.derby.impl.store.raw.data.InvalidatePageOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.InvalidatePageOperation */
     public static final int LOGOP_INVALIDATE_PAGE =
             (MIN_ID_2 + 113);
 
-    /* org.apache.derby.impl.store.raw.data.SetReservedSpaceOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.SetReservedSpaceOperation */
     public static final int LOGOP_SET_RESERVED_SPACE = 
             (MIN_ID_2 + 287);
 
-    /* org.apache.derby.impl.store.raw.data.RemoveFileOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.RemoveFileOperation */
     public static final int LOGOP_REMOVE_FILE =
             (MIN_ID_2 + 291);
 
-    /* org.apache.derby.impl.store.raw.log.ChecksumOperation */
+    /* com.cfs.sqlkv.impl.store.raw.log.ChecksumOperation */
     public static final int LOGOP_CHECKSUM =
             (MIN_ID_2 + 453);
 
-    /* org.apache.derby.impl.store.raw.data.CompressSpacePageOperation10_2 */
+    /* com.cfs.sqlkv.impl.store.raw.data.CompressSpacePageOperation10_2 */
     public static final int LOGOP_COMPRESS10_2_SPACE =
             (MIN_ID_2 + 454);
 
-    /* org.apache.derby.impl.store.raw.data.CompressSpacePageOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.CompressSpacePageOperation */
     public static final int LOGOP_COMPRESS_SPACE =
             (MIN_ID_2 + 465);
 
-    /* org.apache.derby.impl.store.raw.data.EncryptContainerOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.EncryptContainerOperation */
     public static final int LOGOP_ENCRYPT_CONTAINER =
             (MIN_ID_2 + 459);
 
-    /* org.apache.derby.impl.store.raw.data.EncryptContainerUndoOperation */
+    /* com.cfs.sqlkv.impl.store.raw.data.EncryptContainerUndoOperation */
     public static final int LOGOP_ENCRYPT_CONTAINER_UNDO =
             (MIN_ID_2 + 460);
 
@@ -1588,11 +1545,11 @@ public interface StoredFormatIds {
     ** container types
     **
     ******************************************************************/
-    /* org.apache.derby.impl.store.raw.data.FileContainer */
+    /* com.cfs.sqlkv.impl.store.raw.data.FileContainer */
     public static final int RAW_STORE_SINGLE_CONTAINER_FILE = 
             (MIN_ID_2 + 116);
 
-    /* org.apache.derby.impl.store.raw.data.StreamFileContainer */
+    /* com.cfs.sqlkv.impl.store.raw.data.StreamFileContainer */
     public static final int RAW_STORE_SINGLE_CONTAINER_STREAM_FILE = 
             (MIN_ID_2 + 290);
 
@@ -1602,11 +1559,9 @@ public interface StoredFormatIds {
     **
     **
     ******************************************************************/
-    /* org.apache.derby.impl.store.raw.data.StoredPage */
     public static final int RAW_STORE_STORED_PAGE =
             (MIN_ID_2 + 117);
 
-    /* org.apache.derby.impl.store.raw.data.AllocPage */
     public static final int RAW_STORE_ALLOC_PAGE =
             (MIN_ID_2 + 118);
 
@@ -1617,7 +1572,6 @@ public interface StoredFormatIds {
     **
     **
     ******************************************************************/
-    /* org.apache.derby.impl.store.raw.log.LogToFile */
     public static final int FILE_STREAM_LOG_FILE = 
             (MIN_ID_2 + 128);
 
@@ -1627,11 +1581,9 @@ public interface StoredFormatIds {
     ** Log record
     **
     ******************************************************************/
-    /* org.apache.derby.impl.store.raw.log.LogRecord */
     public static final int LOG_RECORD = 
             (MIN_ID_2 + 129);
 
-    /* org.apache.derby.impl.store.raw.log.LogCounter */
     public static final int LOG_COUNTER = 
             (MIN_ID_2 + 130);
 
@@ -1640,7 +1592,6 @@ public interface StoredFormatIds {
     **  identifiers
     **
     ******************************************************************/
-    /* org.apache.derby.impl.services.uuid.BasicUUID */
     public static final int BASIC_UUID = 
             (MIN_ID_2 + 131);
 
@@ -1648,26 +1599,18 @@ public interface StoredFormatIds {
      *      Transaction Ids
      */
 
-    /* org.apache.derby.impl.store.raw.xact.GlobalXactId */
-    public static final int RAW_STORE_GLOBAL_XACT_ID_V20 = 
-            (MIN_ID_2 + 132);
+    public static final int RAW_STORE_GLOBAL_XACT_ID_V20 = (MIN_ID_2 + 132);
 
-    /* org.apache.derby.impl.store.raw.xact.XactId */
-    public static final int RAW_STORE_TRANSACTION_ID =
-            (MIN_ID_2 + 147);
+    public static final int RAW_STORE_TRANSACTION_ID = (MIN_ID_2 + 147);
 
-    /* org.apache.derby.impl.store.raw.xact.XAXactId */
-    public static final int RAW_STORE_GLOBAL_XACT_ID_NEW = 
-            (MIN_ID_2 + 328);
+    public static final int RAW_STORE_GLOBAL_XACT_ID_NEW = (MIN_ID_2 + 328);
 
     /*
      * Transaction table
      */
-    /* org.apache.derby.impl.store.raw.xact.TransactionTableEntry */
     public static final int RAW_STORE_TRANSACTION_TABLE_ENTRY =
             (MIN_ID_2 + 261);
 
-    /* org.apache.derby.impl.store.raw.xact.TransactionTable */
     public static final int RAW_STORE_TRANSACTION_TABLE =
             (MIN_ID_2 + 262);
 
@@ -1682,10 +1625,8 @@ public interface StoredFormatIds {
     /*
      * Make sure this is updated when a new module is added
      */
-    public static final int MAX_ID_2 =
-            (MIN_ID_2 + 477);
+    public static final int MAX_ID_2 = (MIN_ID_2 + 477);
 
     // DO NOT USE 4 BYTE IDS ANYMORE
-    static public final int MAX_ID_4 =
-            (MIN_ID_4 + 34);
+    static public final int MAX_ID_4 = (MIN_ID_4 + 34);
 }

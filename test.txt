@@ -1,4 +1,4 @@
-connect 'jdbc:derby:dbname';
+connect 'jdbc:sqlkv:dbname';
 
 ResultSet相关笔记 http://www.cnblogs.com/timxgb/p/4796038.html
 ==>preparableSelectStatementpreparableSQLDataStatement

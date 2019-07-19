@@ -1,6 +1,6 @@
 /*
 
-   Derby - Class org.apache.derby.impl.services.bytecode.BCMethodDescriptor
+   Derby - Class com.cfs.sqlkv.impl.services.bytecode.BCMethodDescriptor
 
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with

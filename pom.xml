@@ -23,10 +23,10 @@
 
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.apache.derby/derby -->
+        <!-- https://mvnrepository.com/artifact/com.cfs.sqlkv/sqlkv -->
         <!--<dependency>-->
-            <!--<groupId>org.apache.derby</groupId>-->
-            <!--<artifactId>derby</artifactId>-->
+            <!--<groupId>com.cfs.sqlkv</groupId>-->
+            <!--<artifactId>sqlkv</artifactId>-->
             <!--<version>10.13.1.1</version>-->
             <!--<scope>test</scope>-->
         <!--</dependency>-->

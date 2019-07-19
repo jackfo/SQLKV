@@ -186,13 +186,10 @@ public class FromBaseTable extends FromTable {
         mb.push(bulkFetch);
         restrictionList.generateQualifiers(acb, mb, this, true);
         mb.upCast(Qualifier.class.getName() + "[][]");
-
         if (bulkFetch != UNSET) {
-
             mb.callMethod(VMOpcode.INVOKEINTERFACE, null, "getBulkTableScanResultSet", NoPutResultSet.class.getName(), 6);
         } else {
             mb.callMethod(VMOpcode.INVOKEINTERFACE, null, "getTableScanResultSet", NoPutResultSet.class.getName(), 6);
-
         }
 
 

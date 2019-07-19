@@ -81,7 +81,6 @@ public class BaseDataFileFactory implements CacheableFactory {
 
         boolean tmpContainer = (segmentId == BaseContainerHandle.TEMPORARY_SEGMENT);
 
-
         //创建容器
         FileContainer container = (FileContainer) containerCache.create(identity,null);
 
@@ -90,8 +89,6 @@ public class BaseDataFileFactory implements CacheableFactory {
 
         try{
             baseContainerHandle = transaction.openContainer(identity);
-
-
             //如果不是临时容器,则进行相关的操作
             if (!tmpContainer){
                 ContainerOperation lop = new ContainerOperation(baseContainerHandle, ContainerOperation.CREATE);

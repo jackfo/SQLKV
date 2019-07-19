@@ -54,10 +54,7 @@ public class ClockPolicy {
                     return;
                 }
             }
-
-
         }
-
         /**如果缓存已经达到最大,需要清除一些缓存条目*/
         if(size>maxSize){
             doShrink();
@@ -82,7 +79,6 @@ public class ClockPolicy {
                 itemsToCheck = Math.max(MIN_ITEMS_TO_CHECK, (int) (clock.size() * MAX_ROTATION));
             }
         }
-
         while (itemsToCheck-- > 0 || freeEntries.get() > 0) {
             System.out.println("rotateClock");
             final Holder h = moveHand();
@@ -151,10 +147,8 @@ public class ClockPolicy {
         }
         //具体开始清除缓存
         while (maxLooks-- > 0) {
-            System.out.println("shrinkMe");
             final Holder h;
             final int size;
-
             synchronized (clock) {
                 size = clock.size();
                 if (pos >= size) {

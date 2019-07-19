@@ -37,10 +37,9 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
      */
     protected final BaseDataFileFactory dataFactory;
 
-    protected short initialPages;        // initial number of pages preallocated
-    // to the container when created
+    protected short initialPages;
 
-    protected boolean canUpdate;        // can I be written to?
+    protected boolean canUpdate;
 
     private int PreAllocThreshold;
 
@@ -74,8 +73,6 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
         if (pageNumber < BaseContainerHandle.FIRST_PAGE_NUMBER) {
             throw new RuntimeException("getUserPage must be greater than 1");
         }
-
-
         //如果不是合法页 则返回空
         if (!pageValid(handle, pageNumber)) {
             return null;
@@ -90,7 +87,6 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
         if (page != null) {
             return page;
         }
-        boolean isoverflowOk = page.isOverflowPage() && !overflowOK;
         return page;
     }
 
@@ -260,6 +256,9 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
         return this;
     }
 
+    /**
+     * 初始化容器基本信息
+     * */
     private void initContainerHeader(boolean changeContainer) {
         if (containerInfo == null) {
             containerInfo = new byte[CONTAINER_INFO_SIZE];
@@ -274,7 +273,6 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
         //首个分配页,开始设置为不合法的页号
         firstAllocPageNumber = BaseContainerHandle.INVALID_PAGE_NUMBER;
         initializeLastInsertedPage(1);
-
         lastUnfilledPage = BaseContainerHandle.INVALID_PAGE_NUMBER;
         lastAllocatedPage = BaseContainerHandle.INVALID_PAGE_NUMBER;
     }

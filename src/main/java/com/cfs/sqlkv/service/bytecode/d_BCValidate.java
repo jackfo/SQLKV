@@ -21,17 +21,17 @@ class d_BCValidate
 
 	private static final String[] csPackages = {
 		"java",
-		"org.apache.derby.exe.",
-		"org.apache.derby.iapi.",
-		"org.apache.derby.jdbc.",
-		"org.apache.derby.iapi.",
-		"org.apache.derby.impl.",
-		"org.apache.derby.authentication.",
-		"org.apache.derby.catalog.",
-		"org.apache.derby.iapi.db.",
-		"org.apache.derby.iapi.types.",
-		"org.apache.derby.iapi.types.",
-		"org.apache.derby.catalog.types.",
+		"com.cfs.sqlkv.exe.",
+		"com.cfs.sqlkv.iapi.",
+		"com.cfs.sqlkv.jdbc.",
+		"com.cfs.sqlkv.iapi.",
+		"com.cfs.sqlkv.impl.",
+		"com.cfs.sqlkv.authentication.",
+		"com.cfs.sqlkv.catalog.",
+		"com.cfs.sqlkv.iapi.db.",
+		"com.cfs.sqlkv.iapi.types.",
+		"com.cfs.sqlkv.iapi.types.",
+		"com.cfs.sqlkv.catalog.types.",
 		};
 
 

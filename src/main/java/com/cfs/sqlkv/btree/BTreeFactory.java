@@ -40,10 +40,8 @@ public class BTreeFactory implements ConglomerateFactory {
         BaseContainerHandle container = null;
         ControlRow root = null;
         try {
-
             Transaction transaction = transactionManager.getRawStoreFactoryTransaction();
             container = transaction.openContainer(container_key);
-
             if (container == null) {
                 throw new RuntimeException("container can't be null");
             }

@@ -208,7 +208,6 @@ public class RAFContainer extends FileContainer {
 
     @Override
     public void createContainer(ContainerKey newIdentity)  {
-
         StorageFile file = privGetFileName(newIdentity, false, false, false);
         try {
             if (file.exists()) {
@@ -361,6 +360,7 @@ public class RAFContainer extends FileContainer {
         synchronized (this) {
             ioChannel = getChannel();
         }
+        //获取页的偏移量,将数据更新到对应的位置
         if(ioChannel != null) {
             long pageOffset = pageNumber * pageSize;
             byte[] dataToWrite = updatePageArray(pageNumber, pageData);

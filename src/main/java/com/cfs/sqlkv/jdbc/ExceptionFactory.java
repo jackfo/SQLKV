@@ -13,7 +13,7 @@ public abstract class ExceptionFactory {
     /**单例工厂模式*/
     private static final ExceptionFactory INSTANCE;
     static {
-        String impl = "org.apache.derby.impl.jdbc.SQLExceptionFactory";
+        String impl = "com.cfs.sqlkv.impl.jdbc.SQLExceptionFactory";
         ExceptionFactory factory = null;
         try {
             Class<?> clazz = Class.forName(impl);

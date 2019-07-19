@@ -226,10 +226,7 @@ public class DataDictionaryImpl implements DataDictionary, CacheableFactory {
     @Override
     public TableDescriptor getTableDescriptor(String tableName, SchemaDescriptor schema, TransactionManager tc) {
         TableDescriptor returnValue = null;
-
         UUID schemaUUID = schema.getUUID();
-
-
         TableKey tableKey = new TableKey(schemaUUID, tableName);
         if (getCacheMode() == DataDictionary.COMPILE_ONLY_MODE) {
             TableDescriptorCacheable cacheEntry = (TableDescriptorCacheable) nameTdCache.find(tableKey);

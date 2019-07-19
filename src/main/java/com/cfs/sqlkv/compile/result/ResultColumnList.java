@@ -117,7 +117,6 @@ public class ResultColumnList extends QueryTreeNodeVector<ResultColumn> {
                                      MethodBuilder userExprFun, boolean genNulls, boolean forMatchingClause) {
         /**定义字段*/
         LocalField field = acb.newFieldDeclaration(Modifier.PRIVATE, ExecRow.class.getName());
-        // Generate the code to create the row in the constructor
         genCreateRow(acb, field, "getValueRow", ExecRow.class.getName(), size());
         ResultColumn rc;
         int size = size();
@@ -151,8 +150,7 @@ public class ResultColumnList extends QueryTreeNodeVector<ResultColumn> {
             if (genNulls || ((rc.getExpression() instanceof ConstantNode) && ((ConstantNode) rc.getExpression()).isNull())) {
                 userExprFun.getField(field);
                 userExprFun.push(index + 1);
-                userExprFun.callMethod(VMOpcode.INVOKEINTERFACE, Row.class.getName(), "getColumn",
-                        DataValueDescriptor.class.getName(), 1);
+                userExprFun.callMethod(VMOpcode.INVOKEINTERFACE, Row.class.getName(), "getColumn", DataValueDescriptor.class.getName(), 1);
 
                 acb.generateNullWithExpress(userExprFun, rc.getTypeCompiler(), rc.getTypeServices().getCollationType());
             } else {

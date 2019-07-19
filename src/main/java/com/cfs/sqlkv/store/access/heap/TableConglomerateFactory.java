@@ -33,8 +33,7 @@ public class TableConglomerateFactory implements ConglomerateFactory {
     }
 
     @Override
-    public Conglomerate createConglomerate(TransactionManager transactionManager, int segment, long input_containerid, DataValueDescriptor[] template,
-                                           ColumnOrdering[] columnOrder, Properties properties)   {
+    public Conglomerate createConglomerate(TransactionManager transactionManager, int segment, long input_containerid, DataValueDescriptor[] template, ColumnOrdering[] columnOrder, Properties properties)   {
         Heap heap = new Heap();
         heap.create(transactionManager.getRawStoreFactoryTransaction(), segment, input_containerid, template, heap.getTypeFormatId());
         return heap;
@@ -56,7 +55,7 @@ public class TableConglomerateFactory implements ConglomerateFactory {
         //获取当前容器第一页,即分配页
         page = baseContainerHandle.getPage(BaseContainerHandle.FIRST_PAGE_NUMBER);
         //获取记录到control_row中去
-        RecordId rh = page.fetchFromSlot(null, 0, control_row, null, true);
+        page.fetchFromSlot(null, 0, control_row, null, true);
         return (Conglomerate) control_row[0];
     }
 

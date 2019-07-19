@@ -64,8 +64,7 @@ public class PredicateList extends QueryTreeNodeVector<Predicate> implements Opt
         consMB.getField(qualField);             // 1st arg allocateQualArray
         consMB.push(0);                   // 2nd arg allocateQualArray
         consMB.push(numberOfQualifiers - num_of_or_conjunctions);  // 3rd arg allocateQualArray
-        consMB.callMethod(
-                VMOpcode.INVOKESTATIC, BaseActivation.class.getName(),
+        consMB.callMethod(VMOpcode.INVOKESTATIC, BaseActivation.class.getName(),
                 "allocateQualArray", "void", 3);
         Predicate pred = elementAt(0);
         generateSingleQualifierCode(

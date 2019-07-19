@@ -1,6 +1,6 @@
 /*
 
-   Derby - Class org.apache.derby.impl.sql.compile.UCode_CharStream
+   Derby - Class com.cfs.sqlkv.impl.sql.compile.UCode_CharStream
 
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with

@@ -123,7 +123,7 @@ public class GenericStatement implements Statement{
         //
         GeneratedClass ac =qt.generate(preparedStmt.getByteCodeSaver());
         preparedStmt.setConstantAction(qt.makeConstantAction() );
-        preparedStmt.setSavedObjects( cc.getSavedObjects() );
+        preparedStmt.setSavedObjects(cc.getSavedObjects() );
         preparedStmt.setActivationClass(ac);
         preparedStmt.completeCompile(qt);
 

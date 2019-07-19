@@ -56,7 +56,7 @@ class DebugByteTeeOutputStream extends FilterOutputStream {
 
 		} catch (Throwable t) {
 
-            // for debugging purposes print this both to derby.log and to
+            // for debugging purposes print this both to sqlkv.log and to
             // System.out.
             String err_msg = 
                 "FormatableError:read error    : " + t.toString() + 

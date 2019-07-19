@@ -73,7 +73,7 @@ import com.cfs.sqlkv.service.loader.ClassFactory;
  */
 public interface JavaFactory {
 
-	public	final	static	String	JAVA_FACTORY_PROPERTY = "derby.module.JavaCompiler";
+	public	final	static	String	JAVA_FACTORY_PROPERTY = "sqlkv.module.JavaCompiler";
 
 	/**
 	 * a class.  Once it is created, fields, methods,

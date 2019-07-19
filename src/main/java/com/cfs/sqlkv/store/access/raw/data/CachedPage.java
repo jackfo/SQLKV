@@ -176,8 +176,6 @@ public abstract class CachedPage extends BasePage {
         if (formatId == -1) {
             throw new RuntimeException("unknow page format_id");
         }
-
-
         //如果格式Id不是AllocPage需要做一个转化,因为只有分配页才能分配相应的页面
         if (formatId != getTypeFormatId()) {
             CachedPage cachedPage = changeInstanceTo(formatId);
