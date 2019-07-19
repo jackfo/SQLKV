@@ -1598,7 +1598,7 @@ final class CodeChunk {
      * this INVOKE arg1 arg2 arg3 INVOKE // this.getter().metod(args)
      * </code>
      * The bytecode for the arguments can be arbitary long and
-     * consist of expressions, typical Derby code for generated
+     * consist of expressions, typical SQLKV code for generated
      * queries is deeply nested method calls.
      * <BR>
      * If none of the arguments requred the parameters passed into

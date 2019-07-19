@@ -29,7 +29,7 @@ public interface ClassFactory {
 	/**
 		Was the passed in class loaded by a ClassManager.
 
-		@return true if the class was loaded by a Derby class manager,
+		@return true if the class was loaded by a SQLKV class manager,
 		false it is was loaded by the system class loader, or another class loader.
 	*/
 	public boolean isApplicationClass(Class theClass);

@@ -54,7 +54,7 @@ public interface ClassBuilder {
 		Fully create the bytecode and load the
 		class using the ClassBuilder's ClassFactory.
 
-		@exception StandardException Standard Derby policy
+		@exception StandardException Standard SQLKV policy
 	*/
 	GeneratedClass getGeneratedClass()  ;
 

@@ -71,7 +71,7 @@ public class AccessibleByteArrayOutputStream extends ByteArrayOutputStream {
      * an InputStream against those bytes. The input stream
      * is copied until EOF is returned. This is useful to provide
      * streams to applications in order to isolate them from
-     * Derby's internals.
+     * SQLKV's internals.
      * 
      * @param in InputStream to be copied
      * @param bufferSize Initial size of the byte array

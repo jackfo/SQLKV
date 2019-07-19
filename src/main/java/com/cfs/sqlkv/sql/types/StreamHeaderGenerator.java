@@ -35,7 +35,7 @@ public interface StreamHeaderGenerator {
     int generateInto(ObjectOutput out, long valueLength) throws IOException;
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the buffer for a stream
+     * Writes a SQLKV-specific end-of-stream marker to the buffer for a stream
      * of the specified length, if required.
      *
      * @param buffer the buffer to write into
@@ -47,7 +47,7 @@ public interface StreamHeaderGenerator {
     int writeEOF(byte[] buffer, int offset, long valueLength);
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the destination stream
+     * Writes a SQLKV-specific end-of-stream marker to the destination stream
      * for the specified length, if required.
      *
      * @param out the destination stream

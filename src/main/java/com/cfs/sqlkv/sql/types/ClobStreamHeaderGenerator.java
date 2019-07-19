@@ -54,7 +54,7 @@ public final class ClobStreamHeaderGenerator
      * the version is 10.5 or newer. If {@code null}, the version will be
      * determined by obtaining the database context through the context service.
      */
-    private Boolean isPreDerbyTenFive;
+    private Boolean isPreSQLKVTenFive;
 
     /**
      * Creates a new generator that will use the context manager to determine
@@ -135,7 +135,7 @@ public final class ClobStreamHeaderGenerator
     }
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the buffer for a stream
+     * Writes a SQLKV-specific end-of-stream marker to the buffer for a stream
      * of the specified character length, if required.
      *
      * @param buffer      the buffer to write into
@@ -152,7 +152,7 @@ public final class ClobStreamHeaderGenerator
     }
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the destination stream
+     * Writes a SQLKV-specific end-of-stream marker to the destination stream
      * for the specified character length, if required.
      *
      * @param out         the destination stream

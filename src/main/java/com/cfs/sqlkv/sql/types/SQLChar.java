@@ -363,7 +363,7 @@ public class SQLChar extends DataType implements StringDataValue {
         }
         arg_passer[0] = rawData;
 
-        rawLength = in.readDerbyUTF(arg_passer, utfLen);
+        rawLength = in.readSQLKVUTF(arg_passer, utfLen);
         rawData = arg_passer[0];
     }
 

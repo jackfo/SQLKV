@@ -17,7 +17,7 @@ public interface GeneratedMethod {
 
 		Returns the value returned by the method.
 
-		@exception StandardException    Standard Derby error policy
+		@exception StandardException    Standard SQLKV error policy
 	*/
 
 	public Object invoke(Object ref)

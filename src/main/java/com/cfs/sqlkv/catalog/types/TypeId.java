@@ -64,7 +64,7 @@ public final class TypeId {
     public static final int VARBIT_MAXWIDTH = Limits.DB2_VARCHAR_MAXWIDTH;
     public static final int LONGVARBIT_MAXWIDTH = Limits.DB2_LONGVARCHAR_MAXWIDTH;
 
-    // not supposed to be limited! 4096G should be ok(?), if Derby can handle...
+    // not supposed to be limited! 4096G should be ok(?), if SQLKV can handle...
     public static final int BLOB_MAXWIDTH = Integer.MAX_VALUE; // to change long
     public static final int CLOB_MAXWIDTH = Integer.MAX_VALUE; // to change long
     public static final int XML_MAXWIDTH = Integer.MAX_VALUE;
@@ -129,15 +129,15 @@ public final class TypeId {
     public static final String XML_NAME = "XML";
 
     // ARRAY and STRUCT are JDBC 2.0 data types that are not
-    // supported by Derby.
+    // supported by SQLKV.
     public static final String ARRAY_NAME = "ARRAY";
     public static final String STRUCT_NAME = "STRUCT";
 
-    // DATALINK is a JDBC 3.0 data type. Not supported by Derby.
+    // DATALINK is a JDBC 3.0 data type. Not supported by SQLKV.
     public static final String DATALINK_NAME = "DATALINK";
 
     // ROWID and SQLXML are new types in JDBC 4.0. Not supported
-    // by Derby.
+    // by SQLKV.
     public static final String ROWID_NAME = "ROWID";
     public static final String SQLXML_NAME = "SQLXML";
 
@@ -531,7 +531,7 @@ public final class TypeId {
         }
 
         // Types defined below here are SQL types and non-JDBC types that are
-        // supported by Derby
+        // supported by SQLKV
         if (SQLTypeName.equals(REF_NAME)) {
             return REF_ID;
         }

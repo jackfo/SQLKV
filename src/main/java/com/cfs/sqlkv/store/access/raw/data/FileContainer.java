@@ -166,7 +166,7 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
      * pageNumber), but used if pageNumber == -1
      * (getEmbryonicPage)
      * @exception IOException exception reading page
-     * @exception StandardException Standard Derby error policy
+     * @exception StandardException Standard SQLKV error policy
      */
 
     private byte[] containerInfo;
@@ -299,7 +299,7 @@ public abstract class FileContainer extends BaseContainer implements Cacheable {
      * @param bytes  the bytes to write
      * @param offset the offset to start writing at
      * @throws IOException if an I/O error occurs while writing
-     * @ Derby Standard error policy
+     * @ SQLKV Standard error policy
      */
     public void writeAtOffset(StorageRandomAccessFile file, byte[] bytes, long offset) throws IOException {
         file.seek(offset);

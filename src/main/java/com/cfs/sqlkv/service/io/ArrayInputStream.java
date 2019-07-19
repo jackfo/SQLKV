@@ -324,7 +324,7 @@ public final class ArrayInputStream extends InputStream implements LimitObjectIn
     }
 
     /**
-     * read in a Derby UTF formated string into a char[].
+     * read in a SQLKV UTF formated string into a char[].
      * <p>
      * This routine inline's the code to read a UTF format string from a
      * byte[] array (pageData), into a char[] array.  The string will
@@ -333,7 +333,7 @@ public final class ArrayInputStream extends InputStream implements LimitObjectIn
      * a new char[] will be alocated and returned to the caller by putting
      * it into rawData_array[0].
      * <p>
-     * To see detailed description of the Derby UTF format see
+     * To see detailed description of the SQLKV UTF format see
      * the writeExternal() routine of SQLChar.
      * <p>
      * The routine returns the number of char's read into the returned
@@ -356,7 +356,7 @@ public final class ArrayInputStream extends InputStream implements LimitObjectIn
      * @return The the number of valid char's in the returned char[].
      * @throws IOException if an I/O error happens
      **/
-    public final int readDerbyUTF(char[][] rawData_array, int utflen)
+    public final int readSQLKVUTF(char[][] rawData_array, int utflen)
             throws IOException {
         // copy globals locally, to give compiler chance to optimize.
         byte[] data = pageData;

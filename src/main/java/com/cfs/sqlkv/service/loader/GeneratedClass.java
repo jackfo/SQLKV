@@ -21,7 +21,7 @@ public interface GeneratedClass {
 		constructor of the represneted class.
 		(Similar to java.lang.Class.newInstance).
 
-		@exception 	StandardException	Standard Derby error policy
+		@exception 	StandardException	Standard SQLKV error policy
 
 	*/
 	public Object newInstance(Context context)

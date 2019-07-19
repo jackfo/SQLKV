@@ -1,6 +1,6 @@
 package com.cfs.sqlkv.service.io;
 /**
-  Derby interface for identifying the format id for the
+  SQLKV interface for identifying the format id for the
   stored form of an object. Objects of different classes may
   have the same format id if:
 

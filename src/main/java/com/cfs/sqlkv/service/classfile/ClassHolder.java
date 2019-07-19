@@ -22,7 +22,7 @@ public class ClassHolder {
      * Minor class format number defaults to 
      * VMDescriptor.JAVA_CLASS_FORMAT_MINOR_VERSION
      * which currently corresponds to a really old (JDK 1.0.2) setting.
-     * The default major and minor value is used by the generated code for Derby's
+     * The default major and minor value is used by the generated code for SQLKV's
      * SQL statements. Currently there is no need to bump the version
      * number as the generated code does not take advantage of any of the
      * new elements in the class file format. If such a need exists then

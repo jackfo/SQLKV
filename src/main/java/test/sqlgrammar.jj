@@ -1174,7 +1174,7 @@ public class SQLParser
 
     /**
      * Determine if we are seeing an offsetClause or the identifier OFFSET
-     * (Derby does not make it a reserved word).  "n" must be an integer
+     * (SQLKV does not make it a reserved word).  "n" must be an integer
      * literal or a dynamic parameter specification.
      *
      * @return true if it is an offsetClause.
@@ -7168,10 +7168,10 @@ ValueNode
 	ValueNode xqueryExpr = null;
 
 	// Context item for the query; not required by SQL/XML spec,
-	// but required by Derby for now.
+	// but required by SQLKV for now.
 	ValueNode xmlValue = null;
 
-	// User-specified default passing mechanism.  Since Derby only
+	// User-specified default passing mechanism.  Since SQLKV only
 	// supports one type of passing mechanism--BY REF--this value
 	// isn't currently used.
 	short defaultPassingMech = -1;
@@ -7271,9 +7271,9 @@ void xqVariable(ValueNode [] xmlVal)   :
 			 *   [5] NCNameChar ::= Letter | Digit | '.' | '-' | '_' |
 			 *                    CombiningChar | Extender
 			 *
-			 * Since Derby's definition of an "identifier" is a subset
-			 * of NCName, we just use Derby's definition.  This means
-			 * that some valid NCNames won't be recognized by Derby--
+			 * Since SQLKV's definition of an "identifier" is a subset
+			 * of NCName, we just use SQLKV's definition.  This means
+			 * that some valid NCNames won't be recognized by SQLKV--
 			 * but since the ones we _do_ recognize are all still valid
 			 * NCNames, we're not breaking any rules.
 			 */
@@ -7382,16 +7382,16 @@ short
  * SEQUENCE.
  *
  * NOTE: This means that we may not be able to store the results
- * of an XMLQUERY operation into a Derby XML column.  Right now
+ * of an XMLQUERY operation into a SQLKV XML column.  Right now
  * an XML column can only hold valid DOCUMENT nodes, which we
  * we define as an XML value whose serialized form can be parsed
- * by a JAXP DocumentBuilder (because that's what Derby's XMLPARSE
+ * by a JAXP DocumentBuilder (because that's what SQLKV's XMLPARSE
  * operator uses and the result is always a Document node).
  * Internally this means that we can only store a sequence if it
  * contains exactly one org.w3c.dom.Node that is an instance of
  * org.w3c.dom.Document.  If the result of an XMLQUERY operation
  * does not fit this criteria then it will *not* be storable into
- * Derby XML columns.
+ * SQLKV XML columns.
  */
 short
 	xqReturningClause()   :
@@ -7401,7 +7401,7 @@ short
 	LOOKAHEAD( { getToken(2).kind == SEQUENCE } )
 	<RETURNING> <SEQUENCE>
 	{ // XMLQUERY should return result as a sequence.
-	  // NOTE: since Derby XML columns only allow DOCUMENT(UNTYPED),
+	  // NOTE: since SQLKV XML columns only allow DOCUMENT(UNTYPED),
 	  // the result of an XMLQUERY operator that returns SEQUENCE
 	  // might not be storable into an XML column.
 		return com.cfs.sqlkv.iapi.types.XML.XQ_RETURN_SEQUENCE;
@@ -7663,7 +7663,7 @@ newInvocation()   :
  *
  *    TABLE ( <qualifiedName> (arg1, arg2, ...) )
  *
- * where <qualifiedName> is a table name that Derby will map internally
+ * where <qualifiedName> is a table name that SQLKV will map internally
  * to a VTI (ex. "SYSCS_DIAG.SPACE_TABLE").  The list of arguments
  * will then be passed to the VTI when it is invoked (DERBY-2152).
  *
@@ -10385,8 +10385,8 @@ tableColumnList()   :
 
 /*
  * This method is called when a comment starting with "--sqlkv-properties" is
- * found.  Such a comment is a special directive to Derby and allows an SQL
- * statement to pass optimizer overrides. Derby looks for
+ * found.  Such a comment is a special directive to SQLKV and allows an SQL
+ * statement to pass optimizer overrides. SQLKV looks for
  *
  *     propertyName = value* [, propertyName = value]*
  *
@@ -10994,7 +10994,7 @@ functionTableType()   :
 
 		//
 		// We do not allow XML as a column datatype because
-		// Derby does not yet support the streaming JDBC4
+		// SQLKV does not yet support the streaming JDBC4
 		// interfaces to XML values.
 		//
 		for ( int i = 0; i < columnCount; i++ )
@@ -11680,7 +11680,7 @@ DB2DefaultOption(String columnName)   :
 	LOOKAHEAD( {getToken(2).kind == LEFT_PAREN ||
 		       (getToken(4).kind == LEFT_PAREN && 
 		        getToken(2).kind != COMMA)} ) 
-		// Check against comma: see Derby-331 
+		// Check against comma: see SQLKV-331
 		// Before adding this, the following was erroneously
 		// flagged as invalid: 
 		//	   create table foo(.., b int default 0, unique (a))
@@ -11890,10 +11890,10 @@ dateTimeLiteral()   :
 	ValueNode	constantNode;
 }
 {
-// RESOLVE: There is an incompatibility between Derby and DB2 here. The DB2 SQL parser does not recognize
-// JDBC date/time escapes. They are handled in a JDBC pre-processor. However embedded Derby does not have
-// a separate pre-processor. JDBC date/time escapes are handled by the Derby SQL parser. This will only
-// be visible if Derby is accessed through a non-JDBC pathway. (ODBC?) In that case Derby will allow
+// RESOLVE: There is an incompatibility between SQLKV and DB2 here. The DB2 SQL parser does not recognize
+// JDBC date/time escapes. They are handled in a JDBC pre-processor. However embedded SQLKV does not have
+// a separate pre-processor. JDBC date/time escapes are handled by the SQLKV SQL parser. This will only
+// be visible if SQLKV is accessed through a non-JDBC pathway. (ODBC?) In that case SQLKV will allow
 // the JDBC date/time escape while DB2 will not.
 	(
 		( <LEFT_BRACE> constantNode = escapedDateTimeLiteral() <RIGHT_BRACE> )
@@ -12063,7 +12063,7 @@ constraintNameDefinition()   :
 }
 
 /*
- * DB2 requires column check constraints to refer to only that column. Derby
+ * DB2 requires column check constraints to refer to only that column. SQLKV
  * doesn't care if check constraints are column level or table level. For DB2 compatibility
  * check that column check constraints only refer to that column.
  */
@@ -12586,7 +12586,7 @@ valueSpecification()   :
         <COMMA> rightExpression = valueExpression() <RIGHT_PAREN>
 	{
 		// "NULLIF(L, R)" is the same as "L=R ? untyped NULL : L"
-		// An impl assumption here is that Derby can promote CHAR to any comparable datatypes such as numeric
+		// An impl assumption here is that SQLKV can promote CHAR to any comparable datatypes such as numeric
 		ContextManager cm = getContextManager();
         ValueNodeList whenList = new ValueNodeList(cm);
         ValueNodeList thenElseList = new ValueNodeList(cm);
@@ -13753,7 +13753,7 @@ columnAlterClause(String columnName)   :
 										   autoIncrementInfo);
 	}
 |
-    // The SQL standard syntax is DROP NOT NULL. Also accept Derby legacy
+    // The SQL standard syntax is DROP NOT NULL. Also accept SQLKV legacy
     // syntax, which is simply NULL.
     LOOKAHEAD ({getToken(1).kind == NULL ||
                  (getToken(1).kind == DROP && getToken(2).kind == NOT)})
@@ -13773,7 +13773,7 @@ columnAlterClause(String columnName)   :
                                  getContextManager());
 	}
 |
-    // The SQL standard syntax is SET NOT NULL. Also accept Derby legacy
+    // The SQL standard syntax is SET NOT NULL. Also accept SQLKV legacy
     // syntax NOT NULL.
     LOOKAHEAD({getToken(1).kind == NOT ||
                 (getToken(1).kind == SET && getToken(2).kind == NOT)})
@@ -14709,7 +14709,7 @@ reservedKeyword() :
 		NOTE: The same ones are commented out here as above in the token
 		rule, for the same reason.
 		
-		Derby-139 - LOCAL removed as reserved word as most other
+		SQLKV-139 - LOCAL removed as reserved word as most other
 		databases do not enforce it. LOCAL not used at all in grammar so token removed.
 	 */
 	(

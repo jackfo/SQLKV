@@ -24,7 +24,7 @@ import java.io.ObjectOutput;
 public final class CharStreamHeaderGenerator
     implements StreamHeaderGenerator {
 
-    /** The Derby-specific end-of-stream marker. */
+    /** The SQLKV-specific end-of-stream marker. */
     private static  final   byte[] DERBY_EOF_MARKER = new byte[] {(byte)0xE0, 0x00, 0x00};
 
     /** The maximum length that can be encoded by the header. */
@@ -96,7 +96,7 @@ public final class CharStreamHeaderGenerator
     }
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the buffer for a stream
+     * Writes a SQLKV-specific end-of-stream marker to the buffer for a stream
      * of the specified byte length, if required.
      *
      * @param buffer the buffer to write into
@@ -115,7 +115,7 @@ public final class CharStreamHeaderGenerator
     }
 
     /**
-     * Writes a Derby-specific end-of-stream marker to the destination stream
+     * Writes a SQLKV-specific end-of-stream marker to the destination stream
      * for the specified byte length, if required.
      *
      * @param out the destination stream
